@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:marquee/marquee.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shift_project/constants/constants.dart';
+import 'package:shift_project/widgets/drawer_widget.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -96,13 +97,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  final ButtonStyle chooseDestination = TextButton.styleFrom(
-    minimumSize: Size(double.infinity, 40),
-    padding: EdgeInsets.symmetric(horizontal: 16),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(2)),
-    ),
-  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -118,11 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(5),
-                        topRight: Radius.circular(5),
-                        bottomLeft: Radius.circular(5),
-                        bottomRight: Radius.circular(5)),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.grey.withOpacity(0.5),
@@ -151,11 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(5),
-                          topRight: Radius.circular(5),
-                          bottomLeft: Radius.circular(5),
-                          bottomRight: Radius.circular(5)),
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.grey.withOpacity(0.5),
@@ -200,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     blankSpace: 20.0,
-                                    velocity: 40.0,
+                                    velocity: 30.0,
                                     pauseAfterRound: Duration(seconds: 1),
                                     startPadding: 10.0,
                                     accelerationDuration: Duration(seconds: 1),
@@ -221,6 +207,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
                           ),
                         ),
+                        SizedBox(
+                          width: 8,
+                        ),
                         Flexible(
                           flex: 1,
                           child: Padding(
@@ -237,14 +226,36 @@ class _MyHomePageState extends State<MyHomePage> {
                                   size: 35,
                                   color: Colors.blue,
                                 ),
-                                Text(
-                                  'Heavy Rain',
-                                  style: TextStyle(
-                                    fontSize: titleSubtitleFontSize,
-                                    fontFamily: interFontFamily,
-                                    overflow: TextOverflow.ellipsis,
+                                Container(
+                                  height: 18,
+                                  child: Marquee(
+                                    text: 'Heavy Rain',
+                                    style: TextStyle(
+                                      fontSize: titleSubtitleFontSize,
+                                      fontFamily: interFontFamily,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    scrollAxis: Axis.horizontal,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    blankSpace: 20.0,
+                                    velocity: 10.0,
+                                    pauseAfterRound: Duration(seconds: 1),
+                                    startPadding: 10.0,
+                                    accelerationDuration: Duration(seconds: 1),
+                                    accelerationCurve: Curves.linear,
+                                    decelerationDuration: Duration(seconds: 2),
+                                    decelerationCurve: Curves.easeOut,
                                   ),
                                 ),
+                                // Text(
+                                //   'Heavy Rain',
+                                //   style: TextStyle(
+                                //     fontSize: titleSubtitleFontSize,
+                                //     fontFamily: interFontFamily,
+                                //     overflow: TextOverflow.ellipsis,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),
@@ -259,38 +270,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       extendBodyBehindAppBar: true,
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Weather',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              title: const Text('Weather Item 1'),
-              onTap: () {
-                // Handle weather item 1 tap
-              },
-            ),
-            ListTile(
-              title: const Text('Weather Item 2'),
-              onTap: () {
-                // Handle weather item 2 tap
-              },
-            ),
-            // Add more weather items as needed
-          ],
-        ),
-      ),
+      drawer: WeatherDrawer(),
       body: Stack(
         children: [
           currentPosition == null
@@ -386,11 +366,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   margin: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(5),
-                        topRight: Radius.circular(5),
-                        bottomLeft: Radius.circular(5),
-                        bottomRight: Radius.circular(5)),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.grey.withOpacity(0.5),
