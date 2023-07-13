@@ -11,7 +11,7 @@ Image logo = Image.asset('assets/images/shift logo transparent.png');
 
 const String interFontFamily = 'Inter';
 
-const double defaultFontSize = 14.0;
-const double defaultSubtitleFontSize = 12.0;
-const double titleFontSize = 30.0;
-const double titleSubtitleFontSize = 16.0;
+const double defaultFontSize = 12.0;
+const double defaultSubtitleFontSize = 10.0;
+const double titleFontSize = 28.0;
+const double titleSubtitleFontSize = 14.0;
