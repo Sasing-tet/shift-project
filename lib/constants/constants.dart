@@ -8,6 +8,13 @@ const scaffoldBackground = BoxDecoration(
   ),
 );
 
+const drawerBackground = BoxDecoration(
+  image: DecorationImage(
+    image: AssetImage("assets/images/shift bg 1.png"),
+    fit: BoxFit.cover,
+    alignment: Alignment.topCenter,
+  ),
+);
 Image logo = Image.asset('assets/images/shift logo transparent.png');
 Image facebookLogo = Image.asset('assets/images/fb login logo.png');
 Image googleLogo = Image.asset('assets/images/google login logo.png');
@@ -20,7 +27,8 @@ const double defaultSubtitleFontSize = 12.0;
 const double titleFontSize = 28.0;
 const double titleSubtitleFontSize = 16.0;
 
-const double logoScreenTitleSize = 50.00;
+const double loginScreenTitleSize = 50.00;
+const double logoScreenTitleSize = 70.00;
 
 const Color shiftRed = Color(0xFFFD3C3B);
 const Color shiftBlack = Color(0xFF1E232C);

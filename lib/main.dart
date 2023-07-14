@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shift_project/screens/home/home_screen.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
+import 'package:shift_project/screens/logo/logo_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
+      home: const LogoScreen(),
     );
   }
 }

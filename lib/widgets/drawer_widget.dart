@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shift_project/constants/constants.dart';
 
 class WeatherDrawer extends StatelessWidget {
   const WeatherDrawer({Key? key}) : super(key: key);
@@ -10,9 +11,7 @@ class WeatherDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
+            decoration: drawerBackground,
             child: Text(
               'Weather',
               style: TextStyle(

@@ -41,7 +41,7 @@ class LoginScreen extends StatelessWidget {
                                   text: 'SH',
                                   style: TextStyle(
                                     fontFamily: interFontFamily,
-                                    fontSize: logoScreenTitleSize,
+                                    fontSize: loginScreenTitleSize,
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 10,
@@ -51,7 +51,7 @@ class LoginScreen extends StatelessWidget {
                                   text: 'I',
                                   style: TextStyle(
                                     fontFamily: interFontFamily,
-                                    fontSize: logoScreenTitleSize,
+                                    fontSize: loginScreenTitleSize,
                                     color: shiftRed,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 10,
@@ -61,7 +61,7 @@ class LoginScreen extends StatelessWidget {
                                   text: 'FT',
                                   style: TextStyle(
                                     fontFamily: interFontFamily,
-                                    fontSize: logoScreenTitleSize,
+                                    fontSize: loginScreenTitleSize,
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 10,
@@ -166,7 +166,7 @@ class LoginScreen extends StatelessWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                Flexible(
+                                Expanded(
                                   child: Container(
                                     decoration: BoxDecoration(
                                       border: Border.all(
@@ -177,7 +177,7 @@ class LoginScreen extends StatelessWidget {
                                     ),
                                     padding: EdgeInsets.all(8),
                                     child: SizedBox(
-                                      width: 40,
+                                      height: 40,
                                       child: facebookLogo,
                                     ),
                                   ),
@@ -185,7 +185,7 @@ class LoginScreen extends StatelessWidget {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                Flexible(
+                                Expanded(
                                   child: Container(
                                     decoration: BoxDecoration(
                                       border: Border.all(
@@ -196,7 +196,7 @@ class LoginScreen extends StatelessWidget {
                                     ),
                                     padding: EdgeInsets.all(8),
                                     child: SizedBox(
-                                      width: 40,
+                                      height: 40,
                                       child: googleLogo,
                                     ),
                                   ),
@@ -204,7 +204,7 @@ class LoginScreen extends StatelessWidget {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                Flexible(
+                                Expanded(
                                   child: Container(
                                     decoration: BoxDecoration(
                                       border: Border.all(
@@ -215,7 +215,7 @@ class LoginScreen extends StatelessWidget {
                                     ),
                                     padding: EdgeInsets.all(8),
                                     child: SizedBox(
-                                      width: 40,
+                                      height: 40,
                                       child: githubLogo,
                                     ),
                                   ),
