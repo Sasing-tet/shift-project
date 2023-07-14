@@ -12,7 +12,7 @@ void main() async {
   final longitude = position.longitude;
 
   final response = await dio.get(
-    'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,rain,showers',
+    'https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&hourly=temperature_2m,rain,showers',
   );
 
   if (response.statusCode == 200) {
