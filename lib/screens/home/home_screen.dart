@@ -40,12 +40,13 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   void initState() {
     super.initState();
+       _determinePosition();
     mapController = MapController.withUserPosition(
         trackUserLocation: const UserTrackingOption(
       enableTracking: true,
-      unFollowUser: true,
+      unFollowUser: false,
     ));
-   _determinePosition();
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -591,9 +592,9 @@ class _MyHomePageState extends State<MyHomePage>
               ),
             ),
           );
-          if (pointsRoad.length > 1 ) {
+        
             roadActionBt(context);
-          }
+          
   }}});
                         },
                         child: Row(
@@ -644,7 +645,7 @@ class _MyHomePageState extends State<MyHomePage>
 
       showFab.value = false;
       pointsRoad.add( await mapController.myLocation());
-
+      
       // final bottomPersistant = scaffoldKey.currentState!.showBottomSheet(
       //   (ctx) {
       //     return PointerInterceptor(
