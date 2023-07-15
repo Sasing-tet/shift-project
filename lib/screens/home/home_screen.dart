@@ -45,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage>
       enableTracking: true,
       unFollowUser: true,
     ));
-   
+   _determinePosition();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -73,6 +73,7 @@ class _MyHomePageState extends State<MyHomePage>
                 zoomInto: true,
                 roadColor: Colors.blueAccent,
             ),
+
         );
     }
 }
@@ -81,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage>
     final String startCoords = '${start.latitude},${start.longitude}';
     final String destinationCoords = '${destination.latitude},${destination.longitude}';
 
-    final String url = 'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
+    final String url = 'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&mode=driving&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
 
     final response = await http.get(Uri.parse(url));
     List<String> polylines = [];
