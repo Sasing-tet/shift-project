@@ -1,13 +1,19 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
+// import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:marquee/marquee.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:shift_project/constants/constants.dart';
+import 'package:shift_project/screens/home/components/road_choice_widget.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -19,30 +25,81 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
+        late GlobalKey<ScaffoldState> scaffoldKey;
   LatLng? currentPosition;
   late MapController mapController;
   bool isExpanded = false;
   bool isMapOverlayVisible = true;
   late AnimationController _animationController;
   late Animation<double> _animation;
+  ValueNotifier<bool> showFab = ValueNotifier(true);
+   ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
+  ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
+  List<GeoPoint> pointsRoad = [];
 
   @override
   void initState() {
     super.initState();
-    mapController = MapController();
-    _determinePosition();
+    mapController = MapController.withUserPosition(
+        trackUserLocation: const UserTrackingOption(
+      enableTracking: true,
+      unFollowUser: true,
+    ));
+   
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
     _animation =
         CurvedAnimation(parent: _animationController, curve: Curves.easeInOut);
+
+   
+        
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    mapController.dispose();
     super.dispose();
+  }
+
+  Future<void> drawRoadManually(List<String> encodedPolylines) async {
+    for (var encoded in encodedPolylines) {
+        final list = await encoded.toListGeo();
+        await mapController.drawRoadManually(
+            list,
+            RoadOption(
+                zoomInto: true,
+                roadColor: Colors.blueAccent,
+            ),
+        );
+    }
+}
+
+  Future<List<String>> getDirections(GeoPoint start, GeoPoint destination) async {
+    final String startCoords = '${start.latitude},${start.longitude}';
+    final String destinationCoords = '${destination.latitude},${destination.longitude}';
+
+    final String url = 'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
+
+    final response = await http.get(Uri.parse(url));
+    List<String> polylines = [];
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> map = jsonDecode(response.body);
+      List routes = map["routes"];
+
+      for (var i = 0; i < routes.length; i++) {
+        var route = routes[i];
+        var polyline = route["overview_polyline"]["points"];
+        polylines.add(polyline);
+      }
+    } else {
+      print('Failed to load directions');
+    }
+
+    return polylines;
   }
 
   Future<void> _determinePosition() async {
@@ -357,30 +414,66 @@ class _MyHomePageState extends State<MyHomePage>
       body: Stack(
         children: [
           currentPosition == null
-              ? const Center(child: CircularProgressIndicator())
-              : FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    center: currentPosition!,
-                    zoom: 17,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      subdomains: const ['a', 'b', 'c'],
-                    ),
-                    CircleLayer(
-                      circles: [
-                        CircleMarker(
-                          point: currentPosition!,
-                          color: Colors.blue,
-                          radius: 8,
-                        ),
-                      ],
-                    ),
-                  ],
+              ? const Center(child: CircularProgressIndicator()):
+              // : FlutterMap(
+              //     mapController: mapController,
+              //     options: MapOptions(
+              //       center: currentPosition!,
+              //       zoom: 17,
+              //     ),
+              //     children: [
+              //       TileLayer(
+              //         urlTemplate:
+              //             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+              //         subdomains: const ['a', 'b', 'c'],
+              //       ),
+              //       CircleLayer(
+              //         circles: [
+              //           CircleMarker(
+              //             point: currentPosition!,
+              //             color: Colors.blue,
+              //             radius: 8,
+              //           ),
+              //         ],
+              //       ),
+              //     ],
+              //   ),
+              OSMFlutter( 
+                androidHotReloadSupport: true,
+            enableRotationByGesture: true,
+        controller:mapController,
+        initZoom: 15,
+        minZoomLevel: 8,
+        maxZoomLevel: 19,
+        stepZoom: 12.0,
+        userLocationMarker: UserLocationMaker(
+            personMarker: const MarkerIcon(
+                icon: Icon(
+                    Icons.person_pin_circle,
+                    color: Colors.blueAccent,
+                    size: 100,
                 ),
+            ),
+            directionArrowMarker: const MarkerIcon(
+                icon: Icon(
+                    Icons.double_arrow,
+                    size: 48,
+                ),
+            ),
+        ),
+         roadConfiguration: const RoadOption(
+                roadColor: Colors.yellowAccent,
+        ),
+        markerOption: MarkerOption(
+            defaultMarker: const MarkerIcon(
+                icon: Icon(
+                  Icons.person_pin_circle,
+                  color: Colors.blue,
+                  size: 56,
+                  ),
+                )
+        ),
+    ),
           if (isMapOverlayVisible && isExpanded)
             GestureDetector(
               onTap: () {
@@ -448,10 +541,16 @@ class _MyHomePageState extends State<MyHomePage>
                       Icons.my_location,
                       size: 35,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if (currentPosition != null) {
-                        mapController.move(currentPosition!, 17);
-                        setState(() {});
+                        // mapController.move(currentPosition!, 17);
+                        // setState(() {});
+                          await mapController.currentLocation();
+                         await mapController.enableTracking(
+                  enableStopFollow: true,
+                  disableUserMarkerRotation: true,
+                );
+                await mapController.zoomIn();
                       }
                     },
                   ),
@@ -470,30 +569,55 @@ class _MyHomePageState extends State<MyHomePage>
                       ),
                     ],
                   ),
-                  child: TextButton(
-                    style: chooseDestination,
-                    onPressed: () {},
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.location_pin,
-                          size: 25,
-                          color: Colors.redAccent,
+                  child: Builder(
+                    builder: (ctx) {
+                      return TextButton(
+                        style: chooseDestination,
+                        onPressed: () {
+                          beginDrawRoad.value = true;
+                               mapController.listenerMapSingleTapping.addListener(() async {
+      if (mapController.listenerMapSingleTapping.value != null) {
+        print(mapController.listenerMapSingleTapping.value);
+        if (beginDrawRoad.value) {
+          pointsRoad.add(mapController.listenerMapSingleTapping.value!);
+          await mapController.addMarker(
+            mapController.listenerMapSingleTapping.value!,
+            markerIcon: MarkerIcon(
+              icon: Icon(
+                Icons.person_pin_circle,
+                color: Colors.amber,
+                size: 48,
+              ),
+            ),
+          );
+          if (pointsRoad.length > 1 ) {
+            roadActionBt(context);
+          }
+  }}});
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.location_pin,
+                              size: 25,
+                              color: Colors.redAccent,
+                            ),
+                            SizedBox(
+                              width: 5,
+                            ),
+                            Text(
+                              'Choose Destination',
+                              style: TextStyle(
+                                fontFamily: interFontFamily,
+                                fontSize: titleSubtitleFontSize,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(
-                          width: 5,
-                        ),
-                        Text(
-                          'Choose Destination',
-                          style: TextStyle(
-                            fontFamily: interFontFamily,
-                            fontSize: titleSubtitleFontSize,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    }
                   ),
                 ),
               ],
@@ -511,5 +635,77 @@ class _MyHomePageState extends State<MyHomePage>
       //   child: const Icon(Icons.my_location),
       // ),
     );
+  }
+
+  void roadActionBt(BuildContext ctx) async {
+    try {
+      ///selection geoPoint
+
+      showFab.value = false;
+      pointsRoad.add( await mapController.myLocation());
+
+      // final bottomPersistant = scaffoldKey.currentState!.showBottomSheet(
+      //   (ctx) {
+      //     return PointerInterceptor(
+      //       child: RoadTypeChoiceWidget(
+      //         setValueCallback: (roadType) {
+      //           notifierRoadType.value = roadType;
+      //         },
+      //       ),
+      //     );
+      //   },
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0.0,
+      // );
+      // await bottomPersistant.closed.then((roadType) async {
+        showFab.value = true;
+        beginDrawRoad.value = false;
+        RoadInfo roadInformation = await mapController.drawRoad(
+          pointsRoad.first, 
+          pointsRoad.last,
+          roadType: RoadType.car,
+          intersectPoint:
+              pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
+          roadOption: RoadOption(
+            roadWidth: 15,
+            roadColor: Colors.red,
+            zoomInto: true,
+            roadBorderWidth: 2,
+            roadBorderColor: Colors.green,
+          ),
+        );
+
+        final  getRoutes = await getDirections(pointsRoad.first, pointsRoad.last);
+        drawRoadManually(getRoutes);
+        pointsRoad.clear();
+        debugPrint(
+            "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
+        debugPrint("app distance:${roadInformation.distance}Km");
+        debugPrint("app road:" + roadInformation.toString());
+        final console = roadInformation.instructions
+            .map((e) => e.toString())
+            .reduce(
+              (value, element) => "$value -> \n $element",
+            )
+            .toString();
+        debugPrint(
+          console,
+          wrapWidth: console.length,
+        );
+        final box = await BoundingBox.fromGeoPointsAsync([pointsRoad.first, pointsRoad.last]);
+        mapController.zoomToBoundingBox(
+          box,
+          paddinInPixel: 64,
+        );
+      
+    } on RoadException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "${e.errorMessage()}",
+          ),
+        ),
+      );
+    }
   }
 }
