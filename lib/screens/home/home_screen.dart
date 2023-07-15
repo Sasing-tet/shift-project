@@ -6,6 +6,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 // import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:geocoder_buddy/geocoder_buddy.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -13,8 +15,11 @@ import 'package:marquee/marquee.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:shift_project/constants/constants.dart';
+import 'package:shift_project/fetch/models/weather_data_model.dart';
 import 'package:shift_project/screens/home/components/road_choice_widget.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
+
+import '../../fetch/weather API/weather_forecast.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -25,7 +30,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
-        late GlobalKey<ScaffoldState> scaffoldKey;
+  late GlobalKey<ScaffoldState> scaffoldKey;
   LatLng? currentPosition;
   late MapController mapController;
   bool isExpanded = false;
@@ -33,14 +38,15 @@ class _MyHomePageState extends State<MyHomePage>
   late AnimationController _animationController;
   late Animation<double> _animation;
   ValueNotifier<bool> showFab = ValueNotifier(true);
-   ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
+  ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
   ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
   List<GeoPoint> pointsRoad = [];
+  Map<String, dynamic> details = {};
 
   @override
   void initState() {
     super.initState();
-       _determinePosition();
+    _determinePosition();
     mapController = MapController.withUserPosition(
         trackUserLocation: const UserTrackingOption(
       enableTracking: true,
@@ -53,9 +59,6 @@ class _MyHomePageState extends State<MyHomePage>
     );
     _animation =
         CurvedAnimation(parent: _animationController, curve: Curves.easeInOut);
-
-   
-        
   }
 
   @override
@@ -67,23 +70,25 @@ class _MyHomePageState extends State<MyHomePage>
 
   Future<void> drawRoadManually(List<String> encodedPolylines) async {
     for (var encoded in encodedPolylines) {
-        final list = await encoded.toListGeo();
-        await mapController.drawRoadManually(
-            list,
-            RoadOption(
-                zoomInto: true,
-                roadColor: Colors.blueAccent,
-            ),
-
-        );
+      final list = await encoded.toListGeo();
+      await mapController.drawRoadManually(
+        list,
+        RoadOption(
+          zoomInto: true,
+          roadColor: Colors.blueAccent,
+        ),
+      );
     }
-}
+  }
 
-  Future<List<String>> getDirections(GeoPoint start, GeoPoint destination) async {
+  Future<List<String>> getDirections(
+      GeoPoint start, GeoPoint destination) async {
     final String startCoords = '${start.latitude},${start.longitude}';
-    final String destinationCoords = '${destination.latitude},${destination.longitude}';
+    final String destinationCoords =
+        '${destination.latitude},${destination.longitude}';
 
-    final String url = 'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&mode=driving&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
+    final String url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&mode=driving&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
 
     final response = await http.get(Uri.parse(url));
     List<String> polylines = [];
@@ -180,21 +185,16 @@ class _MyHomePageState extends State<MyHomePage>
       if (!isExpanded) {
         isMapOverlayVisible = true;
       }
-      if (isExpanded) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
     });
   }
 
-  Future<void> fetchWeatherData(double latitude, double longitude) async {
+  Future<void> fetchWeatherData1(double latitude, double longitude) async {
     final dio = Dio();
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    final latitude = position.latitude;
-    final longitude = position.longitude;
+    // final position = await Geolocator.getCurrentPosition(
+    //   desiredAccuracy: LocationAccuracy.high,
+    // );
+    // final latitude = position.latitude;
+    // final longitude = position.longitude;
     final response1 = await dio.get(
       'https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&hourly=temperature_2m,rain,showers',
     );
@@ -222,11 +222,68 @@ class _MyHomePageState extends State<MyHomePage>
     }
   }
 
+  Future<String?> getAddressFromCoordinates(
+      double latitude, double longitude) async {
+    //USING NOMINATIM
+    final url =
+        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final jsonResult = jsonDecode(response.body);
+        final address = jsonResult['display_name'];
+        return address;
+      }
+    } catch (e) {
+      print('Failed to get address: $e');
+    }
+
+    //GEOCODER_BUDDY PLUGIN NOT WORKING IDK WHY
+    // try {
+    //   GBLatLng position = GBLatLng(lat: latitude, lng: longitude);
+    //   GBData data = await GeocoderBuddy.findDetails(position);
+
+    //   String road = data.address.road;
+    //   String street = data.address.village;
+    //   String county = data.address.county;
+
+    //   String state = data.address.state;
+    //   String stateDistrict = data.address.stateDistrict;
+    //   String postalCode = data.address.postcode;
+    //   String country = data.address.country;
+
+    //   String formattedAddress =
+    //       '$road, $street, $county, $state, $stateDistrict, $postalCode, $country';
+
+    //   return formattedAddress;
+    // } catch (e) {
+    //   print('Failed to get address: $e');
+    // }
+
+    //USING GEOCODING PLUGIN
+    // try {
+    //   final List<Placemark> placemarks =
+    //       await placemarkFromCoordinates(latitude, longitude);
+    //   final Placemark placemark = placemarks.first;
+    //   final address = placemark.street ?? '';
+    //   final city = placemark.locality ?? '';
+    //   final state = placemark.administrativeArea ?? '';
+    //   final country = placemark.country ?? '';
+    //   final postalCode = placemark.postalCode ?? '';
+
+    //   return '$address, $city, $state, $country, $postalCode';
+    // } catch (e) {
+    //   print('Failed to get address: $e');
+    // }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size(double.infinity, isExpanded ? 250 : 105),
+        preferredSize: Size(double.infinity, isExpanded ? 250 : 110),
         child: SafeArea(
           child: Builder(builder: (context) {
             return Row(
@@ -258,17 +315,8 @@ class _MyHomePageState extends State<MyHomePage>
                 //WEATHER WIDGET
                 Expanded(
                   child: GestureDetector(
-                    onTap: () async {
+                    onTap: () {
                       _toggleExpanded();
-
-                      final position = await Geolocator.getCurrentPosition(
-                        desiredAccuracy: LocationAccuracy.high,
-                      );
-
-                      final latitude = position.latitude;
-                      final longitude = position.longitude;
-
-                      fetchWeatherData(latitude, longitude);
                     },
                     child: AnimatedSize(
                       duration: const Duration(milliseconds: 500),
@@ -293,112 +341,154 @@ class _MyHomePageState extends State<MyHomePage>
                             ),
                           ],
                         ),
-                        child: Row(
-                          children: [
-                            Flexible(
-                              flex: 2,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 10,
+                        child: FutureBuilder<WeatherData>(
+                          future: fetchWeatherData(
+                              currentPosition?.latitude ?? 0.0,
+                              currentPosition?.longitude ?? 0.0),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Text('Failed to fetch weather data');
+                            } else {
+                              final weatherData = snapshot.data!;
+                              return FutureBuilder<String?>(
+                                future: getAddressFromCoordinates(
+                                  currentPosition?.latitude ?? 0.0,
+                                  currentPosition?.longitude ?? 0.0,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '22°',
-                                      style: TextStyle(
-                                        fontSize: titleFontSize,
-                                        fontFamily: interFontFamily,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Container(
-                                      height: 18,
-                                      child: Marquee(
-                                        text:
-                                            'Natalio Bacalso Avenue Street Basak Pardo Cebu City 6000 Philippines Universe Earth Krazy',
-                                        style: TextStyle(
-                                          fontSize: titleSubtitleFontSize,
-                                          fontFamily: interFontFamily,
-                                          overflow: TextOverflow.ellipsis,
+                                builder: (context, addressSnapshot) {
+                                  if (addressSnapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (addressSnapshot.hasError) {
+                                    return Text('Failed to fetch address');
+                                  } else {
+                                    final address = addressSnapshot.data ??
+                                        'Unknown Address';
+                                    return Row(
+                                      children: [
+                                        Flexible(
+                                          flex: 2,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 10,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${weatherData.currentTemperature}${weatherData.currentWeatherUnit}',
+                                                  style: TextStyle(
+                                                    fontSize: titleFontSize,
+                                                    fontFamily: interFontFamily,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Container(
+                                                  height: 20,
+                                                  child: Marquee(
+                                                    text: address,
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          titleSubtitleFontSize,
+                                                      fontFamily:
+                                                          interFontFamily,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    scrollAxis: Axis.horizontal,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    blankSpace: 20.0,
+                                                    velocity: 30.0,
+                                                    pauseAfterRound:
+                                                        Duration(seconds: 1),
+                                                    startPadding: 10.0,
+                                                    accelerationDuration:
+                                                        Duration(seconds: 1),
+                                                    accelerationCurve:
+                                                        Curves.linear,
+                                                    decelerationDuration:
+                                                        Duration(seconds: 2),
+                                                    decelerationCurve:
+                                                        Curves.easeOut,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                        scrollAxis: Axis.horizontal,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        blankSpace: 20.0,
-                                        velocity: 30.0,
-                                        pauseAfterRound: Duration(seconds: 1),
-                                        startPadding: 10.0,
-                                        accelerationDuration:
-                                            Duration(seconds: 1),
-                                        accelerationCurve: Curves.linear,
-                                        decelerationDuration:
-                                            Duration(seconds: 2),
-                                        decelerationCurve: Curves.easeOut,
-                                      ),
-                                    ),
-                                    // Text(
-                                    //   'Natalio Bacalso Avenue Street Basak Pardo Cebu City 6000 Philippines Universe Earth Krazy',
-                                    //   style: TextStyle(
-                                    //     fontSize: titleSubtitleFontSize,
-                                    //     fontFamily: interFontFamily,
-                                    //     overflow: TextOverflow.ellipsis,
-                                    //   ),
-                                    // ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 8,
-                            ),
-                            Flexible(
-                              flex: 1,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 10,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Icon(
-                                      Icons.thunderstorm,
-                                      size: 40,
-                                      color: Colors.blue,
-                                    ),
-                                    Container(
-                                      height: 18,
-                                      child: Marquee(
-                                        text: 'Heavy Rain',
-                                        style: TextStyle(
-                                          fontSize: titleSubtitleFontSize,
-                                          fontFamily: interFontFamily,
-                                          overflow: TextOverflow.ellipsis,
+                                        SizedBox(
+                                          width: 8,
                                         ),
-                                        scrollAxis: Axis.horizontal,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        blankSpace: 20.0,
-                                        velocity: 10.0,
-                                        pauseAfterRound: Duration(seconds: 1),
-                                        startPadding: 10.0,
-                                        accelerationDuration:
-                                            Duration(seconds: 1),
-                                        accelerationCurve: Curves.linear,
-                                        decelerationDuration:
-                                            Duration(seconds: 2),
-                                        decelerationCurve: Curves.easeOut,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                                        Flexible(
+                                          flex: 1,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 10,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Icon(
+                                                  Icons.thunderstorm,
+                                                  size: 40,
+                                                  color: Colors.blue,
+                                                ),
+                                                Container(
+                                                  height: 18,
+                                                  child: Marquee(
+                                                    text: 'Heavy Rain',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          titleSubtitleFontSize,
+                                                      fontFamily:
+                                                          interFontFamily,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    scrollAxis: Axis.horizontal,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    blankSpace: 20.0,
+                                                    velocity: 10.0,
+                                                    pauseAfterRound:
+                                                        Duration(seconds: 1),
+                                                    startPadding: 10.0,
+                                                    accelerationDuration:
+                                                        Duration(seconds: 1),
+                                                    accelerationCurve:
+                                                        Curves.linear,
+                                                    decelerationDuration:
+                                                        Duration(seconds: 2),
+                                                    decelerationCurve:
+                                                        Curves.easeOut,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                },
+                              );
+                            }
+                          },
                         ),
                       ),
                     ),
@@ -416,7 +506,8 @@ class _MyHomePageState extends State<MyHomePage>
       body: Stack(
         children: [
           currentPosition == null
-              ? const Center(child: CircularProgressIndicator()):
+              ? const Center(child: CircularProgressIndicator())
+              :
               // : FlutterMap(
               //     mapController: mapController,
               //     options: MapOptions(
@@ -440,42 +531,41 @@ class _MyHomePageState extends State<MyHomePage>
               //       ),
               //     ],
               //   ),
-              OSMFlutter( 
-                androidHotReloadSupport: true,
-            enableRotationByGesture: true,
-        controller:mapController,
-        initZoom: 15,
-        minZoomLevel: 8,
-        maxZoomLevel: 19,
-        stepZoom: 12.0,
-        userLocationMarker: UserLocationMaker(
-            personMarker: const MarkerIcon(
-                icon: Icon(
-                    Icons.person_pin_circle,
-                    color: Colors.blueAccent,
-                    size: 100,
-                ),
-            ),
-            directionArrowMarker: const MarkerIcon(
-                icon: Icon(
-                    Icons.double_arrow,
-                    size: 48,
-                ),
-            ),
-        ),
-         roadConfiguration: const RoadOption(
-                roadColor: Colors.yellowAccent,
-        ),
-        markerOption: MarkerOption(
-            defaultMarker: const MarkerIcon(
-                icon: Icon(
-                  Icons.person_pin_circle,
-                  color: Colors.blue,
-                  size: 56,
+              OSMFlutter(
+                  androidHotReloadSupport: true,
+                  enableRotationByGesture: true,
+                  controller: mapController,
+                  initZoom: 15,
+                  minZoomLevel: 8,
+                  maxZoomLevel: 19,
+                  stepZoom: 12.0,
+                  userLocationMarker: UserLocationMaker(
+                    personMarker: const MarkerIcon(
+                      icon: Icon(
+                        Icons.person_pin_circle,
+                        color: Colors.blueAccent,
+                        size: 100,
+                      ),
+                    ),
+                    directionArrowMarker: const MarkerIcon(
+                      icon: Icon(
+                        Icons.double_arrow,
+                        size: 48,
+                      ),
+                    ),
                   ),
-                )
-        ),
-    ),
+                  roadConfiguration: const RoadOption(
+                    roadColor: Colors.yellowAccent,
+                  ),
+                  markerOption: MarkerOption(
+                      defaultMarker: const MarkerIcon(
+                    icon: Icon(
+                      Icons.person_pin_circle,
+                      color: Colors.blue,
+                      size: 56,
+                    ),
+                  )),
+                ),
           if (isMapOverlayVisible && isExpanded)
             GestureDetector(
               onTap: () {
@@ -547,12 +637,12 @@ class _MyHomePageState extends State<MyHomePage>
                       if (currentPosition != null) {
                         // mapController.move(currentPosition!, 17);
                         // setState(() {});
-                          await mapController.currentLocation();
-                         await mapController.enableTracking(
-                  enableStopFollow: true,
-                  disableUserMarkerRotation: true,
-                );
-                await mapController.zoomIn();
+                        await mapController.currentLocation();
+                        await mapController.enableTracking(
+                          enableStopFollow: true,
+                          disableUserMarkerRotation: true,
+                        );
+                        await mapController.zoomIn();
                       }
                     },
                   ),
@@ -571,56 +661,58 @@ class _MyHomePageState extends State<MyHomePage>
                       ),
                     ],
                   ),
-                  child: Builder(
-                    builder: (ctx) {
-                      return TextButton(
-                        style: chooseDestination,
-                        onPressed: () {
-                          beginDrawRoad.value = true;
-                               mapController.listenerMapSingleTapping.addListener(() async {
-      if (mapController.listenerMapSingleTapping.value != null) {
-        print(mapController.listenerMapSingleTapping.value);
-        if (beginDrawRoad.value) {
-          pointsRoad.add(mapController.listenerMapSingleTapping.value!);
-          await mapController.addMarker(
-            mapController.listenerMapSingleTapping.value!,
-            markerIcon: MarkerIcon(
-              icon: Icon(
-                Icons.person_pin_circle,
-                color: Colors.amber,
-                size: 48,
-              ),
-            ),
-          );
-        
-            roadActionBt(context);
-          
-  }}});
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.location_pin,
-                              size: 25,
-                              color: Colors.redAccent,
+                  child: Builder(builder: (ctx) {
+                    return TextButton(
+                      style: chooseDestination,
+                      onPressed: () {
+                        beginDrawRoad.value = true;
+                        mapController.listenerMapSingleTapping
+                            .addListener(() async {
+                          if (mapController.listenerMapSingleTapping.value !=
+                              null) {
+                            print(mapController.listenerMapSingleTapping.value);
+                            if (beginDrawRoad.value) {
+                              pointsRoad.add(mapController
+                                  .listenerMapSingleTapping.value!);
+                              await mapController.addMarker(
+                                mapController.listenerMapSingleTapping.value!,
+                                markerIcon: MarkerIcon(
+                                  icon: Icon(
+                                    Icons.person_pin_circle,
+                                    color: Colors.amber,
+                                    size: 48,
+                                  ),
+                                ),
+                              );
+
+                              roadActionBt(context);
+                            }
+                          }
+                        });
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.location_pin,
+                            size: 25,
+                            color: Colors.redAccent,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text(
+                            'Choose Destination',
+                            style: TextStyle(
+                              fontFamily: interFontFamily,
+                              fontSize: titleSubtitleFontSize,
+                              color: Colors.black87,
                             ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text(
-                              'Choose Destination',
-                              style: TextStyle(
-                                fontFamily: interFontFamily,
-                                fontSize: titleSubtitleFontSize,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
               ],
             ),
@@ -644,8 +736,8 @@ class _MyHomePageState extends State<MyHomePage>
       ///selection geoPoint
 
       showFab.value = false;
-      pointsRoad.add( await mapController.myLocation());
-      
+      pointsRoad.add(await mapController.myLocation());
+
       // final bottomPersistant = scaffoldKey.currentState!.showBottomSheet(
       //   (ctx) {
       //     return PointerInterceptor(
@@ -660,46 +752,45 @@ class _MyHomePageState extends State<MyHomePage>
       //   elevation: 0.0,
       // );
       // await bottomPersistant.closed.then((roadType) async {
-        showFab.value = true;
-        beginDrawRoad.value = false;
-        RoadInfo roadInformation = await mapController.drawRoad(
-          pointsRoad.first, 
-          pointsRoad.last,
-          roadType: RoadType.car,
-          intersectPoint:
-              pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
-          roadOption: RoadOption(
-            roadWidth: 15,
-            roadColor: Colors.red,
-            zoomInto: true,
-            roadBorderWidth: 2,
-            roadBorderColor: Colors.green,
-          ),
-        );
+      showFab.value = true;
+      beginDrawRoad.value = false;
+      RoadInfo roadInformation = await mapController.drawRoad(
+        pointsRoad.first,
+        pointsRoad.last,
+        roadType: RoadType.car,
+        intersectPoint: pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
+        roadOption: RoadOption(
+          roadWidth: 15,
+          roadColor: Colors.red,
+          zoomInto: true,
+          roadBorderWidth: 2,
+          roadBorderColor: Colors.green,
+        ),
+      );
 
-        final  getRoutes = await getDirections(pointsRoad.first, pointsRoad.last);
-        drawRoadManually(getRoutes);
-        pointsRoad.clear();
-        debugPrint(
-            "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
-        debugPrint("app distance:${roadInformation.distance}Km");
-        debugPrint("app road:" + roadInformation.toString());
-        final console = roadInformation.instructions
-            .map((e) => e.toString())
-            .reduce(
-              (value, element) => "$value -> \n $element",
-            )
-            .toString();
-        debugPrint(
-          console,
-          wrapWidth: console.length,
-        );
-        final box = await BoundingBox.fromGeoPointsAsync([pointsRoad.first, pointsRoad.last]);
-        mapController.zoomToBoundingBox(
-          box,
-          paddinInPixel: 64,
-        );
-      
+      final getRoutes = await getDirections(pointsRoad.first, pointsRoad.last);
+      drawRoadManually(getRoutes);
+      pointsRoad.clear();
+      debugPrint(
+          "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
+      debugPrint("app distance:${roadInformation.distance}Km");
+      debugPrint("app road:" + roadInformation.toString());
+      final console = roadInformation.instructions
+          .map((e) => e.toString())
+          .reduce(
+            (value, element) => "$value -> \n $element",
+          )
+          .toString();
+      debugPrint(
+        console,
+        wrapWidth: console.length,
+      );
+      final box = await BoundingBox.fromGeoPointsAsync(
+          [pointsRoad.first, pointsRoad.last]);
+      mapController.zoomToBoundingBox(
+        box,
+        paddinInPixel: 64,
+      );
     } on RoadException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
