@@ -40,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage>
   ValueNotifier<bool> showFab = ValueNotifier(true);
   ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
   ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
- 
+
   List<GeoPoint> pointsRoad = [];
   Map<String, dynamic> details = {};
 
@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage>
     super.initState();
     _determinePosition();
     mapController = MapController.withUserPosition(
-      trackUserLocation: const UserTrackingOption(
+        trackUserLocation: const UserTrackingOption(
       enableTracking: true,
       unFollowUser: false,
     ));
@@ -319,9 +319,9 @@ class _MyHomePageState extends State<MyHomePage>
                     duration: const Duration(milliseconds: 500),
                     curve: Curves.fastEaseInToSlowEaseOut,
                     child: GestureDetector(
-                       onTap: () {
-                      _toggleExpanded();
-                    },
+                      onTap: () {
+                        _toggleExpanded();
+                      },
                       child: Container(
                         height: isExpanded ? double.infinity : null,
                         margin: EdgeInsets.only(
@@ -533,7 +533,6 @@ class _MyHomePageState extends State<MyHomePage>
               //     ],
               //   ),
               OSMFlutter(
-         
                   enableRotationByGesture: true,
                   controller: mapController,
                   initZoom: 15,
@@ -666,56 +665,52 @@ class _MyHomePageState extends State<MyHomePage>
                     return TextButton(
                       style: chooseDestination,
                       onPressed: () async {
-                        GeoPoint s = await mapController.myLocation();
-                         var p = await Navigator.pushNamed(context, "/search") ;
-                          GeoPoint destination = p as GeoPoint; // Convert 'p' to a GeoPoint
-      //                     print(destination.toString());
-      //             RoadInfo roadInformation = await mapController.drawRoad(
-      //          s,
-      //        destination,
-      //   roadType: RoadType.car,
-      //   intersectPoint: pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
-      //   roadOption: RoadOption(
-      //     roadWidth: 2,
-      //     roadColor: Colors.red,
-      //     zoomInto: true,
-          
-      //   ),
-      // );
-
-      final getRoutes = await getDirections(s, destination);
-      drawRoadManually(getRoutes);
+                        pointsRoad.add(await mapController.myLocation(
+                          
+                        ));
                         
-                        // beginDrawRoad.value = true;
-                        // mapController.listenerMapSingleTapping
-                        //     .addListener(() async {
-                        //   if (mapController.listenerMapSingleTapping.value !=
-                        //       null) {
-                        //     print(mapController.listenerMapSingleTapping.value);
-                        //     if (beginDrawRoad.value) {
-                        //       pointsRoad.add(mapController
-                        //           .listenerMapSingleTapping.value!);
-                        //       await mapController.addMarker(
-                        //         mapController.listenerMapSingleTapping.value!,
-                        //         markerIcon: MarkerIcon(
-                        //           icon: Icon(
-                        //             Icons.person_pin_circle,
-                        //             color: Colors.amber,
-                        //             size: 48,
-                        //           ),
-                        //         ),
-                        //       );
-
-                        //       roadActionBt(context);
-                        //     }
-                        //   }
-                        // });
+                        var p = await Navigator.pushNamed(context, "/search");
+                        pointsRoad.add(p as GeoPoint);
+                        //                     print(destination.toString());
+                        // RoadInfo roadInformation =
+                        await mapController.drawRoad(
+                          pointsRoad.first,
+                          pointsRoad.last,
+                          roadType: RoadType.car,
+                          intersectPoint: pointsRoad
+                              .getRange(1, pointsRoad.length - 1)
+                              .toList(),
+                          roadOption: RoadOption(
+                            roadWidth: 2,
+                            roadColor: Colors.red,
+                            zoomInto: true,
+                          ),
+                        );
+                        
+                        final getRoutes = await getDirections(
+                            pointsRoad.first, pointsRoad.last);
+                        drawRoadManually(getRoutes);
+                     
+                         mapController.addMarker(p ,
+                        markerIcon: MarkerIcon(
+                          icon: Icon(
+                            Icons.pin_drop_rounded,
+                            size: 100,
+                            color: Colors.redAccent,
+                          )
+                        )
+                        );
+                        pointsRoad.clear();
+                        mapController.enableTracking(
+                          enableStopFollow: true,
+                          disableUserMarkerRotation: true,
+                        );
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.location_pin,
+                            Icons.pin_drop_rounded,
                             size: 25,
                             color: Colors.redAccent,
                           ),
@@ -756,8 +751,6 @@ class _MyHomePageState extends State<MyHomePage>
     try {
       ///selection geoPoint
 
-      
-
       // final bottomPersistant = scaffoldKey.currentState!.showBottomSheet(
       //   (ctx) {
       //     return PointerInterceptor(
@@ -772,7 +765,7 @@ class _MyHomePageState extends State<MyHomePage>
       //   elevation: 0.0,
       // );
       // await bottomPersistant.closed.then((roadType) async {
- 
+
       // RoadInfo roadInformation = await mapController.drawRoad(
       //  origin,
       // destination,
@@ -782,13 +775,13 @@ class _MyHomePageState extends State<MyHomePage>
       //     roadWidth: 2,
       //     roadColor: Colors.red,
       //     zoomInto: true,
-          
+
       //   ),
       // );
 
       final getRoutes = await getDirections(origin, destination);
       drawRoadManually(getRoutes);
-  
+
       // debugPrint(
       //     "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
       // debugPrint("app distance:${roadInformation.distance}Km");
