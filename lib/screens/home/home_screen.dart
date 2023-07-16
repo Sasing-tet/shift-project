@@ -40,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage>
   ValueNotifier<bool> showFab = ValueNotifier(true);
   ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
   ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
+ 
   List<GeoPoint> pointsRoad = [];
   Map<String, dynamic> details = {};
 
@@ -48,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage>
     super.initState();
     _determinePosition();
     mapController = MapController.withUserPosition(
-        trackUserLocation: const UserTrackingOption(
+      trackUserLocation: const UserTrackingOption(
       enableTracking: true,
       unFollowUser: false,
     ));
@@ -314,13 +315,13 @@ class _MyHomePageState extends State<MyHomePage>
                 ),
                 //WEATHER WIDGET
                 Expanded(
-                  child: GestureDetector(
-                    onTap: () {
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.fastEaseInToSlowEaseOut,
+                    child: GestureDetector(
+                       onTap: () {
                       _toggleExpanded();
                     },
-                    child: AnimatedSize(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.fastEaseInToSlowEaseOut,
                       child: Container(
                         height: isExpanded ? double.infinity : null,
                         margin: EdgeInsets.only(
@@ -532,7 +533,7 @@ class _MyHomePageState extends State<MyHomePage>
               //     ],
               //   ),
               OSMFlutter(
-                  androidHotReloadSupport: true,
+         
                   enableRotationByGesture: true,
                   controller: mapController,
                   initZoom: 15,
@@ -664,31 +665,51 @@ class _MyHomePageState extends State<MyHomePage>
                   child: Builder(builder: (ctx) {
                     return TextButton(
                       style: chooseDestination,
-                      onPressed: () {
-                        beginDrawRoad.value = true;
-                        mapController.listenerMapSingleTapping
-                            .addListener(() async {
-                          if (mapController.listenerMapSingleTapping.value !=
-                              null) {
-                            print(mapController.listenerMapSingleTapping.value);
-                            if (beginDrawRoad.value) {
-                              pointsRoad.add(mapController
-                                  .listenerMapSingleTapping.value!);
-                              await mapController.addMarker(
-                                mapController.listenerMapSingleTapping.value!,
-                                markerIcon: MarkerIcon(
-                                  icon: Icon(
-                                    Icons.person_pin_circle,
-                                    color: Colors.amber,
-                                    size: 48,
-                                  ),
-                                ),
-                              );
+                      onPressed: () async {
+                        GeoPoint s = await mapController.myLocation();
+                         var p = await Navigator.pushNamed(context, "/search") ;
+                          GeoPoint destination = p as GeoPoint; // Convert 'p' to a GeoPoint
+      //                     print(destination.toString());
+      //             RoadInfo roadInformation = await mapController.drawRoad(
+      //          s,
+      //        destination,
+      //   roadType: RoadType.car,
+      //   intersectPoint: pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
+      //   roadOption: RoadOption(
+      //     roadWidth: 2,
+      //     roadColor: Colors.red,
+      //     zoomInto: true,
+          
+      //   ),
+      // );
 
-                              roadActionBt(context);
-                            }
-                          }
-                        });
+      final getRoutes = await getDirections(s, destination);
+      drawRoadManually(getRoutes);
+                        
+                        // beginDrawRoad.value = true;
+                        // mapController.listenerMapSingleTapping
+                        //     .addListener(() async {
+                        //   if (mapController.listenerMapSingleTapping.value !=
+                        //       null) {
+                        //     print(mapController.listenerMapSingleTapping.value);
+                        //     if (beginDrawRoad.value) {
+                        //       pointsRoad.add(mapController
+                        //           .listenerMapSingleTapping.value!);
+                        //       await mapController.addMarker(
+                        //         mapController.listenerMapSingleTapping.value!,
+                        //         markerIcon: MarkerIcon(
+                        //           icon: Icon(
+                        //             Icons.person_pin_circle,
+                        //             color: Colors.amber,
+                        //             size: 48,
+                        //           ),
+                        //         ),
+                        //       );
+
+                        //       roadActionBt(context);
+                        //     }
+                        //   }
+                        // });
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -731,12 +752,11 @@ class _MyHomePageState extends State<MyHomePage>
     );
   }
 
-  void roadActionBt(BuildContext ctx) async {
+  void roadActionBt(BuildContext ctx, GeoPoint origin, destination) async {
     try {
       ///selection geoPoint
 
-      showFab.value = false;
-      pointsRoad.add(await mapController.myLocation());
+      
 
       // final bottomPersistant = scaffoldKey.currentState!.showBottomSheet(
       //   (ctx) {
@@ -752,45 +772,43 @@ class _MyHomePageState extends State<MyHomePage>
       //   elevation: 0.0,
       // );
       // await bottomPersistant.closed.then((roadType) async {
-      showFab.value = true;
-      beginDrawRoad.value = false;
-      RoadInfo roadInformation = await mapController.drawRoad(
-        pointsRoad.first,
-        pointsRoad.last,
-        roadType: RoadType.car,
-        intersectPoint: pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
-        roadOption: RoadOption(
-          roadWidth: 15,
-          roadColor: Colors.red,
-          zoomInto: true,
-          roadBorderWidth: 2,
-          roadBorderColor: Colors.green,
-        ),
-      );
+ 
+      // RoadInfo roadInformation = await mapController.drawRoad(
+      //  origin,
+      // destination,
+      //   roadType: RoadType.car,
+      //   intersectPoint: pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
+      //   roadOption: RoadOption(
+      //     roadWidth: 2,
+      //     roadColor: Colors.red,
+      //     zoomInto: true,
+          
+      //   ),
+      // );
 
-      final getRoutes = await getDirections(pointsRoad.first, pointsRoad.last);
+      final getRoutes = await getDirections(origin, destination);
       drawRoadManually(getRoutes);
-      pointsRoad.clear();
-      debugPrint(
-          "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
-      debugPrint("app distance:${roadInformation.distance}Km");
-      debugPrint("app road:" + roadInformation.toString());
-      final console = roadInformation.instructions
-          .map((e) => e.toString())
-          .reduce(
-            (value, element) => "$value -> \n $element",
-          )
-          .toString();
-      debugPrint(
-        console,
-        wrapWidth: console.length,
-      );
-      final box = await BoundingBox.fromGeoPointsAsync(
-          [pointsRoad.first, pointsRoad.last]);
-      mapController.zoomToBoundingBox(
-        box,
-        paddinInPixel: 64,
-      );
+  
+      // debugPrint(
+      //     "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
+      // debugPrint("app distance:${roadInformation.distance}Km");
+      // debugPrint("app road:" + roadInformation.toString());
+      // final console = roadInformation.instructions
+      //     .map((e) => e.toString())
+      //     .reduce(
+      //       (value, element) => "$value -> \n $element",
+      //     )
+      //     .toString();
+      // debugPrint(
+      //   console,
+      //   wrapWidth: console.length,
+      // );
+      // final box = await BoundingBox.fromGeoPointsAsync(
+      //     [pointsRoad.first, pointsRoad.last]);
+      // mapController.zoomToBoundingBox(
+      //   box,
+      //   paddinInPixel: 64,
+      // );
     } on RoadException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

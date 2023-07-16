@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shift_project/screens/chooselocation/choose_location_view.dart';
 import 'package:shift_project/screens/home/home_screen.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
 import 'package:shift_project/screens/logo/logo_screen.dart';
@@ -20,6 +21,12 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       home: const LogoScreen(),
+            routes: {
+       
+        
+       
+        "/search": (ctx) => SearchPage(),
+      },
     );
   }
 }
