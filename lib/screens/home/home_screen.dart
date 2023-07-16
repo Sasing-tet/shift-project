@@ -17,6 +17,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:shift_project/constants/constants.dart';
 import 'package:shift_project/fetch/models/weather_data_model.dart';
 import 'package:shift_project/screens/home/components/road_choice_widget.dart';
+import 'package:shift_project/screens/home/components/weather_forecast_widget.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 
 import '../../fetch/weather API/weather_forecast.dart';
@@ -189,97 +190,6 @@ class _MyHomePageState extends State<MyHomePage>
     });
   }
 
-  Future<void> fetchWeatherData1(double latitude, double longitude) async {
-    final dio = Dio();
-    // final position = await Geolocator.getCurrentPosition(
-    //   desiredAccuracy: LocationAccuracy.high,
-    // );
-    // final latitude = position.latitude;
-    // final longitude = position.longitude;
-    final response1 = await dio.get(
-      'https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&hourly=temperature_2m,rain,showers',
-    );
-    final response = await dio.get(
-      'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.419&hourly=temperature_2m,rain,showers',
-    );
-
-    if (response.statusCode == 200) {
-      final data = response.data;
-      // Process the weather forecast data
-
-      final currentWeather = data['hourly']['temperature_2m'][0];
-      final hourlyForecastTime = data['hourly']['time'];
-      final hourlyForecastTemp = data['hourly']['temperature_2m'];
-      final hourlyForecastRain = data['hourly']['rain'];
-
-      // Process the current weather and hourly forecast data
-      print(data);
-      print('Current Weather: $currentWeather');
-      print('Hourly Forecast Time: $hourlyForecastTime');
-      print('Hourly Forecast Temperatures: $hourlyForecastTemp');
-      print('Hourly Forecast Rain: $hourlyForecastRain');
-    } else {
-      print('Failed to fetch weather data: ${response.statusCode}');
-    }
-  }
-
-  Future<String?> getAddressFromCoordinates(
-      double latitude, double longitude) async {
-    //USING NOMINATIM
-    final url =
-        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final jsonResult = jsonDecode(response.body);
-        final address = jsonResult['display_name'];
-        return address;
-      }
-    } catch (e) {
-      print('Failed to get address: $e');
-    }
-
-    //GEOCODER_BUDDY PLUGIN NOT WORKING IDK WHY
-    // try {
-    //   GBLatLng position = GBLatLng(lat: latitude, lng: longitude);
-    //   GBData data = await GeocoderBuddy.findDetails(position);
-
-    //   String road = data.address.road;
-    //   String street = data.address.village;
-    //   String county = data.address.county;
-
-    //   String state = data.address.state;
-    //   String stateDistrict = data.address.stateDistrict;
-    //   String postalCode = data.address.postcode;
-    //   String country = data.address.country;
-
-    //   String formattedAddress =
-    //       '$road, $street, $county, $state, $stateDistrict, $postalCode, $country';
-
-    //   return formattedAddress;
-    // } catch (e) {
-    //   print('Failed to get address: $e');
-    // }
-
-    //USING GEOCODING PLUGIN
-    // try {
-    //   final List<Placemark> placemarks =
-    //       await placemarkFromCoordinates(latitude, longitude);
-    //   final Placemark placemark = placemarks.first;
-    //   final address = placemark.street ?? '';
-    //   final city = placemark.locality ?? '';
-    //   final state = placemark.administrativeArea ?? '';
-    //   final country = placemark.country ?? '';
-    //   final postalCode = placemark.postalCode ?? '';
-
-    //   return '$address, $city, $state, $country, $postalCode';
-    // } catch (e) {
-    //   print('Failed to get address: $e');
-    // }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -342,155 +252,7 @@ class _MyHomePageState extends State<MyHomePage>
                             ),
                           ],
                         ),
-                        child: FutureBuilder<WeatherData>(
-                          future: fetchWeatherData(
-                              currentPosition?.latitude ?? 0.0,
-                              currentPosition?.longitude ?? 0.0),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
-                              return Text('Failed to fetch weather data');
-                            } else {
-                              final weatherData = snapshot.data!;
-                              return FutureBuilder<String?>(
-                                future: getAddressFromCoordinates(
-                                  currentPosition?.latitude ?? 0.0,
-                                  currentPosition?.longitude ?? 0.0,
-                                ),
-                                builder: (context, addressSnapshot) {
-                                  if (addressSnapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                        child: CircularProgressIndicator());
-                                  } else if (addressSnapshot.hasError) {
-                                    return Text('Failed to fetch address');
-                                  } else {
-                                    final address = addressSnapshot.data ??
-                                        'Unknown Address';
-                                    return Row(
-                                      children: [
-                                        Flexible(
-                                          flex: 2,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 10,
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  '${weatherData.currentTemperature}${weatherData.currentWeatherUnit}',
-                                                  style: TextStyle(
-                                                    fontSize: titleFontSize,
-                                                    fontFamily: interFontFamily,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                Container(
-                                                  height: 20,
-                                                  child: Marquee(
-                                                    text: address,
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          titleSubtitleFontSize,
-                                                      fontFamily:
-                                                          interFontFamily,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    scrollAxis: Axis.horizontal,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    blankSpace: 20.0,
-                                                    velocity: 30.0,
-                                                    pauseAfterRound:
-                                                        Duration(seconds: 1),
-                                                    startPadding: 10.0,
-                                                    accelerationDuration:
-                                                        Duration(seconds: 1),
-                                                    accelerationCurve:
-                                                        Curves.linear,
-                                                    decelerationDuration:
-                                                        Duration(seconds: 2),
-                                                    decelerationCurve:
-                                                        Curves.easeOut,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 8,
-                                        ),
-                                        Flexible(
-                                          flex: 1,
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 10,
-                                            ),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Icon(
-                                                  Icons.thunderstorm,
-                                                  size: 40,
-                                                  color: Colors.blue,
-                                                ),
-                                                Container(
-                                                  height: 18,
-                                                  child: Marquee(
-                                                    text: 'Heavy Rain',
-                                                    style: TextStyle(
-                                                      fontSize:
-                                                          titleSubtitleFontSize,
-                                                      fontFamily:
-                                                          interFontFamily,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    scrollAxis: Axis.horizontal,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    blankSpace: 20.0,
-                                                    velocity: 10.0,
-                                                    pauseAfterRound:
-                                                        Duration(seconds: 1),
-                                                    startPadding: 10.0,
-                                                    accelerationDuration:
-                                                        Duration(seconds: 1),
-                                                    accelerationCurve:
-                                                        Curves.linear,
-                                                    decelerationDuration:
-                                                        Duration(seconds: 2),
-                                                    decelerationCurve:
-                                                        Curves.easeOut,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }
-                                },
-                              );
-                            }
-                          },
-                        ),
+                        child: WeatherForecastWidget(),
                       ),
                     ),
                   ),
@@ -571,6 +333,7 @@ class _MyHomePageState extends State<MyHomePage>
               onTap: () {
                 setState(() {
                   isMapOverlayVisible = false;
+                  isExpanded = false;
                 });
               },
               child: Container(
@@ -665,10 +428,8 @@ class _MyHomePageState extends State<MyHomePage>
                     return TextButton(
                       style: chooseDestination,
                       onPressed: () async {
-                        pointsRoad.add(await mapController.myLocation(
-                          
-                        ));
-                        
+                        pointsRoad.add(await mapController.myLocation());
+
                         var p = await Navigator.pushNamed(context, "/search");
                         pointsRoad.add(p as GeoPoint);
                         //                     print(destination.toString());
@@ -686,20 +447,18 @@ class _MyHomePageState extends State<MyHomePage>
                             zoomInto: true,
                           ),
                         );
-                        
+
                         final getRoutes = await getDirections(
                             pointsRoad.first, pointsRoad.last);
                         drawRoadManually(getRoutes);
-                     
-                         mapController.addMarker(p ,
-                        markerIcon: MarkerIcon(
-                          icon: Icon(
-                            Icons.pin_drop_rounded,
-                            size: 100,
-                            color: Colors.redAccent,
-                          )
-                        )
-                        );
+
+                        mapController.addMarker(p,
+                            markerIcon: MarkerIcon(
+                                icon: Icon(
+                              Icons.pin_drop_rounded,
+                              size: 100,
+                              color: Colors.redAccent,
+                            )));
                         pointsRoad.clear();
                         mapController.enableTracking(
                           enableStopFollow: true,
@@ -729,6 +488,194 @@ class _MyHomePageState extends State<MyHomePage>
                       ),
                     );
                   }),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.all(16),
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                children: [
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    physics: BouncingScrollPhysics(),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 100,
+                                          margin: EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                          ),
+                                          padding: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              width: 1,
+                                              color: shiftGrayBorder,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                "Route 1",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontFamily: interFontFamily,
+                                                  fontSize:
+                                                      titleSubtitleFontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                "via this street churva churva",
+                                                style: TextStyle(
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  color: shiftGrayBorder,
+                                                  fontFamily: interFontFamily,
+                                                  fontSize: defaultFontSize,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 100,
+                                          margin: EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                          ),
+                                          padding: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              width: 1,
+                                              color: shiftGrayBorder,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                "Route 2",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontFamily: interFontFamily,
+                                                  fontSize:
+                                                      titleSubtitleFontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                "via this street churva churva",
+                                                style: TextStyle(
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  color: shiftGrayBorder,
+                                                  fontFamily: interFontFamily,
+                                                  fontSize: defaultFontSize,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 100,
+                                          margin: EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                          ),
+                                          padding: EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              width: 1,
+                                              color: shiftGrayBorder,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                "Route 3",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontFamily: interFontFamily,
+                                                  fontSize:
+                                                      titleSubtitleFontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                "via this street churva churva",
+                                                style: TextStyle(
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  color: shiftGrayBorder,
+                                                  fontFamily: interFontFamily,
+                                                  fontSize: defaultFontSize,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Flexible(
+                              flex: 1,
+                              child: Container(
+                                margin: EdgeInsets.only(left: 10),
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: shiftBlue,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 2,
+                                      blurRadius: 5,
+                                      offset: Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Go",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: interFontFamily,
+                                      fontSize: titleSubtitleFontSize,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -31,6 +31,7 @@ const double loginScreenTitleSize = 50.00;
 const double logoScreenTitleSize = 70.00;
 
 const Color shiftRed = Color(0xFFFD3C3B);
+const Color shiftBlue = Color(0xFF071A52);
 const Color shiftBlack = Color(0xFF1E232C);
 const Color shiftGrayBorder = Color(0xFF888888);
 
