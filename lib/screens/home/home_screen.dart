@@ -70,18 +70,44 @@ class _MyHomePageState extends State<MyHomePage>
     super.dispose();
   }
 
-  Future<void> drawRoadManually(List<String> encodedPolylines) async {
+  Future<void> drawRoadManually(List<String> encodedPolylines, RoadOption roadOp) async {
     for (var encoded in encodedPolylines) {
       final list = await encoded.toListGeo();
       await mapController.drawRoadManually(
         list,
-        RoadOption(
-          zoomInto: true,
-          roadColor: Colors.blueAccent,
-        ),
+         roadOp,
       );
     }
   }
+
+  
+Future<List<String>> fetchOSRMRoutePolylines(
+    List<GeoPoint> coordinates) async {
+  final String profile = 'driving';
+  final String coordinatesString = coordinates
+      .map((coord) => '${coord.longitude},${coord.latitude}')
+      .join(';');
+
+  final String url =
+      'https://router.project-osrm.org/route/v1/$profile/$coordinatesString?alternatives=true&steps=true&geometries=polyline&overview=full&annotations=false';
+
+  final response = await http.get(Uri.parse(url));
+  List<String> polylines = [];
+
+  if (response.statusCode == 200) {
+    Map<String, dynamic> map = jsonDecode(response.body);
+    List routes = map["routes"];
+
+    for (var route in routes) {
+      var geometry = route['geometry'];
+      polylines.add(geometry);
+    }
+
+    return polylines;
+  } else {
+    throw Exception('Failed to fetch route polylines');
+  }
+}
 
   Future<List<String>> getDirections(
       GeoPoint start, GeoPoint destination) async {
@@ -107,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage>
     } else {
       print('Failed to load directions');
     }
-
+    print(polylines.toString());
     return polylines;
   }
 
@@ -434,23 +460,25 @@ class _MyHomePageState extends State<MyHomePage>
                         pointsRoad.add(p as GeoPoint);
                         //                     print(destination.toString());
                         // RoadInfo roadInformation =
-                        await mapController.drawRoad(
-                          pointsRoad.first,
-                          pointsRoad.last,
-                          roadType: RoadType.car,
-                          intersectPoint: pointsRoad
-                              .getRange(1, pointsRoad.length - 1)
-                              .toList(),
-                          roadOption: RoadOption(
-                            roadWidth: 2,
-                            roadColor: Colors.red,
-                            zoomInto: true,
-                          ),
-                        );
-
+                        // await mapController.drawRoad(
+                        //   pointsRoad.first,
+                        //   pointsRoad.last,
+                        //   roadType: RoadType.car,
+                        //   intersectPoint: pointsRoad
+                        //       .getRange(1, pointsRoad.length - 1)
+                        //       .toList(),
+                        //   roadOption: RoadOption(
+                        //     roadWidth: 2,
+                        //     roadColor: Colors.red,
+                        //     zoomInto: true,
+                        //   ),
+                        // // );
+                        final getOSRMroutes = await fetchOSRMRoutePolylines(pointsRoad);
                         final getRoutes = await getDirections(
                             pointsRoad.first, pointsRoad.last);
-                        drawRoadManually(getRoutes);
+                        
+                        drawRoadManually(getRoutes, RoadOption(roadColor: Colors.red));
+                         drawRoadManually(getOSRMroutes, RoadOption(roadColor: Colors.blue));
 
                         mapController.addMarker(p,
                             markerIcon: MarkerIcon(
@@ -727,7 +755,7 @@ class _MyHomePageState extends State<MyHomePage>
       // );
 
       final getRoutes = await getDirections(origin, destination);
-      drawRoadManually(getRoutes);
+      drawRoadManually(getRoutes, RoadOption(roadColor: Colors.green));
 
       // debugPrint(
       //     "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
