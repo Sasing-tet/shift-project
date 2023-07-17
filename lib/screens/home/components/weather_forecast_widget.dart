@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:marquee/marquee.dart';
+import 'package:shift_project/screens/home/components/hourly_weather_forcase_widget.dart';
 
 import '../../../constants/constants.dart';
 import '../../../fetch/Address from Coords/get_address_from_coords.dart';
@@ -22,6 +23,10 @@ class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
   void initState() {
     super.initState();
     _determinePosition();
+    fetchWeatherData(
+      currentPosition?.latitude ?? 0.0,
+      currentPosition?.longitude ?? 0.0,
+    );
   }
 
   Future<void> _determinePosition() async {
@@ -56,99 +61,96 @@ class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
                 return const Text('Failed to fetch address');
               } else {
                 final address = addressSnapshot.data ?? 'Unknown Address';
-                return Row(
+                return ExpansionTile(
+                  backgroundColor: Colors.transparent,
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${weatherData.currentTemperature}${weatherData.currentWeatherUnit}',
+                                style: const TextStyle(
+                                  fontSize: titleFontSize,
+                                  fontFamily: interFontFamily,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 20,
+                                child: Marquee(
+                                  text: address,
+                                  style: const TextStyle(
+                                    fontSize: titleSubtitleFontSize,
+                                    fontFamily: interFontFamily,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  scrollAxis: Axis.horizontal,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  blankSpace: 20.0,
+                                  velocity: 30.0,
+                                  pauseAfterRound: const Duration(seconds: 1),
+                                  accelerationDuration:
+                                      const Duration(seconds: 1),
+                                  accelerationCurve: Curves.linear,
+                                  decelerationDuration:
+                                      const Duration(seconds: 2),
+                                  decelerationCurve: Curves.easeOut,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                    ],
+                  ),
+                  trailing: SizedBox(
+                    width: 60,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.thunderstorm,
+                          size: 35,
+                          color: Colors.blue,
+                        ),
+                        SizedBox(
+                          height: 20,
+                          child: Marquee(
+                            text: weatherData
+                                .hourlyWeatherDataList[0].weatherDescription,
+                            style: const TextStyle(
+                              fontSize: titleSubtitleFontSize,
+                              fontFamily: interFontFamily,
+                              overflow: TextOverflow.ellipsis,
+                              fontWeight: FontWeight.normal,
+                            ),
+                            scrollAxis: Axis.horizontal,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            blankSpace: 20.0,
+                            velocity: 10.0,
+                            pauseAfterRound: const Duration(seconds: 1),
+                            startPadding: 0,
+                            accelerationDuration: const Duration(seconds: 1),
+                            accelerationCurve: Curves.linear,
+                            decelerationDuration: const Duration(seconds: 2),
+                            decelerationCurve: Curves.easeOut,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   children: [
-                    Flexible(
-                      flex: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${weatherData.currentTemperature}${weatherData.currentWeatherUnit}',
-                              style: const TextStyle(
-                                fontSize: titleFontSize,
-                                fontFamily: interFontFamily,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(
-                              height: 20,
-                              child: Marquee(
-                                text: address,
-                                style: const TextStyle(
-                                  fontSize: titleSubtitleFontSize,
-                                  fontFamily: interFontFamily,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                scrollAxis: Axis.horizontal,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                blankSpace: 20.0,
-                                velocity: 30.0,
-                                pauseAfterRound: const Duration(seconds: 1),
-                                startPadding: 10.0,
-                                accelerationDuration:
-                                    const Duration(seconds: 1),
-                                accelerationCurve: Curves.linear,
-                                decelerationDuration:
-                                    const Duration(seconds: 2),
-                                decelerationCurve: Curves.easeOut,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 10,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.thunderstorm,
-                              size: 40,
-                              color: Colors.blue,
-                            ),
-                            SizedBox(
-                              height: 18,
-                              child: Marquee(
-                                text: 'Heavy Rain',
-                                style: const TextStyle(
-                                  fontSize: titleSubtitleFontSize,
-                                  fontFamily: interFontFamily,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                scrollAxis: Axis.horizontal,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                blankSpace: 20.0,
-                                velocity: 10.0,
-                                pauseAfterRound: const Duration(seconds: 1),
-                                startPadding: 10.0,
-                                accelerationDuration:
-                                    const Duration(seconds: 1),
-                                accelerationCurve: Curves.linear,
-                                decelerationDuration:
-                                    const Duration(seconds: 2),
-                                decelerationCurve: Curves.easeOut,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    HourlyWeatherForcastWidget(
+                      hourlyWeatherDataList: weatherData.hourlyWeatherDataList,
                     ),
                   ],
                 );

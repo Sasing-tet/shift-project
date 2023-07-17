@@ -70,44 +70,44 @@ class _MyHomePageState extends State<MyHomePage>
     super.dispose();
   }
 
-  Future<void> drawRoadManually(List<String> encodedPolylines, RoadOption roadOp) async {
+  Future<void> drawRoadManually(
+      List<String> encodedPolylines, RoadOption roadOp) async {
     for (var encoded in encodedPolylines) {
       final list = await encoded.toListGeo();
       await mapController.drawRoadManually(
         list,
-         roadOp,
+        roadOp,
       );
     }
   }
 
-  
-Future<List<String>> fetchOSRMRoutePolylines(
-    List<GeoPoint> coordinates) async {
-  final String profile = 'driving';
-  final String coordinatesString = coordinates
-      .map((coord) => '${coord.longitude},${coord.latitude}')
-      .join(';');
+  Future<List<String>> fetchOSRMRoutePolylines(
+      List<GeoPoint> coordinates) async {
+    final String profile = 'driving';
+    final String coordinatesString = coordinates
+        .map((coord) => '${coord.longitude},${coord.latitude}')
+        .join(';');
 
-  final String url =
-      'https://router.project-osrm.org/route/v1/$profile/$coordinatesString?alternatives=true&steps=true&geometries=polyline&overview=full&annotations=false';
+    final String url =
+        'https://router.project-osrm.org/route/v1/$profile/$coordinatesString?alternatives=true&steps=true&geometries=polyline&overview=full&annotations=false';
 
-  final response = await http.get(Uri.parse(url));
-  List<String> polylines = [];
+    final response = await http.get(Uri.parse(url));
+    List<String> polylines = [];
 
-  if (response.statusCode == 200) {
-    Map<String, dynamic> map = jsonDecode(response.body);
-    List routes = map["routes"];
+    if (response.statusCode == 200) {
+      Map<String, dynamic> map = jsonDecode(response.body);
+      List routes = map["routes"];
 
-    for (var route in routes) {
-      var geometry = route['geometry'];
-      polylines.add(geometry);
+      for (var route in routes) {
+        var geometry = route['geometry'];
+        polylines.add(geometry);
+      }
+
+      return polylines;
+    } else {
+      throw Exception('Failed to fetch route polylines');
     }
-
-    return polylines;
-  } else {
-    throw Exception('Failed to fetch route polylines');
   }
-}
 
   Future<List<String>> getDirections(
       GeoPoint start, GeoPoint destination) async {
@@ -220,7 +220,7 @@ Future<List<String>> fetchOSRMRoutePolylines(
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size(double.infinity, isExpanded ? 250 : 110),
+        preferredSize: Size(double.infinity, 250),
         child: SafeArea(
           child: Builder(builder: (context) {
             return Row(
@@ -251,36 +251,25 @@ Future<List<String>> fetchOSRMRoutePolylines(
                 ),
                 //WEATHER WIDGET
                 Expanded(
-                  child: AnimatedSize(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.fastEaseInToSlowEaseOut,
-                    child: GestureDetector(
-                      onTap: () {
-                        _toggleExpanded();
-                      },
-                      child: Container(
-                        height: isExpanded ? double.infinity : null,
-                        margin: EdgeInsets.only(
-                          top: 10,
-                          right: 10,
-                          bottom: 10,
-                        ),
-                        padding: EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: WeatherForecastWidget(),
-                      ),
+                  child: Container(
+                    margin: EdgeInsets.only(
+                      top: 10,
+                      right: 10,
+                      bottom: 10,
                     ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: WeatherForecastWidget(),
                   ),
                 ),
               ],
@@ -473,12 +462,15 @@ Future<List<String>> fetchOSRMRoutePolylines(
                         //     zoomInto: true,
                         //   ),
                         // // );
-                        final getOSRMroutes = await fetchOSRMRoutePolylines(pointsRoad);
+                        final getOSRMroutes =
+                            await fetchOSRMRoutePolylines(pointsRoad);
                         final getRoutes = await getDirections(
                             pointsRoad.first, pointsRoad.last);
-                        
-                        drawRoadManually(getRoutes, RoadOption(roadColor: Colors.red));
-                         drawRoadManually(getOSRMroutes, RoadOption(roadColor: Colors.blue));
+
+                        drawRoadManually(
+                            getRoutes, RoadOption(roadColor: Colors.red));
+                        drawRoadManually(
+                            getOSRMroutes, RoadOption(roadColor: Colors.blue));
 
                         mapController.addMarker(p,
                             markerIcon: MarkerIcon(
