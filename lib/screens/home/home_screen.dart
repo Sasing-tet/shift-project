@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage>
   ValueNotifier<bool> showFab = ValueNotifier(true);
   ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
   ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
-    ValueNotifier<bool> polylinezzNotifier = ValueNotifier(false);
+  ValueNotifier<bool> polylinezzNotifier = ValueNotifier(false);
   List<String> polylinezz = [];
   List<GeoPoint> pointsRoad = [];
   Map<String, dynamic> details = {};
@@ -79,10 +80,10 @@ class _MyHomePageState extends State<MyHomePage>
       final roadOption = i == 0
           ? RoadOption(
               roadColor: Color.fromARGB(181, 71, 19, 16),
-              roadWidth: 8,) // Full opacity for the first polyline
+              roadWidth: 8,
+            ) // Full opacity for the first polyline
           : RoadOption(
-              roadColor:  Colors.red,
-              roadWidth: 8); // 80% opacity for the rest
+              roadColor: Colors.red, roadWidth: 8); // 80% opacity for the rest
 
       await mapController.drawRoadManually(list, roadOption);
     }
@@ -317,7 +318,7 @@ class _MyHomePageState extends State<MyHomePage>
               //     ],
               //   ),
               OSMFlutter(
-                staticPoints: [],
+                  staticPoints: [],
                   enableRotationByGesture: true,
                   controller: mapController,
                   initZoom: 15,
@@ -343,26 +344,27 @@ class _MyHomePageState extends State<MyHomePage>
                     roadColor: Colors.yellowAccent,
                   ),
                   markerOption: MarkerOption(
-                      defaultMarker: const MarkerIcon(
-                    icon: Icon(
-                      Icons.person_pin_circle,
-                      color: Colors.blue,
-                      size: 56,
+                    defaultMarker: const MarkerIcon(
+                      icon: Icon(
+                        Icons.person_pin_circle,
+                        color: Colors.blue,
+                        size: 56,
+                      ),
                     ),
-                  )),
+                  ),
                 ),
-          if (isMapOverlayVisible && isExpanded)
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  isMapOverlayVisible = false;
-                  isExpanded = false;
-                });
-              },
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
-              ),
-            ),
+          // if (isMapOverlayVisible && isExpanded)
+          //   GestureDetector(
+          //     onTap: () {
+          //       setState(() {
+          //         isMapOverlayVisible = false;
+          //         isExpanded = false;
+          //       });
+          //     },
+          //     child: Container(
+          //       color: Colors.black.withOpacity(0.5),
+          //     ),
+          //   ),
           Positioned(
             left: 0,
             right: 0,
@@ -433,166 +435,208 @@ class _MyHomePageState extends State<MyHomePage>
                     },
                   ),
                 ),
-              
-             ValueListenableBuilder<bool>(
-  valueListenable: polylinezzNotifier,
-  builder: (context, value, child) {
-    return value
-        ? Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 100,
-                  margin: EdgeInsets.all(16),
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: RouteButtons(
-                          polylinezz: polylinezz,
-                          mapController: mapController,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Container(
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: shiftBlue,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            "Go",
-                            style: TextStyle(
+                ValueListenableBuilder<bool>(
+                  valueListenable: polylinezzNotifier,
+                  builder: (context, value, child) {
+                    return value
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(
+                                  left: 15,
+                                ),
+                                padding: EdgeInsets.all(3),
+                                decoration: BoxDecoration(
+                                  color: shiftRed,
+                                  borderRadius: BorderRadius.circular(50),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 2,
+                                      blurRadius: 10,
+                                      offset: Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.location_pin,
+                                    size: 35,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    mapController.clearAllRoads();
+                                    polylinezz.clear();
+
+                                    setState(() {
+                                      polylinezzNotifier.value = false;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      height: 100,
+                                      margin: EdgeInsets.all(16),
+                                      padding: EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.grey.withOpacity(0.5),
+                                            spreadRadius: 2,
+                                            blurRadius: 10,
+                                            offset: Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: RouteButtons(
+                                              polylinezz: polylinezz,
+                                              mapController: mapController,
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Container(
+                                            width: 60,
+                                            decoration: BoxDecoration(
+                                              color: shiftBlue,
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.5),
+                                                  spreadRadius: 2,
+                                                  blurRadius: 5,
+                                                  offset: Offset(0, 3),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                "Go",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontFamily: interFontFamily,
+                                                  fontSize:
+                                                      titleSubtitleFontSize,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        : Container(
+                            margin: EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
                               color: Colors.white,
-                              fontFamily: interFontFamily,
-                              fontSize: titleSubtitleFontSize,
-                              fontWeight: FontWeight.bold,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 2,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                            child: Builder(builder: (ctx) {
+                              return TextButton(
+                                style: chooseDestination,
+                                onPressed: () async {
+                                  pointsRoad
+                                      .add(await mapController.myLocation());
+
+                                  var p = await Navigator.pushNamed(
+                                      context, "/search");
+                                  pointsRoad.add(p as GeoPoint);
+                                  //                     print(destination.toString());
+                                  // RoadInfo roadInformation =
+                                  // await mapController.drawRoad(
+                                  //   pointsRoad.first,
+                                  //   pointsRoad.last,
+                                  //   roadType: RoadType.car,
+                                  //   intersectPoint: pointsRoad
+                                  //       .getRange(1, pointsRoad.length - 1)
+                                  //       .toList(),
+                                  //   roadOption: RoadOption(
+                                  //     roadWidth: 2,
+                                  //     roadColor: Colors.red,
+                                  //     zoomInto: true,
+                                  //   ),
+                                  // // );
+                                  polylinezz.addAll(
+                                      await fetchOSRMRoutePolylines(
+                                          pointsRoad));
+                                  polylinezz.addAll(await getDirections(
+                                      pointsRoad.first, pointsRoad.last));
+                                  pointsRoad.clear();
+                                  debugPrint(polylinezz.toString());
+                                  drawRoadManually(polylinezz);
+                                  //drawCircle();
+
+                                  // drawRoadManually(
+                                  //     getRoutes, RoadOption(roadColor: Colors.red));
+                                  // drawRoadManually(
+                                  //     getOSRMroutes, RoadOption(roadColor: Colors.blue));
+
+                                  mapController.addMarker(p,
+                                      markerIcon: MarkerIcon(
+                                          icon: Icon(
+                                        Icons.pin_drop_rounded,
+                                        size: 100,
+                                        color: Colors.redAccent,
+                                      )));
+                                  pointsRoad.clear();
+                                  mapController.enableTracking(
+                                    enableStopFollow: false,
+                                    disableUserMarkerRotation: true,
+                                  );
+
+                                  setState(() {
+                                    polylinezzNotifier.value = true;
+                                  });
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.pin_drop_rounded,
+                                      size: 25,
+                                      color: Colors.redAccent,
+                                    ),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    Text(
+                                      'Choose Destination',
+                                      style: TextStyle(
+                                        fontFamily: interFontFamily,
+                                        fontSize: titleSubtitleFontSize,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          );
+                  },
                 ),
-              ),
-            ],
-          )
-        :   Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Builder(builder: (ctx) {
-                    return TextButton(
-                      style: chooseDestination,
-                      onPressed: () async {
-                        pointsRoad.add(await mapController.myLocation());
-
-                        var p = await Navigator.pushNamed(context, "/search");
-                        pointsRoad.add(p as GeoPoint);
-                        //                     print(destination.toString());
-                        // RoadInfo roadInformation =
-                        // await mapController.drawRoad(
-                        //   pointsRoad.first,
-                        //   pointsRoad.last,
-                        //   roadType: RoadType.car,
-                        //   intersectPoint: pointsRoad
-                        //       .getRange(1, pointsRoad.length - 1)
-                        //       .toList(),
-                        //   roadOption: RoadOption(
-                        //     roadWidth: 2,
-                        //     roadColor: Colors.red,
-                        //     zoomInto: true,
-                        //   ),
-                        // // );
-                        polylinezz.addAll(
-                            await fetchOSRMRoutePolylines(pointsRoad));
-                        polylinezz.addAll(await getDirections(
-                            pointsRoad.first, pointsRoad.last));
-                            pointsRoad.clear();
-                            debugPrint(polylinezz.toString());
-                        drawRoadManually(polylinezz);
-
-                        drawRoadManually(
-                            getRoutes, RoadOption(roadColor: Colors.red));
-                        drawRoadManually(
-                            getOSRMroutes, RoadOption(roadColor: Colors.blue));
-
-                        mapController.addMarker(p,
-                            markerIcon: MarkerIcon(
-                                icon: Icon(
-                              Icons.pin_drop_rounded,
-                              size: 100,
-                              color: Colors.redAccent,
-                            )));
-                        pointsRoad.clear();
-                        mapController.enableTracking(
-                          enableStopFollow: true,
-                          disableUserMarkerRotation: true,
-                        );
-                        
-                        setState(() {
-                          polylinezzNotifier.value = true;
-                        
-                        });
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.pin_drop_rounded,
-                            size: 25,
-                            color: Colors.redAccent,
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Text(
-                            'Choose Destination',
-                            style: TextStyle(
-                              fontFamily: interFontFamily,
-                              fontSize: titleSubtitleFontSize,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                );
-  },
-),
-
               ],
             ),
           ),
@@ -608,6 +652,18 @@ class _MyHomePageState extends State<MyHomePage>
       //   child: const Icon(Icons.my_location),
       // ),
     );
+  }
+
+  Future<void> drawCircle() async {
+    final circle = CircleOSM(
+      key: 'circle1',
+      centerPoint: GeoPoint(latitude: 10.3157, longitude: 123.8854),
+      radius: 5000,
+      color: Colors.blue.withOpacity(0.3),
+      strokeWidth: 2,
+    );
+
+    await mapController.drawCircle(circle);
   }
 
   void roadActionBt(BuildContext ctx, GeoPoint origin, destination) async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:shift_project/constants/constants.dart';
 
 class WeatherDrawer extends StatelessWidget {
@@ -10,29 +11,85 @@ class WeatherDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
-            decoration: drawerBackground,
-            child: Text(
-              'Weather',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
+          SizedBox(
+            height: 250,
+            child: DrawerHeader(
+              decoration: drawerBackground,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    icon: const FaIcon(
+                      FontAwesomeIcons.arrowLeft,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  const CircleAvatar(
+                    radius: 40,
+                    backgroundImage: AssetImage(
+                      'assets/images/hu tao smol.jpg',
+                    ),
+                  ),
+                  const Text(
+                    'Guest#123',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: titleFontSize,
+                    ),
+                  ),
+                  const Text(
+                    'Guest User',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: titleSubtitleFontSize,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
           ListTile(
-            title: const Text('Weather Item 1'),
-            onTap: () {
-              // Handle weather item 1 tap
-            },
+            title: const Text('Feedback'),
+            onTap: () {},
+            shape: const Border(
+              bottom: BorderSide(color: shiftGrayBorder, width: 1),
+            ),
           ),
           ListTile(
-            title: const Text('Weather Item 2'),
-            onTap: () {
-              // Handle weather item 2 tap
-            },
+            title: const Text('About Us'),
+            onTap: () {},
+            shape: const Border(
+              bottom: BorderSide(color: shiftGrayBorder, width: 1),
+            ),
           ),
-          // Add more weather items as needed
+          ListTile(
+            title: const Text('Settings'),
+            onTap: () {},
+            shape: const Border(
+              bottom: BorderSide(color: shiftGrayBorder, width: 1),
+            ),
+          ),
+          ListTile(
+            title: const Text('Data Sources'),
+            onTap: () {},
+            shape: const Border(
+              bottom: BorderSide(color: shiftGrayBorder, width: 1),
+            ),
+          ),
+          ListTile(
+            title: const Text('Logout'),
+            onTap: () {},
+            shape: const Border(
+              bottom: BorderSide(color: shiftGrayBorder, width: 1),
+            ),
+          ),
         ],
       ),
     );

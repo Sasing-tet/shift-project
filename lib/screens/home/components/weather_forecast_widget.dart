@@ -8,6 +8,7 @@ import '../../../constants/constants.dart';
 import '../../../fetch/Address from Coords/get_address_from_coords.dart';
 import '../../../fetch/models/weather_data_model.dart';
 import '../../../fetch/weather API/weather_forecast.dart';
+import 'weather code description/weather_code_description.dart';
 
 class WeatherForecastWidget extends StatefulWidget {
   const WeatherForecastWidget({super.key});
@@ -18,6 +19,7 @@ class WeatherForecastWidget extends StatefulWidget {
 
 class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
   LatLng? currentPosition;
+  late Future<WeatherData> weatherDataFuture;
 
   @override
   void initState() {
@@ -36,6 +38,15 @@ class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
       currentPosition = LatLng(position.latitude, position.longitude);
     });
   }
+
+  // Future<void> _refreshWeatherData() async {
+  //   setState(() {
+  //     weatherDataFuture = fetchWeatherData(
+  //       currentPosition?.latitude ?? 0.0,
+  //       currentPosition?.longitude ?? 0.0,
+  //     );
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +92,7 @@ class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
                                 ),
                               ),
                               SizedBox(
-                                height: 20,
+                                height: 22,
                                 child: Marquee(
                                   text: address,
                                   style: const TextStyle(
@@ -117,10 +128,12 @@ class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        const Icon(
-                          Icons.thunderstorm,
-                          size: 35,
-                          color: Colors.blue,
+                        SizedBox(
+                          width: 35,
+                          height: 35,
+                          child: getWeatherIcon(
+                            weatherData.hourlyWeatherDataList[0].weatherCode,
+                          ),
                         ),
                         SizedBox(
                           height: 20,

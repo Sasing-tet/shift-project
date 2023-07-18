@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:shift_project/constants/constants.dart';
 
 import '../../../fetch/models/hourly_weather_data_model.dart';
+import 'weather code description/weather_code_description.dart';
 
 class HourlyWeatherForcastWidget extends StatelessWidget {
   final List<HourlyWeatherData> hourlyWeatherDataList;
@@ -40,7 +41,7 @@ class HourlyWeatherForcastWidget extends StatelessWidget {
             children: filteredList.map((item) {
               final parsedTime = DateTime.parse(item.time);
               final formattedTime = timeFormat.format(parsedTime);
-              final icon = Icon(Icons.cloud_done);
+              final icon = getWeatherIcon(item.weatherCode);
               final temperature = item.temperature;
 
               return Padding(
@@ -51,7 +52,11 @@ class HourlyWeatherForcastWidget extends StatelessWidget {
                     SizedBox(height: 8),
                     icon,
                     SizedBox(height: 8),
-                    Text('$temperature'),
+                    Row(
+                      children: [
+                        Text('$temperature°C'),
+                      ],
+                    ),
                   ],
                 ),
               );
