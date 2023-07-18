@@ -17,6 +17,7 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:shift_project/constants/constants.dart';
 import 'package:shift_project/fetch/models/weather_data_model.dart';
 import 'package:shift_project/screens/home/components/road_choice_widget.dart';
+import 'package:shift_project/screens/home/components/route_button_widget.dart';
 import 'package:shift_project/screens/home/components/weather_forecast_widget.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 
@@ -41,7 +42,8 @@ class _MyHomePageState extends State<MyHomePage>
   ValueNotifier<bool> showFab = ValueNotifier(true);
   ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
   ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
-
+    ValueNotifier<bool> polylinezzNotifier = ValueNotifier(false);
+  List<String> polylinezz = [];
   List<GeoPoint> pointsRoad = [];
   Map<String, dynamic> details = {};
 
@@ -70,14 +72,19 @@ class _MyHomePageState extends State<MyHomePage>
     super.dispose();
   }
 
-  Future<void> drawRoadManually(
-      List<String> encodedPolylines, RoadOption roadOp) async {
-    for (var encoded in encodedPolylines) {
+  Future<void> drawRoadManually(List<String> encodedPolylines) async {
+    for (var i = 0; i < encodedPolylines.length; i++) {
+      final encoded = encodedPolylines[i];
       final list = await encoded.toListGeo();
-      await mapController.drawRoadManually(
-        list,
-        roadOp,
-      );
+      final roadOption = i == 0
+          ? RoadOption(
+              roadColor: Color.fromARGB(181, 71, 19, 16),
+              roadWidth: 8,) // Full opacity for the first polyline
+          : RoadOption(
+              roadColor:  Colors.red,
+              roadWidth: 8); // 80% opacity for the rest
+
+      await mapController.drawRoadManually(list, roadOption);
     }
   }
 
@@ -310,6 +317,7 @@ class _MyHomePageState extends State<MyHomePage>
               //     ],
               //   ),
               OSMFlutter(
+                staticPoints: [],
                   enableRotationByGesture: true,
                   controller: mapController,
                   initZoom: 15,
@@ -425,7 +433,72 @@ class _MyHomePageState extends State<MyHomePage>
                     },
                   ),
                 ),
-                Container(
+              
+             ValueListenableBuilder<bool>(
+  valueListenable: polylinezzNotifier,
+  builder: (context, value, child) {
+    return value
+        ? Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 100,
+                  margin: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: RouteButtons(
+                          polylinezz: polylinezz,
+                          mapController: mapController,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Container(
+                        width: 60,
+                        decoration: BoxDecoration(
+                          color: shiftBlue,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Go",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: interFontFamily,
+                              fontSize: titleSubtitleFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          )
+        :   Container(
                   margin: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -462,10 +535,13 @@ class _MyHomePageState extends State<MyHomePage>
                         //     zoomInto: true,
                         //   ),
                         // // );
-                        final getOSRMroutes =
-                            await fetchOSRMRoutePolylines(pointsRoad);
-                        final getRoutes = await getDirections(
-                            pointsRoad.first, pointsRoad.last);
+                        polylinezz.addAll(
+                            await fetchOSRMRoutePolylines(pointsRoad));
+                        polylinezz.addAll(await getDirections(
+                            pointsRoad.first, pointsRoad.last));
+                            pointsRoad.clear();
+                            debugPrint(polylinezz.toString());
+                        drawRoadManually(polylinezz);
 
                         drawRoadManually(
                             getRoutes, RoadOption(roadColor: Colors.red));
@@ -484,6 +560,11 @@ class _MyHomePageState extends State<MyHomePage>
                           enableStopFollow: true,
                           disableUserMarkerRotation: true,
                         );
+                        
+                        setState(() {
+                          polylinezzNotifier.value = true;
+                        
+                        });
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -508,195 +589,10 @@ class _MyHomePageState extends State<MyHomePage>
                       ),
                     );
                   }),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(16),
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              offset: Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Column(
-                                children: [
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    physics: BouncingScrollPhysics(),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 100,
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                          ),
-                                          padding: EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              width: 1,
-                                              color: shiftGrayBorder,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Text(
-                                                "Route 1",
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontFamily: interFontFamily,
-                                                  fontSize:
-                                                      titleSubtitleFontSize,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              Text(
-                                                "via this street churva churva",
-                                                style: TextStyle(
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  color: shiftGrayBorder,
-                                                  fontFamily: interFontFamily,
-                                                  fontSize: defaultFontSize,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 100,
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                          ),
-                                          padding: EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              width: 1,
-                                              color: shiftGrayBorder,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Text(
-                                                "Route 2",
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontFamily: interFontFamily,
-                                                  fontSize:
-                                                      titleSubtitleFontSize,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              Text(
-                                                "via this street churva churva",
-                                                style: TextStyle(
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  color: shiftGrayBorder,
-                                                  fontFamily: interFontFamily,
-                                                  fontSize: defaultFontSize,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 100,
-                                          margin: EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                          ),
-                                          padding: EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              width: 1,
-                                              color: shiftGrayBorder,
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              Text(
-                                                "Route 3",
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontFamily: interFontFamily,
-                                                  fontSize:
-                                                      titleSubtitleFontSize,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              Text(
-                                                "via this street churva churva",
-                                                style: TextStyle(
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  color: shiftGrayBorder,
-                                                  fontFamily: interFontFamily,
-                                                  fontSize: defaultFontSize,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Flexible(
-                              flex: 1,
-                              child: Container(
-                                margin: EdgeInsets.only(left: 10),
-                                padding: EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: shiftBlue,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      spreadRadius: 2,
-                                      blurRadius: 5,
-                                      offset: Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Go",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontFamily: interFontFamily,
-                                      fontSize: titleSubtitleFontSize,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                );
+  },
+),
+
               ],
             ),
           ),
@@ -747,7 +643,7 @@ class _MyHomePageState extends State<MyHomePage>
       // );
 
       final getRoutes = await getDirections(origin, destination);
-      drawRoadManually(getRoutes, RoadOption(roadColor: Colors.green));
+      drawRoadManually(getRoutes);
 
       // debugPrint(
       //     "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
@@ -778,5 +674,43 @@ class _MyHomePageState extends State<MyHomePage>
         ),
       );
     }
+  }
+}
+
+class RouteButtons extends StatelessWidget {
+  const RouteButtons({
+    super.key,
+    required this.polylinezz,
+    required this.mapController,
+  });
+
+  final List<String> polylinezz;
+  final MapController mapController;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: polylinezz.length,
+      itemBuilder: (context, index) {
+        final poly = polylinezz[index];
+        final roadColor = Colors.red;
+
+        return GestureDetector(
+          onTap: () async {
+            mapController.clearAllRoads();
+            final list = await poly.toListGeo();
+            mapController.drawRoadManually(
+              list,
+              RoadOption(
+                roadColor: roadColor,
+                roadWidth: 3,
+              ),
+            );
+          },
+          child: RouteOptionWidget(i: index),
+        );
+      },
+    );
   }
 }
