@@ -256,7 +256,7 @@ void _updateLocation() async {
    
    
     // Continue updating the location with a delay of 1 second (adjust as needed)
-    Future.delayed(Duration(seconds: 2), () => _updateLocation());
+    Future.delayed(Duration(seconds: 1), () => _updateLocation());
   }
 }
 // void _updateLocation() async {
@@ -384,7 +384,7 @@ void _updateLocation() async {
                   userLocationMarker: UserLocationMaker(
                     personMarker: const MarkerIcon(
                       icon: Icon(
-                        Icons.person_pin_circle,
+                        Icons.navigation,
                         color: Colors.blueAccent,
                         size: 100,
                       ),
@@ -561,8 +561,8 @@ void _updateLocation() async {
                                           SizedBox(width: 10),
                                           GestureDetector(
                                             onTap: () async {
-                                              userPath.add(
-                                                  await mapController.myLocation());
+                                              // userPath.add(
+                                              //     await mapController.myLocation());
                                               routesCHOSEN.addAll(routes);
                                               mapController.clearAllRoads();
                                               routesCHOSEN.insert(
@@ -580,7 +580,7 @@ void _updateLocation() async {
                                               //  roadOption: RoadOption(roadColor: Colors.blue, roadWidth: 15),
                                               //  intersectPoint: routesCHOSEN.toList()
                                               //     );
-                                              // _updateLocation();
+                                              _updateLocation();
                                             },
                                             child: Container(
                                               width: 60,
@@ -683,7 +683,7 @@ void _updateLocation() async {
                                   pointsRoad.clear();
                                   mapController.enableTracking(
                                     enableStopFollow: false,
-                                    disableUserMarkerRotation: true,
+                                    disableUserMarkerRotation: false,
                                   );
 
                                   setState(() {
