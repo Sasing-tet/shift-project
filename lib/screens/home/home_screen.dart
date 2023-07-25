@@ -24,6 +24,10 @@ import 'package:shift_project/widgets/drawer_widget.dart';
 
 import '../../fetch/weather API/weather_forecast.dart';
 
+List<GeoPoint> userPath = [];
+List<GeoPoint> routes = [];
+List<GeoPoint> routesCHOSEN = [];
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -45,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage>
   ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
   ValueNotifier<bool> polylinezzNotifier = ValueNotifier(false);
   List<String> polylinezz = [];
+
   List<GeoPoint> pointsRoad = [];
   Map<String, dynamic> details = {};
 
@@ -77,6 +82,7 @@ class _MyHomePageState extends State<MyHomePage>
     for (var i = 0; i < encodedPolylines.length; i++) {
       final encoded = encodedPolylines[i];
       final list = await encoded.toListGeo();
+      debugPrint(list.toString());
       final roadOption = i == 0
           ? RoadOption(
               roadColor: Color.fromARGB(181, 71, 19, 16),
@@ -108,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage>
 
       for (var route in routes) {
         var geometry = route['geometry'];
-        polylines.add(geometry);
+        geometry != " " ? polylines.add(geometry) : geometry.clear();
       }
 
       return polylines;
@@ -136,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage>
       for (var i = 0; i < routes.length; i++) {
         var route = routes[i];
         var polyline = route["overview_polyline"]["points"];
-        polylines.add(polyline);
+        polyline != " " ? polylines.add(polyline) : polyline.clear();
       }
     } else {
       print('Failed to load directions');
@@ -214,6 +220,79 @@ class _MyHomePageState extends State<MyHomePage>
       currentPosition = LatLng(position.latitude, position.longitude);
     });
   }
+void _updateLocation() async {
+  if (routesCHOSEN.isNotEmpty) {
+    final dynamicPolylinePoints = routesCHOSEN.toList();
+    final myposition = await mapController.myLocation();
+    //    routesCHOSEN.removeAt(0);
+    // routesCHOSEN.insert(0, myposition);
+    final dist = await distance2point(myposition, dynamicPolylinePoints.first);
+
+    print(dist.toString() + 'hey');
+
+    if (dist < 10) {
+      
+      routesCHOSEN.removeAt(0);
+      mapController.removeLastRoad();
+      
+           mapController.drawRoadManually(
+          routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
+      // mapController.drawRoad(myposition, routesCHOSEN.last,
+      // intersectPoint: routesCHOSEN.toList(),
+      // roadOption: RoadOption(roadColor: Colors.blue, roadWidth: 15),
+      // roadType: RoadType.car,
+      
+      // );
+      
+      // Check if the destination has been reached
+      if (routesCHOSEN.isEmpty) {
+        // Stop the animation when the destination is reached
+        _animationController.stop();
+        return;
+      }
+    }
+
+      // routesCHOSEN.removeAt(0);
+   
+   
+    // Continue updating the location with a delay of 1 second (adjust as needed)
+    Future.delayed(Duration(seconds: 2), () => _updateLocation());
+  }
+}
+// void _updateLocation() async {
+//   final myPosition = await mapController.myLocation();
+//   final thresholdDistance = 3; // Set the threshold distance to 3 meters
+
+//   // Calculate the distance between the current location and the last saved location
+//   double distanceToLastSaved = 0;
+//   if (userPath.isNotEmpty) {
+//     distanceToLastSaved = await distance2point(myPosition, userPath.last);
+//   }
+
+//   // If the user is at least 3 meters away from the last saved location, save the current location
+//   if (distanceToLastSaved >= thresholdDistance) {
+//     setState(() {
+//       userPath.add(myPosition);
+//     });
+
+//     mapController.drawRoadManually(userPath, RoadOption(roadColor: Colors.red, roadWidth: 10));
+//   }
+
+//   // Calculate the distance between the user's current location and the last geopoint of routesCHOSEN
+//   double distanceToDestination = 0;
+//   if (routesCHOSEN.isNotEmpty) {
+//     distanceToDestination = await distance2point(myPosition, routesCHOSEN.last);
+//   }
+
+//   // If the user is less than 1 meter away from the last geopoint of routesCHOSEN, stop updating the location
+//   if (distanceToDestination < 1) {
+//     return;
+//   }
+
+//   Future.delayed(Duration(seconds: 1), () => _updateLocation());
+// }
+
+
 
   void _toggleExpanded() {
     setState(() {
@@ -294,29 +373,6 @@ class _MyHomePageState extends State<MyHomePage>
           currentPosition == null
               ? const Center(child: CircularProgressIndicator())
               :
-              // : FlutterMap(
-              //     mapController: mapController,
-              //     options: MapOptions(
-              //       center: currentPosition!,
-              //       zoom: 17,
-              //     ),
-              //     children: [
-              //       TileLayer(
-              //         urlTemplate:
-              //             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-              //         subdomains: const ['a', 'b', 'c'],
-              //       ),
-              //       CircleLayer(
-              //         circles: [
-              //           CircleMarker(
-              //             point: currentPosition!,
-              //             color: Colors.blue,
-              //             radius: 8,
-              //           ),
-              //         ],
-              //       ),
-              //     ],
-              //   ),
               OSMFlutter(
                   staticPoints: [],
                   enableRotationByGesture: true,
@@ -503,31 +559,55 @@ class _MyHomePageState extends State<MyHomePage>
                                             ),
                                           ),
                                           SizedBox(width: 10),
-                                          Container(
-                                            width: 60,
-                                            decoration: BoxDecoration(
-                                              color: shiftBlue,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.grey
-                                                      .withOpacity(0.5),
-                                                  spreadRadius: 2,
-                                                  blurRadius: 5,
-                                                  offset: Offset(0, 3),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                "Go",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontFamily: interFontFamily,
-                                                  fontSize:
-                                                      titleSubtitleFontSize,
-                                                  fontWeight: FontWeight.bold,
+                                          GestureDetector(
+                                            onTap: () async {
+                                              userPath.add(
+                                                  await mapController.myLocation());
+                                              routesCHOSEN.addAll(routes);
+                                              mapController.clearAllRoads();
+                                              routesCHOSEN.insert(
+                                                0,
+                                                await mapController
+                                                    .myLocation(),
+                                              );
+                                              mapController.drawRoadManually(
+                                                  routesCHOSEN,
+                                                  RoadOption(
+                                                      roadColor: Colors.blue,
+                                                      roadWidth: 15));
+                                              //     mapController.drawRoad(
+                                              //  routesCHOSEN.first, routesCHOSEN.last,
+                                              //  roadOption: RoadOption(roadColor: Colors.blue, roadWidth: 15),
+                                              //  intersectPoint: routesCHOSEN.toList()
+                                              //     );
+                                              // _updateLocation();
+                                            },
+                                            child: Container(
+                                              width: 60,
+                                              decoration: BoxDecoration(
+                                                color: shiftBlue,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.grey
+                                                        .withOpacity(0.5),
+                                                    spreadRadius: 2,
+                                                    blurRadius: 5,
+                                                    offset: Offset(0, 3),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Center(
+                                                child: Text(
+                                                  "Go",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontFamily: interFontFamily,
+                                                    fontSize:
+                                                        titleSubtitleFontSize,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -587,7 +667,6 @@ class _MyHomePageState extends State<MyHomePage>
                                   pointsRoad.clear();
                                   debugPrint(polylinezz.toString());
                                   drawRoadManually(polylinezz);
-                                  //drawCircle();
 
                                   // drawRoadManually(
                                   //     getRoutes, RoadOption(roadColor: Colors.red));
@@ -763,6 +842,9 @@ class RouteButtons extends StatelessWidget {
                 roadWidth: 3,
               ),
             );
+            routes.clear();
+            final route = await polylinezz[index].toListGeo();
+            routes.addAll(route);
           },
           child: RouteOptionWidget(i: index),
         );
