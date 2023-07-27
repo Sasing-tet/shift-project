@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
 
@@ -224,35 +225,27 @@ void _updateLocation() async {
   if (routesCHOSEN.isNotEmpty) {
     final dynamicPolylinePoints = routesCHOSEN.toList();
     final myposition = await mapController.myLocation();
-    //    routesCHOSEN.removeAt(0);
-    // routesCHOSEN.insert(0, myposition);
+  
     final dist = await distance2point(myposition, dynamicPolylinePoints.first);
 
     print(dist.toString() + 'hey');
 
-    if (dist < 10) {
+    if (dist < 15) {
       
       routesCHOSEN.removeAt(0);
       mapController.removeLastRoad();
-      
+     
            mapController.drawRoadManually(
           routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
-      // mapController.drawRoad(myposition, routesCHOSEN.last,
-      // intersectPoint: routesCHOSEN.toList(),
-      // roadOption: RoadOption(roadColor: Colors.blue, roadWidth: 15),
-      // roadType: RoadType.car,
-      
-      // );
-      
-      // Check if the destination has been reached
+    
       if (routesCHOSEN.isEmpty) {
-        // Stop the animation when the destination is reached
+      
         _animationController.stop();
         return;
       }
     }
 
-      // routesCHOSEN.removeAt(0);
+    
    
    
     // Continue updating the location with a delay of 1 second (adjust as needed)
@@ -384,15 +377,16 @@ void _updateLocation() async {
                   userLocationMarker: UserLocationMaker(
                     personMarker: const MarkerIcon(
                       icon: Icon(
-                        Icons.navigation,
+                        Icons.location_on,
                         color: Colors.blueAccent,
                         size: 100,
                       ),
                     ),
                     directionArrowMarker: const MarkerIcon(
                       icon: Icon(
-                        Icons.double_arrow,
-                        size: 48,
+                        Icons.navigation,
+                        color: Colors.blueAccent,
+                        size: 100,
                       ),
                     ),
                   ),
@@ -484,7 +478,7 @@ void _updateLocation() async {
                         await mapController.currentLocation();
                         await mapController.enableTracking(
                           enableStopFollow: true,
-                          disableUserMarkerRotation: true,
+
                         );
                         await mapController.zoomIn();
                       }
@@ -571,14 +565,17 @@ void _updateLocation() async {
                                                     .myLocation(),
                                               );
                                               mapController.drawRoadManually(
+                          
                                                   routesCHOSEN,
                                                   RoadOption(
                                                       roadColor: Colors.blue,
-                                                      roadWidth: 15));
+                                                      roadWidth: 15),
+                                                      
+                                                      );
                                               //     mapController.drawRoad(
                                               //  routesCHOSEN.first, routesCHOSEN.last,
                                               //  roadOption: RoadOption(roadColor: Colors.blue, roadWidth: 15),
-                                              //  intersectPoint: routesCHOSEN.toList()
+                                              //  intersectPoint: routesCHOSEN.getRange(0, routesCHOSEN.length).toList(),
                                               //     );
                                               _updateLocation();
                                             },
@@ -662,11 +659,15 @@ void _updateLocation() async {
                                   polylinezz.addAll(
                                       await fetchOSRMRoutePolylines(
                                           pointsRoad));
-                                  polylinezz.addAll(await getDirections(
-                                      pointsRoad.first, pointsRoad.last));
+                                  // polylinezz.addAll(await getDirections(
+                                  //     pointsRoad.first, pointsRoad.last));
                                   pointsRoad.clear();
-                                  debugPrint(polylinezz.toString());
-                                  drawRoadManually(polylinezz);
+                             
+                                
+// List<String> filteredPolylinezz = polylinezz.toSet().toList();
+
+debugPrint(polylinezz.toString());
+drawRoadManually(polylinezz);
 
                                   // drawRoadManually(
                                   //     getRoutes, RoadOption(roadColor: Colors.red));
