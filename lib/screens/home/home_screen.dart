@@ -1,29 +1,15 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
-import 'dart:collection';
-import 'dart:convert';
-import 'dart:math';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
-import 'package:geocoder_buddy/geocoder_buddy.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:marquee/marquee.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:shift_project/constants/constants.dart';
-import 'package:shift_project/fetch/models/weather_data_model.dart';
-import 'package:shift_project/screens/home/components/road_choice_widget.dart';
 import 'package:shift_project/screens/home/components/route_button_widget.dart';
-import 'package:shift_project/screens/home/components/weather_forecast_widget.dart';
+import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
+import 'package:shift_project/screens/home/services.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
-
-import '../../fetch/weather API/weather_forecast.dart';
 
 List<GeoPoint> userPath = [];
 List<GeoPoint> routes = [];
@@ -77,79 +63,6 @@ class _MyHomePageState extends State<MyHomePage>
     _animationController.dispose();
     mapController.dispose();
     super.dispose();
-  }
-
-  Future<void> drawRoadManually(List<String> encodedPolylines) async {
-    for (var i = 0; i < encodedPolylines.length; i++) {
-      final encoded = encodedPolylines[i];
-      final list = await encoded.toListGeo();
-      debugPrint(list.toString());
-      final roadOption = i == 0
-          ? RoadOption(
-              roadColor: Color.fromARGB(181, 71, 19, 16),
-              roadWidth: 8,
-            ) // Full opacity for the first polyline
-          : RoadOption(
-              roadColor: Colors.red, roadWidth: 8); // 80% opacity for the rest
-
-      await mapController.drawRoadManually(list, roadOption);
-    }
-  }
-
-  Future<List<String>> fetchOSRMRoutePolylines(
-      List<GeoPoint> coordinates) async {
-    final String profile = 'driving';
-    final String coordinatesString = coordinates
-        .map((coord) => '${coord.longitude},${coord.latitude}')
-        .join(';');
-
-    final String url =
-        'https://router.project-osrm.org/route/v1/$profile/$coordinatesString?alternatives=true&steps=true&geometries=polyline&overview=full&annotations=false';
-
-    final response = await http.get(Uri.parse(url));
-    List<String> polylines = [];
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> map = jsonDecode(response.body);
-      List routes = map["routes"];
-
-      for (var route in routes) {
-        var geometry = route['geometry'];
-        geometry != " " ? polylines.add(geometry) : geometry.clear();
-      }
-
-      return polylines;
-    } else {
-      throw Exception('Failed to fetch route polylines');
-    }
-  }
-
-  Future<List<String>> getDirections(
-      GeoPoint start, GeoPoint destination) async {
-    final String startCoords = '${start.latitude},${start.longitude}';
-    final String destinationCoords =
-        '${destination.latitude},${destination.longitude}';
-
-    final String url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&mode=driving&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
-
-    final response = await http.get(Uri.parse(url));
-    List<String> polylines = [];
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> map = jsonDecode(response.body);
-      List routes = map["routes"];
-
-      for (var i = 0; i < routes.length; i++) {
-        var route = routes[i];
-        var polyline = route["overview_polyline"]["points"];
-        polyline != " " ? polylines.add(polyline) : polyline.clear();
-      }
-    } else {
-      print('Failed to load directions');
-    }
-    print(polylines.toString());
-    return polylines;
   }
 
   Future<void> _determinePosition() async {
@@ -221,70 +134,33 @@ class _MyHomePageState extends State<MyHomePage>
       currentPosition = LatLng(position.latitude, position.longitude);
     });
   }
-void _updateLocation() async {
-  if (routesCHOSEN.isNotEmpty) {
-    final dynamicPolylinePoints = routesCHOSEN.toList();
-    final myposition = await mapController.myLocation();
-  
-    final dist = await distance2point(myposition, dynamicPolylinePoints.first);
 
-    print(dist.toString() + 'hey');
+  void _updateLocation() async {
+    if (routesCHOSEN.isNotEmpty) {
+      final dynamicPolylinePoints = routesCHOSEN.toList();
+      final myposition = await mapController.myLocation();
 
-    if (dist < 15) {
+      final dist =
+          await distance2point(myposition, dynamicPolylinePoints.first);
+      final prevDist = dist;
+      print(dist.toString() + 'hey');
+
+      if (dist < 10) {
+        routesCHOSEN.removeAt(0);
+        mapController.removeLastRoad();
+
+        mapController.drawRoadManually(
+            routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
+
+        if (routesCHOSEN.isEmpty) {
+          _animationController.stop();
+          return;
+        }
       
-      routesCHOSEN.removeAt(0);
-      mapController.removeLastRoad();
-     
-           mapController.drawRoadManually(
-          routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
-    
-      if (routesCHOSEN.isEmpty) {
-      
-        _animationController.stop();
-        return;
       }
+      Future.delayed(Duration(seconds: 1), () => _updateLocation());
     }
-
-    
-   
-   
-    // Continue updating the location with a delay of 1 second (adjust as needed)
-    Future.delayed(Duration(seconds: 1), () => _updateLocation());
   }
-}
-// void _updateLocation() async {
-//   final myPosition = await mapController.myLocation();
-//   final thresholdDistance = 3; // Set the threshold distance to 3 meters
-
-//   // Calculate the distance between the current location and the last saved location
-//   double distanceToLastSaved = 0;
-//   if (userPath.isNotEmpty) {
-//     distanceToLastSaved = await distance2point(myPosition, userPath.last);
-//   }
-
-//   // If the user is at least 3 meters away from the last saved location, save the current location
-//   if (distanceToLastSaved >= thresholdDistance) {
-//     setState(() {
-//       userPath.add(myPosition);
-//     });
-
-//     mapController.drawRoadManually(userPath, RoadOption(roadColor: Colors.red, roadWidth: 10));
-//   }
-
-//   // Calculate the distance between the user's current location and the last geopoint of routesCHOSEN
-//   double distanceToDestination = 0;
-//   if (routesCHOSEN.isNotEmpty) {
-//     distanceToDestination = await distance2point(myPosition, routesCHOSEN.last);
-//   }
-
-//   // If the user is less than 1 meter away from the last geopoint of routesCHOSEN, stop updating the location
-//   if (distanceToDestination < 1) {
-//     return;
-//   }
-
-//   Future.delayed(Duration(seconds: 1), () => _updateLocation());
-// }
-
 
 
   void _toggleExpanded() {
@@ -301,61 +177,7 @@ void _updateLocation() async {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size(double.infinity, 250),
-        child: SafeArea(
-          child: Builder(builder: (context) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  margin: EdgeInsets.all(10),
-                  padding: EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.menu_sharp),
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                    iconSize: 30,
-                  ),
-                ),
-                //WEATHER WIDGET
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.only(
-                      top: 10,
-                      right: 10,
-                      bottom: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: WeatherForecastWidget(),
-                  ),
-                ),
-              ],
-            );
-          }),
-        ),
+        child: MyAppBar(),
       ),
       extendBodyBehindAppBar: true,
       drawer: SafeArea(
@@ -365,9 +187,7 @@ void _updateLocation() async {
         children: [
           currentPosition == null
               ? const Center(child: CircularProgressIndicator())
-              :
-              OSMFlutter(
-                  staticPoints: [],
+              : OSMFlutter(
                   enableRotationByGesture: true,
                   controller: mapController,
                   initZoom: 15,
@@ -403,18 +223,6 @@ void _updateLocation() async {
                     ),
                   ),
                 ),
-          // if (isMapOverlayVisible && isExpanded)
-          //   GestureDetector(
-          //     onTap: () {
-          //       setState(() {
-          //         isMapOverlayVisible = false;
-          //         isExpanded = false;
-          //       });
-          //     },
-          //     child: Container(
-          //       color: Colors.black.withOpacity(0.5),
-          //     ),
-          //   ),
           Positioned(
             left: 0,
             right: 0,
@@ -473,12 +281,9 @@ void _updateLocation() async {
                     ),
                     onPressed: () async {
                       if (currentPosition != null) {
-                        // mapController.move(currentPosition!, 17);
-                        // setState(() {});
                         await mapController.currentLocation();
                         await mapController.enableTracking(
                           enableStopFollow: true,
-
                         );
                         await mapController.zoomIn();
                       }
@@ -555,8 +360,7 @@ void _updateLocation() async {
                                           SizedBox(width: 10),
                                           GestureDetector(
                                             onTap: () async {
-                                              // userPath.add(
-                                              //     await mapController.myLocation());
+                                              
                                               routesCHOSEN.addAll(routes);
                                               mapController.clearAllRoads();
                                               routesCHOSEN.insert(
@@ -565,18 +369,11 @@ void _updateLocation() async {
                                                     .myLocation(),
                                               );
                                               mapController.drawRoadManually(
-                          
-                                                  routesCHOSEN,
-                                                  RoadOption(
-                                                      roadColor: Colors.blue,
-                                                      roadWidth: 15),
-                                                      
-                                                      );
-                                              //     mapController.drawRoad(
-                                              //  routesCHOSEN.first, routesCHOSEN.last,
-                                              //  roadOption: RoadOption(roadColor: Colors.blue, roadWidth: 15),
-                                              //  intersectPoint: routesCHOSEN.getRange(0, routesCHOSEN.length).toList(),
-                                              //     );
+                                                routesCHOSEN,
+                                                RoadOption(
+                                                    roadColor: Colors.blue,
+                                                    roadWidth: 15),
+                                              );
                                               _updateLocation();
                                             },
                                             child: Container(
@@ -637,43 +434,19 @@ void _updateLocation() async {
                                 onPressed: () async {
                                   pointsRoad
                                       .add(await mapController.myLocation());
-
                                   var p = await Navigator.pushNamed(
                                       context, "/search");
                                   pointsRoad.add(p as GeoPoint);
-                                  //                     print(destination.toString());
-                                  // RoadInfo roadInformation =
-                                  // await mapController.drawRoad(
-                                  //   pointsRoad.first,
-                                  //   pointsRoad.last,
-                                  //   roadType: RoadType.car,
-                                  //   intersectPoint: pointsRoad
-                                  //       .getRange(1, pointsRoad.length - 1)
-                                  //       .toList(),
-                                  //   roadOption: RoadOption(
-                                  //     roadWidth: 2,
-                                  //     roadColor: Colors.red,
-                                  //     zoomInto: true,
-                                  //   ),
-                                  // // );
                                   polylinezz.addAll(
-                                      await fetchOSRMRoutePolylines(
+                                      await Ops.fetchOSRMRoutePolylines(
                                           pointsRoad));
-                                  // polylinezz.addAll(await getDirections(
-                                  //     pointsRoad.first, pointsRoad.last));
+                                  polylinezz.addAll(await Ops.getDirections(
+                                      pointsRoad.first, pointsRoad.last));
                                   pointsRoad.clear();
-                             
-                                
-// List<String> filteredPolylinezz = polylinezz.toSet().toList();
 
-debugPrint(polylinezz.toString());
-drawRoadManually(polylinezz);
-
-                                  // drawRoadManually(
-                                  //     getRoutes, RoadOption(roadColor: Colors.red));
-                                  // drawRoadManually(
-                                  //     getOSRMroutes, RoadOption(roadColor: Colors.blue));
-
+                                  debugPrint(polylinezz.toString());
+                                  Ops.drawRoadManually(
+                                      polylinezz, mapController);
                                   mapController.addMarker(p,
                                       markerIcon: MarkerIcon(
                                           icon: Icon(
@@ -686,7 +459,6 @@ drawRoadManually(polylinezz);
                                     enableStopFollow: false,
                                     disableUserMarkerRotation: false,
                                   );
-
                                   setState(() {
                                     polylinezzNotifier.value = true;
                                   });
@@ -722,94 +494,7 @@ drawRoadManually(polylinezz);
           ),
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     if (currentPosition != null) {
-      //       mapController.move(currentPosition!, 17);
-      //       setState(() {});
-      //     }
-      //   },
-      //   child: const Icon(Icons.my_location),
-      // ),
     );
-  }
-
-  Future<void> drawCircle() async {
-    final circle = CircleOSM(
-      key: 'circle1',
-      centerPoint: GeoPoint(latitude: 10.3157, longitude: 123.8854),
-      radius: 5000,
-      color: Colors.blue.withOpacity(0.3),
-      strokeWidth: 2,
-    );
-
-    await mapController.drawCircle(circle);
-  }
-
-  void roadActionBt(BuildContext ctx, GeoPoint origin, destination) async {
-    try {
-      ///selection geoPoint
-
-      // final bottomPersistant = scaffoldKey.currentState!.showBottomSheet(
-      //   (ctx) {
-      //     return PointerInterceptor(
-      //       child: RoadTypeChoiceWidget(
-      //         setValueCallback: (roadType) {
-      //           notifierRoadType.value = roadType;
-      //         },
-      //       ),
-      //     );
-      //   },
-      //   backgroundColor: Colors.transparent,
-      //   elevation: 0.0,
-      // );
-      // await bottomPersistant.closed.then((roadType) async {
-
-      // RoadInfo roadInformation = await mapController.drawRoad(
-      //  origin,
-      // destination,
-      //   roadType: RoadType.car,
-      //   intersectPoint: pointsRoad.getRange(1, pointsRoad.length - 1).toList(),
-      //   roadOption: RoadOption(
-      //     roadWidth: 2,
-      //     roadColor: Colors.red,
-      //     zoomInto: true,
-
-      //   ),
-      // );
-
-      final getRoutes = await getDirections(origin, destination);
-      drawRoadManually(getRoutes);
-
-      // debugPrint(
-      //     "app duration:${Duration(seconds: roadInformation.duration!.toInt()).inMinutes}");
-      // debugPrint("app distance:${roadInformation.distance}Km");
-      // debugPrint("app road:" + roadInformation.toString());
-      // final console = roadInformation.instructions
-      //     .map((e) => e.toString())
-      //     .reduce(
-      //       (value, element) => "$value -> \n $element",
-      //     )
-      //     .toString();
-      // debugPrint(
-      //   console,
-      //   wrapWidth: console.length,
-      // );
-      // final box = await BoundingBox.fromGeoPointsAsync(
-      //     [pointsRoad.first, pointsRoad.last]);
-      // mapController.zoomToBoundingBox(
-      //   box,
-      //   paddinInPixel: 64,
-      // );
-    } on RoadException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "${e.errorMessage()}",
-          ),
-        ),
-      );
-    }
   }
 }
 
@@ -843,6 +528,7 @@ class RouteButtons extends StatelessWidget {
                 roadWidth: 3,
               ),
             );
+            mapController.zoomOut();
             routes.clear();
             final route = await polylinezz[index].toListGeo();
             routes.addAll(route);
