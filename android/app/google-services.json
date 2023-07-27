@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "133593667373",
+    "project_id": "shift-project-usjr-saspitsia",
+    "storage_bucket": "shift-project-usjr-saspitsia.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:133593667373:android:f72a2edcc2e3bc689ca5a4",
+        "android_client_info": {
+          "package_name": "com.example.shift_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "133593667373-78drmtr2j427p8qd6p0t382vfhd5th1b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDh2FcrcITXYdC4ne4Gt67xR_lXVFInZdI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "133593667373-78drmtr2j427p8qd6p0t382vfhd5th1b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "133593667373-2lnb1ask9fkgvllos478fihkambcifej.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.shiftProject.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

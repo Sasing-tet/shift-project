@@ -50,6 +50,7 @@ dependencies:
   intl: ^0.18.1
   font_awesome_flutter: ^10.5.0
   json_annotation: ^4.8.1
+  firebase_core: ^2.15.0
   flutter_background_geolocation: ^4.11.1
   
 
