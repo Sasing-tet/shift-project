@@ -51,33 +51,33 @@ class Ops{
     }
   }
 
-  static Future<List<String>> getDirections(
-      GeoPoint start, GeoPoint destination) async {
-    final String startCoords = '${start.latitude},${start.longitude}';
-    final String destinationCoords =
-        '${destination.latitude},${destination.longitude}';
+  // static Future<List<String>> getDirections(
+  //     GeoPoint start, GeoPoint destination) async {
+  //   final String startCoords = '${start.latitude},${start.longitude}';
+  //   final String destinationCoords =
+  //       '${destination.latitude},${destination.longitude}';
 
-    final String url =
-        'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&mode=driving&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
+  //   final String url =
+  //       'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&mode=driving&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
 
-    final response = await http.get(Uri.parse(url));
-    List<String> polylines = [];
+  //   final response = await http.get(Uri.parse(url));
+  //   List<String> polylines = [];
 
-    if (response.statusCode == 200) {
-      Map<String, dynamic> map = jsonDecode(response.body);
-      List routes = map["routes"];
+  //   if (response.statusCode == 200) {
+  //     Map<String, dynamic> map = jsonDecode(response.body);
+  //     List routes = map["routes"];
 
-      for (var i = 0; i < routes.length; i++) {
-        var route = routes[i];
-        var polyline = route["overview_polyline"]["points"];
-        polyline != " " ? polylines.add(polyline) : polyline.clear();
-      }
-    } else {
-      print('Failed to load directions');
-    }
-    print(polylines.toString());
-    return polylines;
-  }
+  //     for (var i = 0; i < routes.length; i++) {
+  //       var route = routes[i];
+  //       var polyline = route["overview_polyline"]["points"];
+  //       polyline != " " ? polylines.add(polyline) : polyline.clear();
+  //     }
+  //   } else {
+  //     print('Failed to load directions');
+  //   }
+  //   print(polylines.toString());
+  //   return polylines;
+  // }
 
 
 

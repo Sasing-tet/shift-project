@@ -440,8 +440,8 @@ class _MyHomePageState extends State<MyHomePage>
                                   polylinezz.addAll(
                                       await Ops.fetchOSRMRoutePolylines(
                                           pointsRoad));
-                                  polylinezz.addAll(await Ops.getDirections(
-                                      pointsRoad.first, pointsRoad.last));
+                                  // polylinezz.addAll(await Ops.getDirections(
+                                  //     pointsRoad.first, pointsRoad.last));
                                   pointsRoad.clear();
 
                                   debugPrint(polylinezz.toString());
