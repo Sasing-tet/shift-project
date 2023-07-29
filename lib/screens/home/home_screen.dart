@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shift_project/constants/constants.dart';
+import 'package:shift_project/screens/floodProneDataScreen/flood_prone_area_screen.dart';
 import 'package:shift_project/screens/home/components/route_button_widget.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
 import 'package:shift_project/screens/home/services.dart';
@@ -156,12 +157,10 @@ class _MyHomePageState extends State<MyHomePage>
           _animationController.stop();
           return;
         }
-      
       }
       Future.delayed(Duration(seconds: 1), () => _updateLocation());
     }
   }
-
 
   void _toggleExpanded() {
     setState(() {
@@ -253,7 +252,13 @@ class _MyHomePageState extends State<MyHomePage>
                       Icons.warning_rounded,
                       size: 35,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => FloodProneScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Container(
@@ -360,7 +365,6 @@ class _MyHomePageState extends State<MyHomePage>
                                           SizedBox(width: 10),
                                           GestureDetector(
                                             onTap: () async {
-                                              
                                               routesCHOSEN.addAll(routes);
                                               mapController.clearAllRoads();
                                               routesCHOSEN.insert(
