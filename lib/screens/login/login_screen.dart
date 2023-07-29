@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shift_project/screens/home/home_screen.dart';
+import 'package:shift_project/states/auth/models/auth_results.dart';
 
 import '../../constants/constants.dart';
 import '../../states/auth/backend/authenticator.dart';
@@ -190,7 +191,17 @@ class LoginScreen extends ConsumerWidget {
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () async {
-                                       final result = await Authenticator().signInWithGoogle();
+                                      final result = await Authenticator()
+                                          .signInWithGoogle();
+
+                                      debugPrint('$result');
+                                      if (result == AuthResult.success) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => MyHomePage(),
+                                          ),
+                                        );
+                                      }
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
@@ -214,7 +225,15 @@ class LoginScreen extends ConsumerWidget {
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () async {
-                                      final result = await Authenticator().signInWithGitHub();
+                                      final result = await Authenticator()
+                                          .signInWithGitHub();
+                                      if (result == AuthResult.success) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => MyHomePage(),
+                                          ),
+                                        );
+                                      }
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(

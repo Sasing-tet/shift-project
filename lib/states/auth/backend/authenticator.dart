@@ -22,7 +22,7 @@ class Authenticator {
 
   Future<AuthResult> signInWithGoogle() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
-      // serverClientId: ,
+      // serverClientId: '133593667373-78drmtr2j427p8qd6p0t382vfhd5th1b.apps.googleusercontent.com',
       scopes: [
         Constants.emailScope,
       ],

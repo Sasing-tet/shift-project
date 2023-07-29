@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
           );
 
           final isLoggedIn = ref.watch(isLoggedInProvider);
-
+          
           if (isLoggedIn) {
             return const MyHomePage();
           } else {
