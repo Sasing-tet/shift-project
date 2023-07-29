@@ -1,15 +1,17 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shift_project/screens/home/home_screen.dart';
 
 import '../../constants/constants.dart';
+import '../../states/auth/backend/authenticator.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final userController = TextEditingController();
     final passController = TextEditingController();
 
@@ -186,18 +188,23 @@ class LoginScreen extends StatelessWidget {
                                   width: 10,
                                 ),
                                 Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        width: 1,
-                                        color: shiftGrayBorder,
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                       final result = await Authenticator().signInWithGoogle();
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          width: 1,
+                                          color: shiftGrayBorder,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: EdgeInsets.all(8),
-                                    child: SizedBox(
-                                      height: 40,
-                                      child: googleLogo,
+                                      padding: EdgeInsets.all(8),
+                                      child: SizedBox(
+                                        height: 40,
+                                        child: googleLogo,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -205,18 +212,23 @@ class LoginScreen extends StatelessWidget {
                                   width: 10,
                                 ),
                                 Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        width: 1,
-                                        color: shiftGrayBorder,
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      final result = await Authenticator().signInWithGitHub();
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          width: 1,
+                                          color: shiftGrayBorder,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: EdgeInsets.all(8),
-                                    child: SizedBox(
-                                      height: 40,
-                                      child: githubLogo,
+                                      padding: EdgeInsets.all(8),
+                                      child: SizedBox(
+                                        height: 40,
+                                        child: githubLogo,
+                                      ),
                                     ),
                                   ),
                                 ),

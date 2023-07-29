@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shift_project/constants/constants.dart';
+
+import '../../../constants/constants.dart';
 
 class RouteOptionWidget extends StatelessWidget {
   final int i;

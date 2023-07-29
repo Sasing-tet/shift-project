@@ -2,27 +2,29 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shift_project/constants/constants.dart';
 import 'package:shift_project/screens/home/components/route_button_widget.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
 import 'package:shift_project/screens/home/services.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 
+import '../../constants/constants.dart';
+
 List<GeoPoint> userPath = [];
 List<GeoPoint> routes = [];
 List<GeoPoint> routesCHOSEN = [];
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  ConsumerState<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage>
+class _MyHomePageState extends ConsumerState<MyHomePage>
     with SingleTickerProviderStateMixin {
   late GlobalKey<ScaffoldState> scaffoldKey;
   LatLng? currentPosition;

@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:shift_project/constants/constants.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shift_project/screens/login/login_screen.dart';
+import 'package:shift_project/states/auth/providers/auth_state_provider.dart';
+import '../constants/constants.dart';
 
-class WeatherDrawer extends StatelessWidget {
+class WeatherDrawer extends ConsumerWidget {
   const WeatherDrawer({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    Future<void> handleLogoutAndNavigateToLogin() async {
+      final authNotifier = ref.read(authStateProvider.notifier);
+      await authNotifier.logOut();
+    }
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -85,7 +93,15 @@ class WeatherDrawer extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Logout'),
-            onTap: () {},
+            onTap: () {
+              handleLogoutAndNavigateToLogin().then((_) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(),
+                  ),
+                );
+              });
+            },
             shape: const Border(
               bottom: BorderSide(color: shiftGrayBorder, width: 1),
             ),

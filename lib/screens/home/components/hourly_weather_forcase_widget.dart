@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shift_project/constants/constants.dart';
-
+import '../../../constants/constants.dart';
 import '../../../fetch/models/hourly_weather_data_model.dart';
 import 'weather code description/weather_code_description.dart';
 
