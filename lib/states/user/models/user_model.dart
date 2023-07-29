@@ -1,21 +1,26 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:shift_project/states/user/typedef/user_id.dart';
 part 'user_model.g.dart';
 
 @JsonSerializable()
 class User {
-  final String userId;
-  final String username;
-  final String password;
-  final String firstName;
-  final String lastName;
+  final UserId userId;
+  final String? username;
+  final String? password;
+  final String email;
+  final String displayName;
+  final String? firstName;
+  final String? lastName;
   String role;
 
   User(
       {required this.userId,
-      required this.username,
-      required this.password,
-      required this.firstName,
-      required this.lastName,
+      required this.email,
+      required this.displayName,
+      this.username,
+      this.password,
+      this.firstName,
+      this.lastName,
       this.role = 'user'});
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

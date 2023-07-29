@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../user/typedef/user_id.dart';
@@ -27,9 +28,7 @@ class Authenticator {
         Constants.emailScope,
       ],
     );
-
     final signInAccount = await googleSignIn.signIn();
-
     if (signInAccount == null) {
       return AuthResult.aborted;
     }
@@ -37,7 +36,7 @@ class Authenticator {
     final googleAuth = await signInAccount.authentication;
     final oauthCredentials = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
-      idToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
 
     try {
