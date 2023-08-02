@@ -9,6 +9,7 @@ import '../models/auth_results.dart';
 
 class Authenticator {
   const Authenticator();
+
   User? get currentUser => FirebaseAuth.instance.currentUser;
 
   UserId? get userId => currentUser?.uid;
@@ -23,7 +24,7 @@ class Authenticator {
 
   Future<AuthResult> signInWithGoogle() async {
     final GoogleSignIn googleSignIn = GoogleSignIn(
-      // serverClientId: '133593667373-78drmtr2j427p8qd6p0t382vfhd5th1b.apps.googleusercontent.com',
+            // serverClientId: '133593667373-78drmtr2j427p8qd6p0t382vfhd5th1b.apps.googleusercontent.com',
       scopes: [
         Constants.emailScope,
       ],
@@ -52,7 +53,8 @@ class Authenticator {
   Future<AuthResult> signInWithGitHub() async {
     GithubAuthProvider githubProvider = GithubAuthProvider();
 
-    githubProvider.addScope(Constants.emailScope);
+    // githubProvider.addScope(Constants.emailScope);
+    githubProvider.addScope('user:email');
 
     try {
       await FirebaseAuth.instance.signInWithProvider(

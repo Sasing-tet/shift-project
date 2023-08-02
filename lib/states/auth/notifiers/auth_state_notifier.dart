@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shift_project/states/auth/models/auth_results.dart';
 import 'package:shift_project/states/user/backend/user_info_storage.dart';
 

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../constants/firebase_collection_name.dart';
-import '../../constants/firebase_field.dart';
+import '../../constants/firebase_field.firebase.dart';
 import '../models/user_info_payload.dart';
 import '../typedef/user_id.dart';
 
@@ -25,6 +25,8 @@ class UserInfoStorage {
           .limit(1)
           .get();
 
+      debugPrint(userInfo.toString());
+
       if (userInfo.docs.isNotEmpty) {
         await userInfo.docs.first.reference.update({
           FirebaseFieldName.displayName: displayName,
@@ -38,6 +40,8 @@ class UserInfoStorage {
         displayName: displayName,
         email: email,
       );
+
+      debugPrint(payload.toString());
       await FirebaseFirestore.instance
           .collection(
             FirebaseCollectionName.users,

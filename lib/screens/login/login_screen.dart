@@ -7,6 +7,8 @@ import 'package:shift_project/states/auth/models/auth_results.dart';
 
 import '../../constants/constants.dart';
 import '../../states/auth/backend/authenticator.dart';
+import '../../states/auth/providers/auth_state_provider.dart';
+import '../../states/auth/providers/login_provider.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -15,6 +17,8 @@ class LoginScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userController = TextEditingController();
     final passController = TextEditingController();
+
+    final isLoggedIn = ref.watch(isLoggedInProvider);
 
     return Scaffold(
       body: Container(
@@ -194,13 +198,8 @@ class LoginScreen extends ConsumerWidget {
                                       final result = await Authenticator()
                                           .signInWithGoogle();
 
-                                      debugPrint('$result');
                                       if (result == AuthResult.success) {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) => MyHomePage(),
-                                          ),
-                                        );
+                                        ref.read(authStateProvider.notifier).signInWithGoogle();
                                       }
                                     },
                                     child: Container(
@@ -228,12 +227,14 @@ class LoginScreen extends ConsumerWidget {
                                       final result = await Authenticator()
                                           .signInWithGitHub();
                                       if (result == AuthResult.success) {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) => MyHomePage(),
-                                          ),
-                                        );
+                                        ref.read(authStateProvider.notifier).signInWithGithub;
+                                      //   Navigator.of(context).push(
+                                      //     MaterialPageRoute(
+                                      //       builder: (context) => MyHomePage(),
+                                      //     ),
+                                      //   );
                                       }
+
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
