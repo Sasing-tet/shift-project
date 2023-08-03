@@ -8,13 +8,39 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shift_project/constants/constants.dart';
 import 'package:shift_project/screens/floodProneDataScreen/flood_prone_area_screen.dart';
 import 'package:shift_project/screens/home/components/route_button_widget.dart';
+import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
+import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
+import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
 import 'package:shift_project/screens/home/services.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'as bg;
+
+Map<String, List<List<GeoPoint>>> markerPoints = {
+  'Low': [
+    [
+   
+    ],
+  ],
+  'Medium': [
+    [
+ 
+      // Add more points for the 'Medium' level as needed
+    ],
+  ],
+  'High': [
+    [
+   
+      // Add more points for the 'High' level as needed
+    ],
+  ],
+};
 
 List<GeoPoint> userPath = [];
 List<GeoPoint> routes = [];
 List<GeoPoint> routesCHOSEN = [];
+
+
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -41,6 +67,8 @@ class _MyHomePageState extends State<MyHomePage>
   List<GeoPoint> pointsRoad = [];
   Map<String, dynamic> details = {};
 
+
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +93,24 @@ class _MyHomePageState extends State<MyHomePage>
     mapController.dispose();
     super.dispose();
   }
+
+void processDataAndAddToMarkerPoints() {
+  List<List<GeoPoint>> highGeoPoints = Ops.extractGeoPoints(highfloodgeojson);
+  List<List<GeoPoint>> midGeoPoints = Ops.extractGeoPoints(medFloodgeojson);
+  List<List<GeoPoint>> lowGeoPoints = Ops.extractGeoPoints(lowGeojson);
+
+  markerPoints['Low']!.addAll(lowGeoPoints);
+  markerPoints['Medium']!.addAll(midGeoPoints);
+  markerPoints['High']!.addAll(highGeoPoints);
+
+ 
+
+  // Categorize the GeoPoints based on their susceptibility level and add them to the corresponding list.
+}
+// Function to convert the given points to a list of bg.Coordinate objects
+
+// Function to create the geofence polygon from the given points
+
 
   Future<void> _determinePosition() async {
     bool serviceEnabled;
@@ -211,15 +257,6 @@ class _MyHomePageState extends State<MyHomePage>
                   ),
                   roadConfiguration: const RoadOption(
                     roadColor: Colors.yellowAccent,
-                  ),
-                  markerOption: MarkerOption(
-                    defaultMarker: const MarkerIcon(
-                      icon: Icon(
-                        Icons.person_pin_circle,
-                        color: Colors.blue,
-                        size: 56,
-                      ),
-                    ),
                   ),
                 ),
           Positioned(
@@ -378,6 +415,7 @@ class _MyHomePageState extends State<MyHomePage>
                                                     roadColor: Colors.blue,
                                                     roadWidth: 15),
                                               );
+                                              print(routesCHOSEN.toString());
                                               _updateLocation();
                                             },
                                             child: Container(
@@ -440,24 +478,34 @@ class _MyHomePageState extends State<MyHomePage>
                                       .add(await mapController.myLocation());
                                   var p = await Navigator.pushNamed(
                                       context, "/search");
+
                                   pointsRoad.add(p as GeoPoint);
                                   polylinezz.addAll(
                                       await Ops.fetchOSRMRoutePolylines(
                                           pointsRoad));
-                                  // polylinezz.addAll(await Ops.getDirections(
-                                  //     pointsRoad.first, pointsRoad.last));
-                                  pointsRoad.clear();
 
-                                  debugPrint(polylinezz.toString());
+                                  processDataAndAddToMarkerPoints();
+                                  final susPoints =
+                                      await Ops.getPointsOnPolylines(
+                                          polylinezz, markerPoints);
+                                     
+                                         
+                               
+// Assuming you have a MapController instance called 'mapController'
+
+    Ops.addMarkersToMap(susPoints, mapController);
+
                                   Ops.drawRoadManually(
                                       polylinezz, mapController);
-                                  mapController.addMarker(p,
-                                      markerIcon: MarkerIcon(
-                                          icon: Icon(
-                                        Icons.pin_drop_rounded,
-                                        size: 100,
-                                        color: Colors.redAccent,
-                                      )));
+
+                                  // mapController.addMarker(pointsRoad.last,
+                                  //     markerIcon: MarkerIcon(
+                                  //         icon: Icon(
+                                  //       Icons.pin_drop_rounded,
+                                  //       size: 100,
+                                  //       color: Colors.redAccent,
+                                  //     )));
+
                                   pointsRoad.clear();
                                   mapController.enableTracking(
                                     enableStopFollow: false,
@@ -535,6 +583,7 @@ class RouteButtons extends StatelessWidget {
             mapController.zoomOut();
             routes.clear();
             final route = await polylinezz[index].toListGeo();
+            debugPrint(route.toString());
             routes.addAll(route);
           },
           child: RouteOptionWidget(i: index),
