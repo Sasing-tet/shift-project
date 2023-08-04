@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,7 +16,9 @@ import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
 import 'package:shift_project/screens/home/services.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'as bg;
+import 'dart:math' as math;
+
+Map<String, List<List<GeoPoint>>> susPoints = {};
 
 Map<String, List<List<GeoPoint>>> markerPoints = {
   'Low': [
@@ -182,7 +186,7 @@ void processDataAndAddToMarkerPoints() {
     });
   }
 
-  void _updateLocation() async {
+  void _updateLocation(Map<String, List<List<GeoPoint>>> sus) async {
     if (routesCHOSEN.isNotEmpty) {
       final dynamicPolylinePoints = routesCHOSEN.toList();
       final myposition = await mapController.myLocation();
@@ -194,19 +198,107 @@ void processDataAndAddToMarkerPoints() {
 
       if (dist < 10) {
         routesCHOSEN.removeAt(0);
-        mapController.removeLastRoad();
+        // mapController.removeLastRoad();
 
-        mapController.drawRoadManually(
-            routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
+        // mapController.drawRoadManually(
+        //     routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
 
         if (routesCHOSEN.isEmpty) {
           _animationController.stop();
           return;
         }
+        checkFloodProneArea(myposition,10,sus);
+
       }
-      Future.delayed(Duration(seconds: 1), () => _updateLocation());
+      Future.delayed(Duration(seconds: 1), () => _updateLocation(sus));
     }
   }
+
+
+  final List<GeoPoint> floodProneAreaPolyline = [
+ GeoPoint(latitude: 10.3141958 , longitude: 123.881018), GeoPoint(latitude: 10.3141498 , longitude: 123.8809266)
+  // Add more Geopoints to define the polyline shape of the flood-prone area
+];
+
+// Function to calculate the distance between two Geopoints using the Haversine formula
+
+
+// Function to check if a Geopoint is within a certain distance of the polyline
+Future<bool> isWithinFloodProneArea(GeoPoint point, double maxDistance, List<GeoPoint> polyline) async {
+  for (int i = 0; i < polyline.length - 1; i++) {
+    GeoPoint point1 = polyline[i];
+    GeoPoint point2 = polyline[i + 1];
+
+    double distanceToSegment = await calculateDistanceToSegment(point, point1, point2);
+
+    if (distanceToSegment <= maxDistance) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Function to calculate the distance between a point and a line segment
+Future<double> calculateDistanceToSegment(GeoPoint point, GeoPoint segmentStart, GeoPoint segmentEnd) async {
+  double segmentLength =await distance2point(segmentStart, segmentEnd);
+
+  if (segmentLength == 0) {
+    return distance2point(point, segmentStart);
+  }
+
+  double t = math.max(0, math.min(1, ((point.latitude - segmentStart.latitude) *
+      (segmentEnd.latitude - segmentStart.latitude) +
+      (point.longitude - segmentStart.longitude) *
+          (segmentEnd.longitude - segmentStart.longitude)) /
+      (segmentLength * segmentLength)));
+
+  double nearestLatitude = segmentStart.latitude + t * (segmentEnd.latitude - segmentStart.latitude);
+  double nearestLongitude = segmentStart.longitude + t * (segmentEnd.longitude - segmentStart.longitude);
+
+  return distance2point(point, GeoPoint(latitude: nearestLatitude, longitude:nearestLongitude));
+}
+
+void showAlertDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Flood-Prone Area'),
+        content: Text(message),
+      );
+    },
+  );
+
+  // Automatically close the AlertDialog after 2 seconds
+  Timer(Duration(seconds: 2), () {
+    Navigator.of(context).pop();
+  });
+}
+
+Future<void> checkFloodProneArea(GeoPoint userLocation, double maxDistance, Map<String, List<List<GeoPoint>>> floodProneArea) async {
+  Map<String, List<List<GeoPoint>>> floodProneAreaPolyline = floodProneArea;
+
+  floodProneAreaPolyline.forEach((level, polylines) async {
+    for (var polyline in polylines) {
+      bool isInside = await isWithinFloodProneArea(userLocation, maxDistance, polyline);
+      if (isInside) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('You are within a $level flood-prone area. Please be cautious.'),
+        //     duration: Duration(seconds: 3), // The duration for which the snackbar is displayed
+        //   ),
+        // );
+        // return; // Stop further checks if the user is already inside a flood-prone area
+
+        showAlertDialog(context, 'You are within a $level flood-prone area. Please be cautious.');
+        return;
+      }
+    }
+  });
+
+  print('You are not in a flood-prone area. Safe to proceed.');
+}
 
   void _toggleExpanded() {
     setState(() {
@@ -416,7 +508,9 @@ void processDataAndAddToMarkerPoints() {
                                                     roadWidth: 15),
                                               );
                                               print(routesCHOSEN.toString());
-                                              _updateLocation();
+                                              // Ops.addGeofence();
+                                              // Ops.setupGeofence();
+                                              _updateLocation(susPoints);
                                             },
                                             child: Container(
                                               width: 60,
@@ -485,7 +579,7 @@ void processDataAndAddToMarkerPoints() {
                                           pointsRoad));
 
                                   processDataAndAddToMarkerPoints();
-                                  final susPoints =
+                                   susPoints =
                                       await Ops.getPointsOnPolylines(
                                           polylinezz, markerPoints);
                                      
@@ -514,6 +608,7 @@ void processDataAndAddToMarkerPoints() {
                                   setState(() {
                                     polylinezzNotifier.value = true;
                                   });
+                                
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,

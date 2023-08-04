@@ -1,8 +1,10 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'as bg;
 
 class Ops{
 
@@ -302,10 +304,7 @@ static List<List<GeoPoint>> extractGeoPoints(String geoJsonString) {
   return geoPointsList;
 }
 
-
-
 }
-
 
 //better if sa backend ni na process
 
