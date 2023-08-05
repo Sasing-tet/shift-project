@@ -9,5 +9,7 @@ class FirebaseFieldName {
   static const email = 'email';
   static const createdAt = 'created_at';
   static const date = 'date';
+  static const username = "username";
+  static const password = "password";
   const FirebaseFieldName._();
 }

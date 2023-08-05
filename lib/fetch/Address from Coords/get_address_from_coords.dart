@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 Future<String?> getAddressFromCoordinates(
@@ -12,6 +13,7 @@ Future<String?> getAddressFromCoordinates(
     if (response.statusCode == 200) {
       final jsonResult = jsonDecode(response.body);
       final address = jsonResult['display_name'];
+      debugPrint(jsonResult.toString());
       return address;
     }
   } catch (e) {

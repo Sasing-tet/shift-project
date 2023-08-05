@@ -2,8 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../screens/home/components/weather code description/weather_code_description.dart';
-import '../models/hourly_weather_data_model.dart';
-import '../models/weather_data_model.dart';
+import '../../states/weather/models/hourly_weather_data_model.dart';
+import '../../states/weather/models/weather_data_model.dart';
+
 
 Future<WeatherData> fetchWeatherData(double latitude, double longitude) async {
   final dio = Dio();

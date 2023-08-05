@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../constants/firebase_collection_name.dart';
-import '../../constants/firebase_field.firebase.dart';
+import '../models/firebase_field.firebase.dart';
 import '../models/user_model_draft.dart';
 import '../typedef/user_id.dart';
 

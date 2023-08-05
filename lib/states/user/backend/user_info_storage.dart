@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../constants/firebase_collection_name.dart';
-import '../../constants/firebase_field.firebase.dart';
+import '../models/firebase_field.firebase.dart';
 import '../models/user_info_payload.dart';
 import '../typedef/user_id.dart';
 

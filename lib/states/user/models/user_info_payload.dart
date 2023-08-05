@@ -1,6 +1,6 @@
 import 'dart:collection' show MapView;
 import 'package:flutter/foundation.dart' show immutable;
-import 'package:shift_project/states/constants/firebase_field.firebase.dart';
+import 'package:shift_project/states/user/models/firebase_field.firebase.dart';
 import '../typedef/user_id.dart';
 
 @immutable
