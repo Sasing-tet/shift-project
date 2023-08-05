@@ -1,18 +1,47 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shift_project/constants/constants.dart';
+import 'package:shift_project/screens/floodProneDataScreen/flood_prone_area_screen.dart';
 import 'package:shift_project/screens/home/components/route_button_widget.dart';
+import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
+import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
+import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
 import 'package:shift_project/screens/home/services.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
+import 'dart:math' as math;
 
 import '../../constants/constants.dart';
 
+Map<String, List<List<GeoPoint>>> susPoints = {};
+
+Map<String, List<List<GeoPoint>>> markerPoints = {
+  'Low': [
+    [
+   
+    ],
+  ],
+  'Medium': [
+    [
+ 
+      // Add more points for the 'Medium' level as needed
+    ],
+  ],
+  'High': [
+    [
+   
+      // Add more points for the 'High' level as needed
+    ],
+  ],
+};
 List<GeoPoint> userPath = [];
 List<GeoPoint> routes = [];
 List<GeoPoint> routesCHOSEN = [];
@@ -42,6 +71,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   List<GeoPoint> pointsRoad = [];
   Map<String, dynamic> details = {};
 
+
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +97,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     mapController.dispose();
     super.dispose();
   }
+
+void processDataAndAddToMarkerPoints() {
+  List<List<GeoPoint>> highGeoPoints = Ops.extractGeoPoints(highfloodgeojson);
+  List<List<GeoPoint>> midGeoPoints = Ops.extractGeoPoints(medFloodgeojson);
+  List<List<GeoPoint>> lowGeoPoints = Ops.extractGeoPoints(lowGeojson);
+
+  markerPoints['Low']!.addAll(lowGeoPoints);
+  markerPoints['Medium']!.addAll(midGeoPoints);
+  markerPoints['High']!.addAll(highGeoPoints);
+
+ 
+
+  // Categorize the GeoPoints based on their susceptibility level and add them to the corresponding list.
+}
+// Function to convert the given points to a list of bg.Coordinate objects
+
+// Function to create the geofence polygon from the given points
+
 
   Future<void> _determinePosition() async {
     bool serviceEnabled;
@@ -137,7 +186,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     });
   }
 
-  void _updateLocation() async {
+  void _updateLocation(Map<String, List<List<GeoPoint>>> sus) async {
     if (routesCHOSEN.isNotEmpty) {
       final dynamicPolylinePoints = routesCHOSEN.toList();
       final myposition = await mapController.myLocation();
@@ -149,21 +198,107 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
       if (dist < 10) {
         routesCHOSEN.removeAt(0);
-        mapController.removeLastRoad();
+        // mapController.removeLastRoad();
 
-        mapController.drawRoadManually(
-            routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
+        // mapController.drawRoadManually(
+        //     routesCHOSEN, RoadOption(roadColor: Colors.blue, roadWidth: 15));
 
         if (routesCHOSEN.isEmpty) {
           _animationController.stop();
           return;
         }
-      
+        checkFloodProneArea(myposition,10,sus);
+
       }
-      Future.delayed(Duration(seconds: 1), () => _updateLocation());
+      Future.delayed(Duration(seconds: 1), () => _updateLocation(sus));
     }
   }
 
+
+  final List<GeoPoint> floodProneAreaPolyline = [
+ GeoPoint(latitude: 10.3141958 , longitude: 123.881018), GeoPoint(latitude: 10.3141498 , longitude: 123.8809266)
+  // Add more Geopoints to define the polyline shape of the flood-prone area
+];
+
+// Function to calculate the distance between two Geopoints using the Haversine formula
+
+
+// Function to check if a Geopoint is within a certain distance of the polyline
+Future<bool> isWithinFloodProneArea(GeoPoint point, double maxDistance, List<GeoPoint> polyline) async {
+  for (int i = 0; i < polyline.length - 1; i++) {
+    GeoPoint point1 = polyline[i];
+    GeoPoint point2 = polyline[i + 1];
+
+    double distanceToSegment = await calculateDistanceToSegment(point, point1, point2);
+
+    if (distanceToSegment <= maxDistance) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// Function to calculate the distance between a point and a line segment
+Future<double> calculateDistanceToSegment(GeoPoint point, GeoPoint segmentStart, GeoPoint segmentEnd) async {
+  double segmentLength =await distance2point(segmentStart, segmentEnd);
+
+  if (segmentLength == 0) {
+    return distance2point(point, segmentStart);
+  }
+
+  double t = math.max(0, math.min(1, ((point.latitude - segmentStart.latitude) *
+      (segmentEnd.latitude - segmentStart.latitude) +
+      (point.longitude - segmentStart.longitude) *
+          (segmentEnd.longitude - segmentStart.longitude)) /
+      (segmentLength * segmentLength)));
+
+  double nearestLatitude = segmentStart.latitude + t * (segmentEnd.latitude - segmentStart.latitude);
+  double nearestLongitude = segmentStart.longitude + t * (segmentEnd.longitude - segmentStart.longitude);
+
+  return distance2point(point, GeoPoint(latitude: nearestLatitude, longitude:nearestLongitude));
+}
+
+void showAlertDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Flood-Prone Area'),
+        content: Text(message),
+      );
+    },
+  );
+
+  // Automatically close the AlertDialog after 2 seconds
+  Timer(Duration(seconds: 2), () {
+    Navigator.of(context).pop();
+  });
+}
+
+Future<void> checkFloodProneArea(GeoPoint userLocation, double maxDistance, Map<String, List<List<GeoPoint>>> floodProneArea) async {
+  Map<String, List<List<GeoPoint>>> floodProneAreaPolyline = floodProneArea;
+
+  floodProneAreaPolyline.forEach((level, polylines) async {
+    for (var polyline in polylines) {
+      bool isInside = await isWithinFloodProneArea(userLocation, maxDistance, polyline);
+      if (isInside) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('You are within a $level flood-prone area. Please be cautious.'),
+        //     duration: Duration(seconds: 3), // The duration for which the snackbar is displayed
+        //   ),
+        // );
+        // return; // Stop further checks if the user is already inside a flood-prone area
+
+        showAlertDialog(context, 'You are within a $level flood-prone area. Please be cautious.');
+        return;
+      }
+    }
+  });
+
+  print('You are not in a flood-prone area. Safe to proceed.');
+}
 
   void _toggleExpanded() {
     setState(() {
@@ -215,15 +350,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                   roadConfiguration: const RoadOption(
                     roadColor: Colors.yellowAccent,
                   ),
-                  markerOption: MarkerOption(
-                    defaultMarker: const MarkerIcon(
-                      icon: Icon(
-                        Icons.person_pin_circle,
-                        color: Colors.blue,
-                        size: 56,
-                      ),
-                    ),
-                  ),
                 ),
           Positioned(
             left: 0,
@@ -255,7 +381,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                       Icons.warning_rounded,
                       size: 35,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => FloodProneScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Container(
@@ -362,7 +494,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                                           SizedBox(width: 10),
                                           GestureDetector(
                                             onTap: () async {
-                                              
                                               routesCHOSEN.addAll(routes);
                                               mapController.clearAllRoads();
                                               routesCHOSEN.insert(
@@ -376,7 +507,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                                                     roadColor: Colors.blue,
                                                     roadWidth: 15),
                                               );
-                                              _updateLocation();
+                                              print(routesCHOSEN.toString());
+                                              // Ops.addGeofence();
+                                              // Ops.setupGeofence();
+                                              _updateLocation(susPoints);
                                             },
                                             child: Container(
                                               width: 60,
@@ -438,24 +572,34 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                                       .add(await mapController.myLocation());
                                   var p = await Navigator.pushNamed(
                                       context, "/search");
+
                                   pointsRoad.add(p as GeoPoint);
                                   polylinezz.addAll(
                                       await Ops.fetchOSRMRoutePolylines(
                                           pointsRoad));
-                                  // polylinezz.addAll(await Ops.getDirections(
-                                  //     pointsRoad.first, pointsRoad.last));
-                                  pointsRoad.clear();
 
-                                  debugPrint(polylinezz.toString());
+                                  processDataAndAddToMarkerPoints();
+                                   susPoints =
+                                      await Ops.getPointsOnPolylines(
+                                          polylinezz, markerPoints);
+                                     
+                                         
+                               
+// Assuming you have a MapController instance called 'mapController'
+
+    Ops.addMarkersToMap(susPoints, mapController);
+
                                   Ops.drawRoadManually(
                                       polylinezz, mapController);
-                                  mapController.addMarker(p,
-                                      markerIcon: MarkerIcon(
-                                          icon: Icon(
-                                        Icons.pin_drop_rounded,
-                                        size: 100,
-                                        color: Colors.redAccent,
-                                      )));
+
+                                  // mapController.addMarker(pointsRoad.last,
+                                  //     markerIcon: MarkerIcon(
+                                  //         icon: Icon(
+                                  //       Icons.pin_drop_rounded,
+                                  //       size: 100,
+                                  //       color: Colors.redAccent,
+                                  //     )));
+
                                   pointsRoad.clear();
                                   mapController.enableTracking(
                                     enableStopFollow: false,
@@ -464,6 +608,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                                   setState(() {
                                     polylinezzNotifier.value = true;
                                   });
+                                
                                 },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -533,6 +678,7 @@ class RouteButtons extends StatelessWidget {
             mapController.zoomOut();
             routes.clear();
             final route = await polylinezz[index].toListGeo();
+            debugPrint(route.toString());
             routes.addAll(route);
           },
           child: RouteOptionWidget(i: index),

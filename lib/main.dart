@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shift_project/screens/chooselocation/choose_location_view.dart';
+import 'package:shift_project/screens/floodProneDataScreen/flood_prone_area_screen.dart';
 import 'package:shift_project/screens/home/home_screen.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
 import 'package:shift_project/screens/logo/logo_screen.dart';
