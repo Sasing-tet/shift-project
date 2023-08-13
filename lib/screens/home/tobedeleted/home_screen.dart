@@ -10,16 +10,15 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shift_project/constants/constants.dart';
 import 'package:shift_project/screens/floodProneDataScreen/flood_prone_area_screen.dart';
-import 'package:shift_project/screens/home/components/route_button_widget.dart';
+import 'package:shift_project/screens/home/components/buttons/route_button_widget.dart';
 import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
 import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
 import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
-import 'package:shift_project/screens/home/services.dart';
+import 'package:shift_project/screens/home/tobedeleted/services.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 import 'dart:math' as math;
 
-import '../../constants/constants.dart';
 
 Map<String, List<List<GeoPoint>>> susPoints = {};
 
@@ -42,7 +41,7 @@ Map<String, List<List<GeoPoint>>> markerPoints = {
     ],
   ],
 };
-List<GeoPoint> userPath = [];
+
 List<GeoPoint> routes = [];
 List<GeoPoint> routesCHOSEN = [];
 
@@ -62,14 +61,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool isMapOverlayVisible = true;
   late AnimationController _animationController;
   late Animation<double> _animation;
-  ValueNotifier<bool> showFab = ValueNotifier(true);
-  ValueNotifier<GeoPoint?> lastGeoPoint = ValueNotifier(null);
-  ValueNotifier<bool> beginDrawRoad = ValueNotifier(false);
+
+
+
   ValueNotifier<bool> polylinezzNotifier = ValueNotifier(false);
   List<String> polylinezz = [];
 
   List<GeoPoint> pointsRoad = [];
-  Map<String, dynamic> details = {};
 
 
 
@@ -215,10 +213,7 @@ void processDataAndAddToMarkerPoints() {
   }
 
 
-  final List<GeoPoint> floodProneAreaPolyline = [
- GeoPoint(latitude: 10.3141958 , longitude: 123.881018), GeoPoint(latitude: 10.3141498 , longitude: 123.8809266)
-  // Add more Geopoints to define the polyline shape of the flood-prone area
-];
+
 
 // Function to calculate the distance between two Geopoints using the Haversine formula
 
@@ -283,14 +278,7 @@ Future<void> checkFloodProneArea(GeoPoint userLocation, double maxDistance, Map<
     for (var polyline in polylines) {
       bool isInside = await isWithinFloodProneArea(userLocation, maxDistance, polyline);
       if (isInside) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('You are within a $level flood-prone area. Please be cautious.'),
-        //     duration: Duration(seconds: 3), // The duration for which the snackbar is displayed
-        //   ),
-        // );
-        // return; // Stop further checks if the user is already inside a flood-prone area
-
+       
         showAlertDialog(context, 'You are within a $level flood-prone area. Please be cautious.');
         return;
       }
@@ -346,9 +334,6 @@ Future<void> checkFloodProneArea(GeoPoint userLocation, double maxDistance, Map<
                         size: 100,
                       ),
                     ),
-                  ),
-                  roadConfiguration: const RoadOption(
-                    roadColor: Colors.yellowAccent,
                   ),
                 ),
           Positioned(
@@ -508,8 +493,7 @@ Future<void> checkFloodProneArea(GeoPoint userLocation, double maxDistance, Map<
                                                     roadWidth: 15),
                                               );
                                               print(routesCHOSEN.toString());
-                                              // Ops.addGeofence();
-                                              // Ops.setupGeofence();
+                                              
                                               _updateLocation(susPoints);
                                             },
                                             child: Container(
@@ -662,7 +646,7 @@ class RouteButtons extends StatelessWidget {
       itemCount: polylinezz.length,
       itemBuilder: (context, index) {
         final poly = polylinezz[index];
-        final roadColor = Colors.red;
+        final roadColor = Colors.blue;
 
         return GestureDetector(
           onTap: () async {
@@ -672,7 +656,7 @@ class RouteButtons extends StatelessWidget {
               list,
               RoadOption(
                 roadColor: roadColor,
-                roadWidth: 3,
+                roadWidth: 15,
               ),
             );
             mapController.zoomOut();

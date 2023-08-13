@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../constants/constants.dart';
+import '../../../../constants/constants.dart';
 
 class RouteOptionWidget extends StatelessWidget {
   final int i;
@@ -12,10 +12,10 @@ class RouteOptionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 100,
-      margin: EdgeInsets.symmetric(
+      margin: const EdgeInsets.symmetric(
         horizontal: 5,
       ),
-      padding: EdgeInsets.all(5),
+      padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
         border: Border.all(
           width: 1,
@@ -28,7 +28,7 @@ class RouteOptionWidget extends StatelessWidget {
         children: [
           Text(
             "Route ${i+1}",
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.black,
               fontFamily: interFontFamily,
               fontSize:

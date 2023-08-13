@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:shift_project/screens/home/home_screen.dart';
+import 'package:shift_project/screens/home/tobedeleted/home_screen.dart';
+import 'package:shift_project/screens/home/homepage.dart';
 import 'package:shift_project/states/auth/models/auth_results.dart';
 
 import '../../constants/constants.dart';
@@ -269,7 +270,7 @@ class LoginScreen extends ConsumerWidget {
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => MyHomePage(),
+                              builder: (context) => HomePage(),
                             ),
                           );
                         },

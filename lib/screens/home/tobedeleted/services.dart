@@ -1,13 +1,14 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'as bg;
+import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
+import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
+import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
+import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 
 class Ops{
-
     static Future<void> drawRoadManually(List<String> encodedPolylines, MapController mapController) async {
     for (var i = 0; i < encodedPolylines.length; i++) {
       final encoded = encodedPolylines[i];
@@ -53,34 +54,7 @@ class Ops{
     }
   }
 
-  // static Future<List<String>> getDirections(
-  //     GeoPoint start, GeoPoint destination) async {
-  //   final String startCoords = '${start.latitude},${start.longitude}';
-  //   final String destinationCoords =
-  //       '${destination.latitude},${destination.longitude}';
-
-  //   final String url =
-  //       'https://maps.googleapis.com/maps/api/directions/json?origin=$startCoords&destination=$destinationCoords&mode=driving&alternatives=true&key=AIzaSyBEUySx7hdG0n111W7NPXD9C8wLWFAqdjo';
-
-  //   final response = await http.get(Uri.parse(url));
-  //   List<String> polylines = [];
-
-  //   if (response.statusCode == 200) {
-  //     Map<String, dynamic> map = jsonDecode(response.body);
-  //     List routes = map["routes"];
-
-  //     for (var i = 0; i < routes.length; i++) {
-  //       var route = routes[i];
-  //       var polyline = route["overview_polyline"]["points"];
-  //       polyline != " " ? polylines.add(polyline) : polyline.clear();
-  //     }
-  //   } else {
-  //     print('Failed to load directions');
-  //   }
-  //   print(polylines.toString());
-  //   return polylines;
-  // }
-
+ 
 
 
   static Future<void> drawCircle(MapController mapController) async {
@@ -116,41 +90,7 @@ class Ops{
 }
 
 
-// static Future<Map<int, Map<String, List<GeoPoint>>>> getPointsOnPolylines(List<String> polylines, Map<String, List<GeoPoint>> markerPoints, {double epsilon = 1e-8}) async{
-//   Map<int, Map<String, List<GeoPoint>>> pointsOnPolylines = {};
 
-//   for (int polylineIndex = 0; polylineIndex < polylines.length; polylineIndex++) {
-
-//     List<GeoPoint> polyline = await
-//      polylines[polylineIndex].toListGeo() ;
-//     Map<String, List<GeoPoint>> pointsOnPolyline = {};
-
-//     for (var entry in markerPoints.entries) {
-//       String level = entry.key;
-//       List<GeoPoint> points = entry.value;
-//       List<GeoPoint> pointsOnLevel = [];
-
-//       for (var markerPoint in points) {
-//         for (int i = 0; i < polyline.length - 1; i++) {
-//           if (isBetween(polyline[i], polyline[i + 1], markerPoint, epsilon: epsilon)) {
-//             pointsOnLevel.add(markerPoint);
-//             break;
-//           }
-//         }
-//       }
-
-//       if (pointsOnLevel.isNotEmpty) {
-//         pointsOnPolyline[level] = pointsOnLevel;
-//       }
-//     }
-
-//     if (pointsOnPolyline.isNotEmpty) {
-//       pointsOnPolylines[polylineIndex] = pointsOnPolyline;
-//     }
-//   }
-//   debugPrint(pointsOnPolylines.toString());
-//   return pointsOnPolylines;
-// }
 
 static Future<Map<String, List<List<GeoPoint>>>> getPointsOnPolylines(List<String> polylines, Map<String, List<List<GeoPoint>>> markerPoints, {double epsilon = 1e-8}) async {
   Map<String, List<List<GeoPoint>>> pointsOnPolylines = {};
@@ -195,37 +135,6 @@ static Future<Map<String, List<List<GeoPoint>>>> getPointsOnPolylines(List<Strin
   debugPrint(pointsOnPolylines.toString());
   return pointsOnPolylines;
 }
-// static Future<Map<String, List<List<GeoPoint>>>> getPointsOnPolylines(List<String> polylines, Map<String, List<List<GeoPoint>>> markerPoints, {double epsilon = 1e-8}) async {
-//   Map<String, List<List<GeoPoint>>> pointsOnPolylines = {};
-
-//   for (int polylineIndex = 0; polylineIndex < polylines.length; polylineIndex++) {
-//     List<GeoPoint> polyline = await polylines[polylineIndex].toListGeo();
-
-//     for (var entry in markerPoints.entries) {
-//       String level = entry.key;
-//       List<List<GeoPoint>> groupsOfPoints = entry.value;
-//       List<GeoPoint> currentGroup = [];
-
-//       for (var groupPoints in groupsOfPoints) {
-//         for (var markerPoint in groupPoints) {
-//           for (int i = 0; i < polyline.length - 1; i++) {
-//             if (isBetween(polyline[i], polyline[i + 1], markerPoint, epsilon: epsilon)) {
-//               currentGroup.add(markerPoint);
-//               break;
-//             }
-//           }
-//         }
-//       }
-
-//       if (currentGroup.isNotEmpty) {
-//         pointsOnPolylines.putIfAbsent(level, () => []).add(currentGroup);
-//       }
-//     }
-//   }
-
-//   debugPrint(pointsOnPolylines.toString());
-//   return pointsOnPolylines;
-// }
 
 
 
@@ -252,10 +161,10 @@ static void addMarkersToMap(Map<String, List<List<GeoPoint>>> pointsOnPolyline, 
       Color markerColor = getMarkerColor(level);
 
       
-      for (var point in groupPoints) {
+     
         // Add the marker to the map
         await mapController.addMarker(
-          point,
+          groupPoints.first,
           markerIcon: MarkerIcon(
             icon: Icon(
               Icons.flood,
@@ -264,7 +173,7 @@ static void addMarkersToMap(Map<String, List<List<GeoPoint>>> pointsOnPolyline, 
             ),
           ),
         );
-      }
+      
     }
   }
 }
@@ -304,40 +213,25 @@ static List<List<GeoPoint>> extractGeoPoints(String geoJsonString) {
   return geoPointsList;
 }
 
+
+
+  static List<FloodMarkerPoint> processDataAndAddToMarkerPoints() {
+    List<List<GeoPoint>> highGeoPoints = Ops.extractGeoPoints(highfloodgeojson);
+    List<List<GeoPoint>> midGeoPoints = Ops.extractGeoPoints(medFloodgeojson);
+    List<List<GeoPoint>> lowGeoPoints = Ops.extractGeoPoints(lowGeojson);
+
+    // Create new FloodMarkerPoints and update the markerPoints list
+    final newMarkerPoints = [
+      FloodMarkerPoint('Low', lowGeoPoints),
+      FloodMarkerPoint('Medium', midGeoPoints),
+      FloodMarkerPoint('High', highGeoPoints),
+      // Add more FloodMarkerPoint instances as needed
+    ];
+
+    return newMarkerPoints;
+
+  }
+ 
+
 }
 
-//better if sa backend ni na process
-
-
-// void _updateLocation() async {
-//   final myPosition = await mapController.myLocation();
-//   final thresholdDistance = 3; // Set the threshold distance to 3 meters
-
-//   // Calculate the distance between the current location and the last saved location
-//   double distanceToLastSaved = 0;
-//   if (userPath.isNotEmpty) {
-//     distanceToLastSaved = await distance2point(myPosition, userPath.last);
-//   }
-
-//   // If the user is at least 3 meters away from the last saved location, save the current location
-//   if (distanceToLastSaved >= thresholdDistance) {
-//     setState(() {
-//       userPath.add(myPosition);
-//     });
-
-//     mapController.drawRoadManually(userPath, RoadOption(roadColor: Colors.red, roadWidth: 10));
-//   }
-
-//   // Calculate the distance between the user's current location and the last geopoint of routesCHOSEN
-//   double distanceToDestination = 0;
-//   if (routesCHOSEN.isNotEmpty) {
-//     distanceToDestination = await distance2point(myPosition, routesCHOSEN.last);
-//   }
-
-//   // If the user is less than 1 meter away from the last geopoint of routesCHOSEN, stop updating the location
-//   if (distanceToDestination < 1) {
-//     return;
-//   }
-
-//   Future.delayed(Duration(seconds: 1), () => _updateLocation());
-// }
