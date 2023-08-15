@@ -21,8 +21,6 @@ import 'package:shift_project/screens/home/tobedeleted/services.dart';
 import 'package:shift_project/screens/home/srvc.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 
-
-
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -40,12 +38,8 @@ class _HomePage extends ConsumerState<HomePage>
   late AnimationController _animationController;
   late final List<FloodMarkerPoint> markerPoints;
 
-
-
-
-
   @override
- initState()  {
+  initState() {
     super.initState();
     _userLoc();
     mapController = MapController.withUserPosition(
@@ -115,82 +109,82 @@ class _HomePage extends ConsumerState<HomePage>
                   ),
                 ),
           Positioned(
-             left: 0,
+            left: 0,
             right: 0,
             bottom: 15,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FloodProneButton(),
-                UserLocationButton(
-                  onPressed: () async {
-                      if (currentPosition != null) {
-                        await mapController.currentLocation();
-                        await mapController.enableTracking(
-                          enableStopFollow: true,
-                        );
-                        await mapController.zoomIn();
-                      }
-                    },
-                  
-                
-                ),
-                Consumer(
-                  builder: (context, ref, child){
-                    final operationsProvider = ref.read(opsProvider.notifier);
-                    final polylinezzNotifierValue = ref.watch(opsProvider).polylinezzNotifier;
-                    final routes = ref.watch(opsProvider).routes;
-                    final routeCHOSEN = ref.watch(opsProvider).routeCHOSEN;
-                    return polylinezzNotifierValue ? 
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClearButton(
-                          onPressed: ()async{
-                            await Srvc.removeAllMarkers(routes!, mapController);
-                            mapController.clearAllRoads();
-                            operationsProvider.clearAllData();
-                          },
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RouteButtonsContainer(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              FloodProneButton(),
+              UserLocationButton(
+                onPressed: () async {
+                  if (currentPosition != null) {
+                    await mapController.currentLocation();
+                    await mapController.enableTracking(
+                      enableStopFollow: true,
+                    );
+                    await mapController.zoomIn();
+                  }
+                },
+              ),
+              Consumer(builder: (context, ref, child) {
+                final operationsProvider = ref.read(opsProvider.notifier);
+                final polylinezzNotifierValue =
+                    ref.watch(opsProvider).polylinezzNotifier;
+                final routes = ref.watch(opsProvider).routes;
+                final routeCHOSEN = ref.watch(opsProvider).routeCHOSEN;
+                return polylinezzNotifierValue
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClearButton(
+                            onPressed: () async {
+                              await Srvc.removeAllMarkers(
+                                  routes!, mapController);
+                              mapController.clearAllRoads();
+                              operationsProvider.clearAllData();
+                            },
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: RouteButtonsContainer(
                                 child: Row(
                                   children: [
                                     Expanded(
-                                            child: RouteButtons(
-                                              routes: routes!,
-                                              mapController: mapController,
-                                              opsNotifier: operationsProvider,
-                                            ),
-                                          ),
-                                           SizedBox(width: 10),
+                                      child: RouteButtons(
+                                        routes: routes!,
+                                        mapController: mapController,
+                                        opsNotifier: operationsProvider,
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
                                     GoButton(
                                       onTap: () async {
-                                               Srvc.updateLocation(routeCHOSEN!,mapController,_animationController,context);
-                                            },
+                                        Srvc.updateLocation(
+                                            routeCHOSEN!,
+                                            mapController,
+                                            _animationController,
+                                            context);
+                                      },
                                     )
                                   ],
                                 ),
-                              )
-                              )
-                          ],
-                        )
-                      ],
-                    ): ChooseDestinationButton(
-                   onPressed: ()async{
-                     var p = await Navigator.pushNamed(
-                                      context, "/search");
-                    operationsProvider.addPointToRoad(await mapController.myLocation());
-                    operationsProvider.addPointToRoad(p as GeoPoint);
-                    operationsProvider.fetchAndDrawRoute(mapController, markerPoints);
-                    
-                   },
-                   
-                    );
-                  }
-                  )
+                              ))
+                            ],
+                          )
+                        ],
+                      )
+                    : ChooseDestinationButton(
+                        onPressed: () async {
+                          var p = await Navigator.pushNamed(context, "/search");
+                          operationsProvider
+                              .addPointToRoad(await mapController.myLocation());
+                          operationsProvider.addPointToRoad(p as GeoPoint);
+                          operationsProvider.fetchAndDrawRoute(
+                              mapController, markerPoints);
+                        },
+                      );
+              })
             ]),
           )
         ],
@@ -198,4 +192,3 @@ class _HomePage extends ConsumerState<HomePage>
     );
   }
 }
-

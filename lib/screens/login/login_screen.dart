@@ -120,7 +120,7 @@ class LoginScreen extends ConsumerWidget {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => MyHomePage(),
+                                      builder: (context) => HomePage(),
                                     ),
                                   );
                                 },
@@ -200,7 +200,9 @@ class LoginScreen extends ConsumerWidget {
                                           .signInWithGoogle();
 
                                       if (result == AuthResult.success) {
-                                        ref.read(authStateProvider.notifier).signInWithGoogle();
+                                        ref
+                                            .read(authStateProvider.notifier)
+                                            .signInWithGoogle();
                                       }
                                     },
                                     child: Container(
@@ -228,14 +230,15 @@ class LoginScreen extends ConsumerWidget {
                                       final result = await Authenticator()
                                           .signInWithGitHub();
                                       if (result == AuthResult.success) {
-                                        ref.read(authStateProvider.notifier).signInWithGithub;
-                                      //   Navigator.of(context).push(
-                                      //     MaterialPageRoute(
-                                      //       builder: (context) => MyHomePage(),
-                                      //     ),
-                                      //   );
+                                        ref
+                                            .read(authStateProvider.notifier)
+                                            .signInWithGithub;
+                                        //   Navigator.of(context).push(
+                                        //     MaterialPageRoute(
+                                        //       builder: (context) => MyHomePage(),
+                                        //     ),
+                                        //   );
                                       }
-
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(

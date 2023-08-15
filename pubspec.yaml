@@ -51,7 +51,7 @@ dependencies:
   font_awesome_flutter: ^10.5.0
   json_annotation: ^4.8.1
   firebase_core: ^2.15.0
-  flutter_background_geolocation: ^4.11.1
+  # flutter_background_geolocation: ^4.11.1
   cloud_firestore: ^4.8.4
   google_sign_in: ^6.1.4
   riverpod: ^2.3.6
@@ -60,6 +60,7 @@ dependencies:
   flutter_easyloading: ^3.0.5
   riverpod_annotation: ^2.1.1
   proj4dart: ^2.1.0
+  animated_snack_bar: ^0.3.1
 
 dev_dependencies:
   flutter_test:
