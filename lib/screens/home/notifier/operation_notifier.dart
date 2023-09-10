@@ -20,6 +20,11 @@ import 'package:shift_project/screens/home/srvc.dart';
       state = state.copyWith(isExpanded: !state.isExpanded, isMapOverlayVisible: !state.isMapOverlayVisible);
     }
 
+    void stopButtonNotifier() {
+      state = state.copyWith(goNotifier: !state.goNotifier);
+    }
+
+   
   void isPolylinesGenerated() {
       state = state.copyWith(polylinezzNotifier: !state.polylinezzNotifier);
     }
@@ -73,6 +78,7 @@ Future<void> fetchAndDrawRoute(MapController mapController, List<FloodMarkerPoin
       pointsRoad: [],       // Clear points road
       routes: [],           // Clear routes
       polylinezzNotifier: false, // Set polylinezzNotifier to false
+      goNotifier: false,
     );
   }
 
@@ -80,8 +86,9 @@ Future<void> fetchAndDrawRoute(MapController mapController, List<FloodMarkerPoin
     state = state.copyWith(
       pointsRoad: [],       // Clear points road
       routes: [],
-      routeCHOSEN: null,           // Clear routes
+      routeCHOSEN: FloodMarkerRoute(null, []), // Clear routes
       polylinezzNotifier: false, // Set polylinezzNotifier to false
+       goNotifier: false,
     );
   }
 

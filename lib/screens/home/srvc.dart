@@ -152,7 +152,7 @@ class Srvc {
             }
           }
 
-          if (currentGroup.isNotEmpty) {
+          if (currentGroup.isNotEmpty && currentGroup.length > 1) {
             riskpointGroups.add(currentGroup);
           }
         }
@@ -527,11 +527,12 @@ class Srvc {
       if (dist < 5) {
         _animationController.stop();
         mapController.clearAllRoads();
+        removeMarker(routeCHOSEN.points, mapController);
         return;
       }
       checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);
       Future.delayed(
-          const Duration(seconds: 2),
+          const Duration(seconds: 1),
           () => updateLocation(
               routeCHOSEN, mapController, _animationController, context));
     }

@@ -1,23 +1,21 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shift_project/screens/home/components/buttons/choose_destination.dart';
 import 'package:shift_project/screens/home/components/buttons/clear_button.dart';
 import 'package:shift_project/screens/home/components/buttons/floodProne_button.dart';
 import 'package:shift_project/screens/home/components/buttons/go_button.dart';
+import 'package:shift_project/screens/home/components/buttons/stop_button.dart';
 import 'package:shift_project/screens/home/components/buttons/user_location_button.dart';
 import 'package:shift_project/screens/home/components/route_buttons_container.dart';
 import 'package:shift_project/screens/home/components/routes_buttons_display.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/provider/operations_provider.dart';
-import 'package:shift_project/screens/home/tobedeleted/services.dart';
 import 'package:shift_project/screens/home/srvc.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 
@@ -130,10 +128,18 @@ class _HomePage extends ConsumerState<HomePage>
                 final operationsProvider = ref.read(opsProvider.notifier);
                 final polylinezzNotifierValue =
                     ref.watch(opsProvider).polylinezzNotifier;
+                    final goNotifier = ref.watch(opsProvider).goNotifier;
                 final routes = ref.watch(opsProvider).routes;
                 final routeCHOSEN = ref.watch(opsProvider).routeCHOSEN;
+                
                 return polylinezzNotifierValue
-                    ? Column(
+                    ?  goNotifier ? StopButton(
+                                    onTap: () async {
+                                      await Srvc.removeAllMarkers(
+                                          routes!, mapController);
+                                      mapController.clearAllRoads();
+                                      operationsProvider.clearAllData();
+                                    },): Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ClearButton(
@@ -147,7 +153,8 @@ class _HomePage extends ConsumerState<HomePage>
                           Row(
                             children: [
                               Expanded(
-                                  child: RouteButtonsContainer(
+                                  child:
+                                   RouteButtonsContainer(
                                 child: Row(
                                   children: [
                                     Expanded(
@@ -160,6 +167,7 @@ class _HomePage extends ConsumerState<HomePage>
                                     SizedBox(width: 10),
                                     GoButton(
                                       onTap: () async {
+                                      operationsProvider.stopButtonNotifier();
                                         Srvc.updateLocation(
                                             routeCHOSEN!,
                                             mapController,

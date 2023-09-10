@@ -7,6 +7,7 @@ class OpsState {
   OpsState({
     this.isExpanded = false,
     this.isMapOverlayVisible = true,
+    this.goNotifier = false,
     this.routes,
     this.routeCHOSEN,
     this.pointsRoad,
@@ -14,6 +15,7 @@ class OpsState {
   });
 
   final bool isExpanded;
+  final bool goNotifier;
   final bool isMapOverlayVisible;
   final List<FloodMarkerRoute>? routes;
   final FloodMarkerRoute? routeCHOSEN;
@@ -22,6 +24,7 @@ class OpsState {
 
   OpsState copyWith({
     bool? isExpanded,
+    bool? goNotifier,
     List<FloodMarkerRoute>? routes,
     FloodMarkerRoute? routeCHOSEN,
     List<GeoPoint>? pointsRoad,
@@ -29,6 +32,7 @@ class OpsState {
   }) {
     return OpsState(
       isExpanded: isExpanded ?? this.isExpanded,
+      goNotifier: goNotifier ?? this.goNotifier,
       isMapOverlayVisible: isMapOverlayVisible ?? this.isMapOverlayVisible,
       routes: routes ?? this.routes,
       routeCHOSEN: routeCHOSEN ?? this.routeCHOSEN,
