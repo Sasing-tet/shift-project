@@ -485,7 +485,7 @@ class Srvc {
       mobilePositionSettings: MobilePositionSettings(
         right: 15,
         left: 80,
-        bottomOnAppearance: 145,
+        bottomOnAppearance: 95,
       ),
     ).show(context);
   }
