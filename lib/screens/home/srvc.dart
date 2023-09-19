@@ -16,6 +16,7 @@ import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'dart:math' as math;
 
 import '../../constants/constants.dart';
+import 'notifier/operation_notifier.dart';
 
 class Srvc {
   static Future<void> drawRoadManually(List<FloodMarkerRoute> routesOnPolylines,
@@ -516,7 +517,7 @@ class Srvc {
       FloodMarkerRoute routeCHOSEN,
       MapController mapController,
       AnimationController _animationController,
-      context) async {
+      context,  OpsNotifier opsNotifier) async {
     if (!routeCHOSEN.route.isEmpty) {
       final myposition = await mapController.myLocation();
 
@@ -528,13 +529,15 @@ class Srvc {
         _animationController.stop();
         mapController.clearAllRoads();
         removeMarker(routeCHOSEN.points, mapController);
+        opsNotifier.clearAllData();
+        opsNotifier.stopButtonNotifier();
         return;
       }
       checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);
       Future.delayed(
           const Duration(seconds: 1),
           () => updateLocation(
-              routeCHOSEN, mapController, _animationController, context));
+              routeCHOSEN, mapController, _animationController, context, opsNotifier));
     }
   }
 }

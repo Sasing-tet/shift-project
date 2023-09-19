@@ -178,7 +178,9 @@ class _HomePage extends ConsumerState<HomePage>
                                                 routeCHOSEN!,
                                                 mapController,
                                                 _animationController,
-                                                context);
+                                                context,
+                                                operationsProvider);
+                                                
                                           },
                                         )
                                       ],
