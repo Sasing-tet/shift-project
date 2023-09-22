@@ -132,7 +132,7 @@ class Srvc {
           int currentWeatherCode ,
       {double epsilon = 1e-8}) async {
     List<FloodMarkerRoute> routesOnPolylines = [];
-
+    print(currentWeatherCode);
     late final int polyIndex;
    
     if(currentWeatherCode <= 48 && currentWeatherCode >= 2){
@@ -148,7 +148,7 @@ class Srvc {
          return  routesOnPolylines;
       }
 
-    for ( int polylineIndex = 0;
+    for ( int polylineIndex = polyIndex;
         polylineIndex < polylines.length;
         polylineIndex++) {
       List<GeoPoint> polyline = polylines[polylineIndex];
@@ -503,7 +503,7 @@ class Srvc {
       mobilePositionSettings: MobilePositionSettings(
         right: 15,
         left: 80,
-        bottomOnAppearance: 95,
+        bottomOnAppearance: 145,
       ),
     ).show(context);
   }
@@ -547,8 +547,6 @@ class Srvc {
         animationController.stop();
         mapController.clearAllRoads();
         removeMarker(routeCHOSEN.points, mapController);
-        opsNotifier.clearAllData();
-        opsNotifier.stopButtonNotifier();
         return;
       }
       checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);
