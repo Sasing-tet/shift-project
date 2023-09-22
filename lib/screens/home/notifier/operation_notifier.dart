@@ -1,16 +1,18 @@
   import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
   import 'package:hooks_riverpod/hooks_riverpod.dart';
-  import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
-  import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
-  import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
   import 'package:shift_project/screens/home/model/flood_marker_points.dart';
   import 'package:shift_project/screens/home/model/operation_state.dart';
   import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
-  import 'package:shift_project/screens/home/tobedeleted/services.dart';
 import 'package:shift_project/screens/home/srvc.dart';
+import 'package:shift_project/states/weather/models/weather_data_model.dart';
 
   class OpsNotifier extends StateNotifier<OpsState> {
     OpsNotifier() : super(OpsState());
+
+  bool get goNotifier => state.goNotifier;
+
+  void addWeatherData(WeatherData newWeatherData) {
+    state = state.copyWith(weatherData: newWeatherData);}
 
    void addChosenRoute(FloodMarkerRoute newRoute) {
   state = state.copyWith(routeCHOSEN: newRoute);
@@ -48,7 +50,7 @@ import 'package:shift_project/screens/home/srvc.dart';
     }
 
 
-Future<void> fetchAndDrawRoute(MapController mapController, List<FloodMarkerPoint> markerPoints) async {
+Future<void> fetchAndDrawRoute(MapController mapController, List<FloodMarkerPoint> markerPoints, int currentWeatherCode) async {
   final coordinates = state.pointsRoad;
 
   try {
@@ -58,13 +60,13 @@ Future<void> fetchAndDrawRoute(MapController mapController, List<FloodMarkerPoin
       polylines,
       markerPoints, 
       mapController,
+      currentWeatherCode,
     );
 
     state = state.copyWith(
       routes: [...state.routes ?? [], ...routes], // Adding the new routes to the existing routes list
       polylinezzNotifier: true,
     );
-
     await Srvc.drawRoadManually(routes, mapController);
 
   } catch (e) {
@@ -89,6 +91,7 @@ Future<void> fetchAndDrawRoute(MapController mapController, List<FloodMarkerPoin
       routeCHOSEN: FloodMarkerRoute(null, []), // Clear routes
       polylinezzNotifier: false, // Set polylinezzNotifier to false
        goNotifier: false,
+       
     );
   }
 

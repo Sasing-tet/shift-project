@@ -69,10 +69,11 @@ class _HomePage extends ConsumerState<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    final opProvider = ref.read(opsProvider.notifier);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size(double.infinity, 250),
-        child: MyAppBar(),
+        child: MyAppBar( opsNotifier: opProvider),
       ),
       extendBodyBehindAppBar: true,
       drawer: SafeArea(
@@ -125,6 +126,7 @@ class _HomePage extends ConsumerState<HomePage>
                 },
               ),
               Consumer(builder: (context, ref, child) {
+                final weatherCose = ref.watch(opsProvider).weatherData?.currentWeatherCode;
                 final operationsProvider = ref.read(opsProvider.notifier);
                 final polylinezzNotifierValue =
                     ref.watch(opsProvider).polylinezzNotifier;
@@ -172,6 +174,7 @@ class _HomePage extends ConsumerState<HomePage>
                                             routeCHOSEN!,
                                             mapController,
                                             _animationController,
+                                            operationsProvider,
                                             context);
                                       },
                                     )
@@ -189,7 +192,7 @@ class _HomePage extends ConsumerState<HomePage>
                               .addPointToRoad(await mapController.myLocation());
                           operationsProvider.addPointToRoad(p as GeoPoint);
                           operationsProvider.fetchAndDrawRoute(
-                              mapController, markerPoints);
+                              mapController, markerPoints, weatherCose!);
                         },
                       );
               })

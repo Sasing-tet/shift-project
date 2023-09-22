@@ -1,10 +1,14 @@
 
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+// ignore: unused_import
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
+import 'package:shift_project/states/weather/models/weather_data_model.dart';
 
 class OpsState {
   OpsState({
+    
+    this.weatherData,
     this.isExpanded = false,
     this.isMapOverlayVisible = true,
     this.goNotifier = false,
@@ -12,8 +16,10 @@ class OpsState {
     this.routeCHOSEN,
     this.pointsRoad,
     this.polylinezzNotifier = false,
+
   });
 
+  final WeatherData? weatherData;
   final bool isExpanded;
   final bool goNotifier;
   final bool isMapOverlayVisible;
@@ -23,14 +29,19 @@ class OpsState {
   final bool polylinezzNotifier;
 
   OpsState copyWith({
+
+    WeatherData? weatherData,
     bool? isExpanded,
     bool? goNotifier,
     List<FloodMarkerRoute>? routes,
     FloodMarkerRoute? routeCHOSEN,
     List<GeoPoint>? pointsRoad,
     bool? polylinezzNotifier,  bool? isMapOverlayVisible,
+
   }) {
     return OpsState(
+
+      weatherData: weatherData ?? this.weatherData,
       isExpanded: isExpanded ?? this.isExpanded,
       goNotifier: goNotifier ?? this.goNotifier,
       isMapOverlayVisible: isMapOverlayVisible ?? this.isMapOverlayVisible,
@@ -38,6 +49,7 @@ class OpsState {
       routeCHOSEN: routeCHOSEN ?? this.routeCHOSEN,
       pointsRoad: pointsRoad ?? this.pointsRoad,
       polylinezzNotifier: polylinezzNotifier ?? this.polylinezzNotifier,
+      
     );
   }
 }

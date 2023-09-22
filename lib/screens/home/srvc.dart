@@ -13,6 +13,7 @@ import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
 import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
+import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 import 'dart:math' as math;
 
 import '../../constants/constants.dart';
@@ -127,10 +128,26 @@ class Srvc {
       List<FloodMarkerPoint> markerPoints,
       MapController
           mapController, // Pass the mapController for the toListGeo() function
+          int currentWeatherCode ,
       {double epsilon = 1e-8}) async {
     List<FloodMarkerRoute> routesOnPolylines = [];
 
-    for (int polylineIndex = 0;
+    late final int polyIndex;
+   
+    if(currentWeatherCode <= 48 && currentWeatherCode >= 2){
+       polyIndex = 2;
+    }else if(currentWeatherCode >= 51 && currentWeatherCode <= 61){
+       polyIndex = 1;}
+      else if(currentWeatherCode >= 63 && currentWeatherCode <= 99){
+         polyIndex = 0;
+      } else{
+        for(int i = 0; i < polylines.length; i++){
+          routesOnPolylines.add(FloodMarkerRoute( [], polylines[i]));
+            }
+         return  routesOnPolylines;
+      }
+
+    for ( int polylineIndex = 0;
         polylineIndex < polylines.length;
         polylineIndex++) {
       List<GeoPoint> polyline = polylines[polylineIndex];
@@ -515,17 +532,18 @@ class Srvc {
   static Future<void> updateLocation(
       FloodMarkerRoute routeCHOSEN,
       MapController mapController,
-      AnimationController _animationController,
+      AnimationController animationController,
+      OpsNotifier notifier,
       context) async {
-    if (!routeCHOSEN.route.isEmpty) {
+    if (routeCHOSEN.route.isNotEmpty) {
       final myposition = await mapController.myLocation();
 
       final dist = await distance2point(myposition, routeCHOSEN.route.last);
 
       print(dist.toString() + 'hey');
 
-      if (dist < 5) {
-        _animationController.stop();
+      if (dist < 5 || notifier.goNotifier == false ) {
+        animationController.stop();
         mapController.clearAllRoads();
         removeMarker(routeCHOSEN.points, mapController);
         return;
@@ -534,7 +552,7 @@ class Srvc {
       Future.delayed(
           const Duration(seconds: 1),
           () => updateLocation(
-              routeCHOSEN, mapController, _animationController, context));
+              routeCHOSEN, mapController, animationController, notifier, context));
     }
   }
 }

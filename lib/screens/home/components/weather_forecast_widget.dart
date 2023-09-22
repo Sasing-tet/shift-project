@@ -1,11 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:marquee/marquee.dart';
 import 'package:shift_project/screens/home/components/hourly_weather_forcase_widget.dart';
+import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
+import 'package:shift_project/screens/home/provider/operations_provider.dart';
 import '../../../constants/constants.dart';
 import '../../../fetch/weather API/weather_forecast.dart';
 import '../../../states/location/provider/address_provider.dart';
@@ -15,14 +14,17 @@ import 'weather code description/weather_code_description.dart';
 
 
 class WeatherForecastWidget extends ConsumerStatefulWidget {
-  const WeatherForecastWidget({super.key});
+  
 
+  const WeatherForecastWidget({super.key, required this.opsProvider});
+  final OpsNotifier opsProvider;
   @override
   ConsumerState<WeatherForecastWidget> createState() =>
       _WeatherForecastWidgetState();
 }
 
 class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
+  
   LatLng? currentPosition;
   // late Future<WeatherData> weatherDataFuture;
 
@@ -33,6 +35,7 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
     fetchWeatherData(
       currentPosition?.latitude ?? 0.0,
       currentPosition?.longitude ?? 0.0,
+      widget.opsProvider,
     );
   }
 
@@ -57,18 +60,20 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
   @override
   Widget build(BuildContext context) {
     final currentPosition = ref.watch(currentPositionProvider);
+   
 
     final updateWeather = true;    
     
     return FutureBuilder<WeatherData>(
       future: fetchWeatherData(
-          currentPosition.latitude, currentPosition.longitude),
+          currentPosition.latitude, currentPosition.longitude, widget.opsProvider),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return const Text('Failed to fetch weather data');
         } else {
+         
           final weatherData = snapshot.data!;
           return FutureBuilder<String?>(
             future: getAddressFromCoordinates(
