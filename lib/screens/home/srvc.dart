@@ -17,6 +17,7 @@ import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 import 'dart:math' as math;
 
 import '../../constants/constants.dart';
+import 'notifier/operation_notifier.dart';
 
 class Srvc {
   static Future<void> drawRoadManually(List<FloodMarkerRoute> routesOnPolylines,
@@ -502,7 +503,7 @@ class Srvc {
       mobilePositionSettings: MobilePositionSettings(
         right: 15,
         left: 80,
-        bottomOnAppearance: 145,
+        bottomOnAppearance: 95,
       ),
     ).show(context);
   }
@@ -546,6 +547,8 @@ class Srvc {
         animationController.stop();
         mapController.clearAllRoads();
         removeMarker(routeCHOSEN.points, mapController);
+        opsNotifier.clearAllData();
+        opsNotifier.stopButtonNotifier();
         return;
       }
       checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);

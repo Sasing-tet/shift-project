@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously, prefer_const_constructors, prefer_const_literals_to_create_immutables, sized_box_for_whitespace
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -130,41 +129,59 @@ class _HomePage extends ConsumerState<HomePage>
                 final operationsProvider = ref.read(opsProvider.notifier);
                 final polylinezzNotifierValue =
                     ref.watch(opsProvider).polylinezzNotifier;
-                    final goNotifier = ref.watch(opsProvider).goNotifier;
+                final goNotifier = ref.watch(opsProvider).goNotifier;
                 final routes = ref.watch(opsProvider).routes;
                 final routeCHOSEN = ref.watch(opsProvider).routeCHOSEN;
-                
+
                 return polylinezzNotifierValue
-                    ?  goNotifier ? StopButton(
-                                    onTap: () async {
-                                      await Srvc.removeAllMarkers(
-                                          routes!, mapController);
-                                      mapController.clearAllRoads();
-                                      operationsProvider.clearAllData();
-                                    },): Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClearButton(
-                            onPressed: () async {
+                    ? goNotifier
+                        ? StopButton(
+                            onTap: () async {
                               await Srvc.removeAllMarkers(
                                   routes!, mapController);
                               mapController.clearAllRoads();
                               operationsProvider.clearAllData();
                             },
-                          ),
-                          Row(
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                  child:
-                                   RouteButtonsContainer(
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: RouteButtons(
-                                        routes: routes!,
-                                        mapController: mapController,
-                                        opsNotifier: operationsProvider,
-                                      ),
+                              ClearButton(
+                                onPressed: () async {
+                                  await Srvc.removeAllMarkers(
+                                      routes!, mapController);
+                                  mapController.clearAllRoads();
+                                  operationsProvider.clearAllData();
+                                },
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: RouteButtonsContainer(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: RouteButtons(
+                                            routes: routes!,
+                                            mapController: mapController,
+                                            opsNotifier: operationsProvider,
+                                          ),
+                                        ),
+                                        SizedBox(width: 10),
+                                        GoButton(
+                                          onTap: () async {
+                                            operationsProvider
+                                                .stopButtonNotifier();
+                                            Srvc.updateLocation(
+                                                routeCHOSEN!,
+                                                mapController,
+                                                _animationController,
+                                                context,
+                                                operationsProvider);
+                                                
+                                          },
+                                        )
+                                      ],
                                     ),
                                     SizedBox(width: 10),
                                     GoButton(
@@ -183,8 +200,6 @@ class _HomePage extends ConsumerState<HomePage>
                               ))
                             ],
                           )
-                        ],
-                      )
                     : ChooseDestinationButton(
                         onPressed: () async {
                           var p = await Navigator.pushNamed(context, "/search");
@@ -197,7 +212,13 @@ class _HomePage extends ConsumerState<HomePage>
                       );
               })
             ]),
-          )
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: MyAppBar(),
+          ),
         ],
       ),
     );

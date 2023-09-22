@@ -42,6 +42,9 @@ class MyAppBar extends StatelessWidget {
             // WEATHER WIDGET
             Expanded(
               child: Container(
+                constraints: BoxConstraints(
+                  minHeight: 90,
+                ),
                 margin: EdgeInsets.only(
                   top: 10,
                   right: 10,
