@@ -65,8 +65,8 @@ Future<WeatherData> fetchWeatherData(double latitude, double longitude, OpsNotif
     //   hourlyForecastRain: hourlyForecastRain,
     // );
     print(data);
-    print("ayee" + weatherData.currentWeatherCode.toString());
-    opsNotifier.addWeatherData(weatherData );
+    print("ayee" + weatherData.currentWeatherUnit);
+    opsNotifier.addWeatherData(hourlyForecastWeatherCode[0]);
     return weatherData;
   } else {
     throw Exception('Failed to fetch weather data: ${response.statusCode}');

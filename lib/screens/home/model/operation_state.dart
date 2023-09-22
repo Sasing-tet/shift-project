@@ -19,7 +19,7 @@ class OpsState {
 
   });
 
-  final WeatherData? weatherData;
+  final int? weatherData;
   final bool isExpanded;
   final bool goNotifier;
   final bool isMapOverlayVisible;
@@ -30,7 +30,7 @@ class OpsState {
 
   OpsState copyWith({
 
-    WeatherData? weatherData,
+    int? weatherData,
     bool? isExpanded,
     bool? goNotifier,
     List<FloodMarkerRoute>? routes,

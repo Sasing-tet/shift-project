@@ -126,7 +126,7 @@ class _HomePage extends ConsumerState<HomePage>
                 },
               ),
               Consumer(builder: (context, ref, child) {
-                final weatherCose = ref.watch(opsProvider).weatherData?.currentWeatherCode;
+                final weatherCose = ref.watch(opsProvider).weatherData;
                 final operationsProvider = ref.read(opsProvider.notifier);
                 final polylinezzNotifierValue =
                     ref.watch(opsProvider).polylinezzNotifier;

@@ -11,7 +11,7 @@ import 'package:shift_project/states/weather/models/weather_data_model.dart';
 
   bool get goNotifier => state.goNotifier;
 
-  void addWeatherData(WeatherData newWeatherData) {
+  void addWeatherData(int newWeatherData) {
     state = state.copyWith(weatherData: newWeatherData);}
 
    void addChosenRoute(FloodMarkerRoute newRoute) {
