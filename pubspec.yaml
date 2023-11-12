@@ -61,6 +61,8 @@ dependencies:
   riverpod_annotation: ^2.1.1
   proj4dart: ^2.1.0
   animated_snack_bar: ^0.3.1
+  supabase_flutter: ^1.10.25
+
 
 dev_dependencies:
   flutter_test:

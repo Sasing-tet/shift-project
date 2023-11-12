@@ -4,12 +4,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
 import 'package:shift_project/states/auth/providers/auth_state_provider.dart';
 import '../constants/constants.dart';
+import '../main.dart';
 
 class WeatherDrawer extends ConsumerWidget {
   const WeatherDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user123 = supabase.auth.currentUser?.userMetadata?['full_name'] ?? 'Guest#123';
     Future<void> handleLogoutAndNavigateToLogin() async {
       final authNotifier = ref.read(authStateProvider.notifier);
       await authNotifier.logOut();
@@ -45,9 +47,9 @@ class WeatherDrawer extends ConsumerWidget {
                       'assets/images/hu tao smol.jpg',
                     ),
                   ),
-                  const Text(
-                    'Guest#123',
-                    style: TextStyle(
+                  Text(
+                    user123,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: titleFontSize,
                     ),

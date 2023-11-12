@@ -4,20 +4,24 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shift_project/screens/chooselocation/choose_location_view.dart';
 import 'package:shift_project/screens/home/homepage.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:shift_project/states/auth/providers/login_provider.dart';
 import 'package:shift_project/states/loading/provider/isloading_provider.dart';
-import 'firebase_options.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  await Supabase.initialize(
+    url: 'https://qegghlcugbbvyuopfegq.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFlZ2dobGN1Z2Jidnl1b3BmZWdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTQ5NTU3NjMsImV4cCI6MjAxMDUzMTc2M30.HJf-DFvWbqRWqTIUjdJkeuQalXEAvqPfi-GN7lYQ-PY',
+    // authFlowType: AuthFlowType.pkce,
   );
   runApp(const ProviderScope(
     child: MyApp(),
   ));
 }
+
+final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

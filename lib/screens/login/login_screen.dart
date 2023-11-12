@@ -7,6 +7,7 @@ import 'package:shift_project/screens/home/homepage.dart';
 import 'package:shift_project/states/auth/models/auth_results.dart';
 
 import '../../constants/constants.dart';
+import '../../main.dart';
 import '../../states/auth/backend/authenticator.dart';
 import '../../states/auth/providers/auth_state_provider.dart';
 import '../../states/auth/providers/login_provider.dart';
@@ -198,6 +199,7 @@ class LoginScreen extends ConsumerWidget {
                                     onTap: () async {
                                       final result = await Authenticator()
                                           .signInWithGoogle();
+                                      debugPrint(supabase.auth.currentUser.toString());
 
                                       if (result == AuthResult.success) {
                                         ref

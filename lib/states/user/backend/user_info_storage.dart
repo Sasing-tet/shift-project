@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/foundation.dart';
-import '../../constants/firebase_collection_name.dart';
-import '../models/firebase_field.firebase.dart';
-import '../models/user_info_payload.dart';
+import '../../../main.dart';
+
 import '../typedef/user_id.dart';
 
 @immutable
@@ -14,39 +13,17 @@ class UserInfoStorage {
     required String? email,
   }) async {
     try {
-      final userInfo = await FirebaseFirestore.instance
-          .collection(
-            FirebaseCollectionName.users,
-          )
-          .where(
-            FirebaseFieldName.userId,
-            isEqualTo: userId,
-          )
-          .limit(1)
-          .get();
+      final userInfo = await supabase.from('driver').select('driver_id').eq('driver_id', userId);
 
       debugPrint(userInfo.toString());
 
-      if (userInfo.docs.isNotEmpty) {
-        await userInfo.docs.first.reference.update({
-          FirebaseFieldName.displayName: displayName,
-          FirebaseFieldName.email: email ?? '',
-        });
+      if (userInfo != null) {
         return true;
       }
 
-      final payload = UserInfoPayload(
-        userId: userId,
-        displayName: displayName,
-        email: email,
-      );
-
-      debugPrint(payload.toString());
-      await FirebaseFirestore.instance
-          .collection(
-            FirebaseCollectionName.users,
-          )
-          .add(payload);
+      await supabase
+      .from('driver')
+      .insert({'driver_id': userId, 'email': email, 'full_name': displayName});
       return true;
     } catch (_) {
       return false;

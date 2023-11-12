@@ -47,5 +47,24 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CLIENT_ID</key>
+	<string>881978526053-69huu0msrpjb7b6ot2prsblev6qsg4rb.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.881978526053-69huu0msrpjb7b6ot2prsblev6qsg4rb</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.shiftProject.Runner</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+		<key>CFBundleTypeRole</key>
+		<string>Editor</string>
+		<key>CFBundleURLSchemes</key>
+		<array>
+			<string>shift.navigationapp</string>
+		</array>
+		</dict>
+	</array>
 </dict>
 </plist>
