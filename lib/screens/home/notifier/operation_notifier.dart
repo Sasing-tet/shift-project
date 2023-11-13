@@ -10,7 +10,12 @@ import 'package:shift_project/states/weather/models/weather_data_model.dart';
     OpsNotifier() : super(OpsState());
 
   bool get goNotifier => state.goNotifier;
-
+  void addNewPointToMyRoute(GeoPoint newPoint) {
+    state = state.copyWith(myRoute: [...state.myRoute ?? [], newPoint]);
+  }
+void clearMyRoute() {
+    state = state.copyWith(myRoute: []);
+  }
   void addWeatherData(int newWeatherData) {
     state = state.copyWith(weatherData: newWeatherData);}
 

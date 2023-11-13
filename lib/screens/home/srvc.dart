@@ -604,6 +604,22 @@ class Srvc {
 
     print('You are not in a flood-prone area. Safe to proceed.');
   }
+  
+
+static Future<void> myRoutez ( 
+   GeoPoint myLocation,
+     OpsNotifier notifier,
+     List<GeoPoint> route,
+     
+)async{
+ 
+    final dist = await distance2point(route.last, myLocation);
+    if (dist > 5) {
+      notifier.addNewPointToMyRoute(myLocation);
+      print('hey' + notifier.state.myRoute!.toString());
+    }
+
+}
 
   static Future<void> updateLocation(
       FloodMarkerRoute routeCHOSEN,
@@ -612,7 +628,10 @@ class Srvc {
       OpsNotifier notifier,
       context) async {
     if (routeCHOSEN.route.isNotEmpty) {
+
       final myposition = await mapController.myLocation();
+
+      myRoutez(myposition, notifier, notifier.state.myRoute!);
 
       final dist = await distance2point(myposition, routeCHOSEN.route.last);
 
@@ -625,10 +644,12 @@ class Srvc {
         return;
       }
       checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);
+      
       Future.delayed(
           const Duration(seconds: 1),
           () => updateLocation(
-              routeCHOSEN, mapController, animationController, notifier, context));
+              routeCHOSEN, mapController, animationController, notifier, context,));
     }
+    
   }
 }

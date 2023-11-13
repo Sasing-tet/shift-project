@@ -133,6 +133,7 @@ class _HomePage extends ConsumerState<HomePage>
                     final goNotifier = ref.watch(opsProvider).goNotifier;
                 final routes = ref.watch(opsProvider).routes;
                 final routeCHOSEN = ref.watch(opsProvider).routeCHOSEN;
+                final myRoute = ref.watch(opsProvider).myRoute;
                 
                 return polylinezzNotifierValue
                     ?  goNotifier ? StopButton(
@@ -170,13 +171,18 @@ class _HomePage extends ConsumerState<HomePage>
                                     GoButton(
                                       onTap: () async {
                                       operationsProvider.stopButtonNotifier();
+                                      operationsProvider.clearMyRoute();
+                                      operationsProvider.addNewPointToMyRoute( await mapController.myLocation());
                                         Srvc.updateLocation(
                                             routeCHOSEN!,
                                             mapController,
                                             _animationController,
                                             operationsProvider,
+          
                                             context);
+                                           
                                       },
+                                   
                                     )
                                   ],
                                 ),
