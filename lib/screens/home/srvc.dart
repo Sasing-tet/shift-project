@@ -8,15 +8,19 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
 import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
 import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
+import 'package:shift_project/states/location/provider/address_provider.dart';
 import 'dart:math' as math;
 
 import '../../constants/constants.dart';
+import '../../main.dart';
+import '../../states/auth/backend/authenticator.dart';
 
 class Srvc {
   static Future<void> drawRoadManually(List<FloodMarkerRoute> routesOnPolylines,
@@ -128,139 +132,137 @@ class Srvc {
       List<FloodMarkerPoint> markerPoints,
       MapController
           mapController, // Pass the mapController for the toListGeo() function
-          int currentWeatherCode ,
+      int currentWeatherCode,
       {double epsilon = 1e-8}) async {
     List<FloodMarkerRoute> routesOnPolylines = [];
-   
 
-   
-    if(currentWeatherCode <= 48 && currentWeatherCode >= 2){
-       for ( int polylineIndex = 0;
-        polylineIndex < polylines.length;
-        polylineIndex++) {
-      List<GeoPoint> polyline = polylines[polylineIndex];
-      List<FloodMarkerPoint>? pointsOnPolyline = [];
-      for (var markerPoint in markerPoints.where((mp) => mp.floodLevel == "High")) {
-        String level = markerPoint.floodLevel;
-        List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
-        List<List<GeoPoint>> riskpointGroups = [];
+    if (currentWeatherCode <= 48 && currentWeatherCode >= 2) {
+      for (int polylineIndex = 0;
+          polylineIndex < polylines.length;
+          polylineIndex++) {
+        List<GeoPoint> polyline = polylines[polylineIndex];
+        List<FloodMarkerPoint>? pointsOnPolyline = [];
+        for (var markerPoint
+            in markerPoints.where((mp) => mp.floodLevel == "High")) {
+          String level = markerPoint.floodLevel;
+          List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
+          List<List<GeoPoint>> riskpointGroups = [];
 
-        for (var groupPoints in pointGroups) {
-          List<GeoPoint> currentGroup = [];
+          for (var groupPoints in pointGroups) {
+            List<GeoPoint> currentGroup = [];
 
-          for (var point in groupPoints) {
-            for (int i = 0; i < polyline.length - 1; i++) {
-              if (isBetween(polyline[i], polyline[i + 1], point,
-                  epsilon: epsilon)) {
-                currentGroup.add(point);
+            for (var point in groupPoints) {
+              for (int i = 0; i < polyline.length - 1; i++) {
+                if (isBetween(polyline[i], polyline[i + 1], point,
+                    epsilon: epsilon)) {
+                  currentGroup.add(point);
+                }
               }
             }
-          }
 
-          if (currentGroup.isNotEmpty && currentGroup.length > 1) {
-            riskpointGroups.add(currentGroup);
-          }
-        }
-        if (riskpointGroups.isNotEmpty) {
-          print(level);
-          print(riskpointGroups.length);
-          print(riskpointGroups.toList());
-          pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
-        }
-      }
-      routesOnPolylines.add(FloodMarkerRoute(
-        pointsOnPolyline,
-        polyline,
-      ));
-    };
-    }else if(currentWeatherCode >= 51 && currentWeatherCode <= 61){
-       for ( int polylineIndex = 0;
-        polylineIndex < polylines.length;
-        polylineIndex++) {
-      List<GeoPoint> polyline = polylines[polylineIndex];
-      List<FloodMarkerPoint>? pointsOnPolyline = [];
-      for (var markerPoint in markerPoints.where((mp) => mp.floodLevel == "Medium"|| mp.floodLevel == "High")) {
-        String level = markerPoint.floodLevel;
-        List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
-        List<List<GeoPoint>> riskpointGroups = [];
-
-        for (var groupPoints in pointGroups) {
-          List<GeoPoint> currentGroup = [];
-
-          for (var point in groupPoints) {
-            for (int i = 0; i < polyline.length - 1; i++) {
-              if (isBetween(polyline[i], polyline[i + 1], point,
-                  epsilon: epsilon)) {
-                currentGroup.add(point);
-              }
+            if (currentGroup.isNotEmpty && currentGroup.length > 1) {
+              riskpointGroups.add(currentGroup);
             }
           }
-
-          if (currentGroup.isNotEmpty && currentGroup.length > 1) {
-            riskpointGroups.add(currentGroup);
+          if (riskpointGroups.isNotEmpty) {
+            print(level);
+            print(riskpointGroups.length);
+            print(riskpointGroups.toList());
+            pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
           }
         }
-        if (riskpointGroups.isNotEmpty) {
-          print(level);
-          print(riskpointGroups.length);
-          print(riskpointGroups.toList());
-          pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
-        }
+        routesOnPolylines.add(FloodMarkerRoute(
+          pointsOnPolyline,
+          polyline,
+        ));
       }
-      routesOnPolylines.add(FloodMarkerRoute(
-        pointsOnPolyline,
-        polyline,
-      ));
-    };}
-      else if(currentWeatherCode >= 63 && currentWeatherCode <= 99){
-         for ( int polylineIndex = 0;
-        polylineIndex < polylines.length;
-        polylineIndex++) {
-      List<GeoPoint> polyline = polylines[polylineIndex];
-      List<FloodMarkerPoint>? pointsOnPolyline = [];
-      for (var markerPoint in markerPoints) {
-        String level = markerPoint.floodLevel;
-        List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
-        List<List<GeoPoint>> riskpointGroups = [];
+      ;
+    } else if (currentWeatherCode >= 51 && currentWeatherCode <= 61) {
+      for (int polylineIndex = 0;
+          polylineIndex < polylines.length;
+          polylineIndex++) {
+        List<GeoPoint> polyline = polylines[polylineIndex];
+        List<FloodMarkerPoint>? pointsOnPolyline = [];
+        for (var markerPoint in markerPoints.where(
+            (mp) => mp.floodLevel == "Medium" || mp.floodLevel == "High")) {
+          String level = markerPoint.floodLevel;
+          List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
+          List<List<GeoPoint>> riskpointGroups = [];
 
-        for (var groupPoints in pointGroups) {
-          List<GeoPoint> currentGroup = [];
+          for (var groupPoints in pointGroups) {
+            List<GeoPoint> currentGroup = [];
 
-          for (var point in groupPoints) {
-            for (int i = 0; i < polyline.length - 1; i++) {
-              if (isBetween(polyline[i], polyline[i + 1], point,
-                  epsilon: epsilon)) {
-                currentGroup.add(point);
+            for (var point in groupPoints) {
+              for (int i = 0; i < polyline.length - 1; i++) {
+                if (isBetween(polyline[i], polyline[i + 1], point,
+                    epsilon: epsilon)) {
+                  currentGroup.add(point);
+                }
               }
             }
-          }
 
-          if (currentGroup.isNotEmpty && currentGroup.length > 1) {
-            riskpointGroups.add(currentGroup);
+            if (currentGroup.isNotEmpty && currentGroup.length > 1) {
+              riskpointGroups.add(currentGroup);
+            }
+          }
+          if (riskpointGroups.isNotEmpty) {
+            print(level);
+            print(riskpointGroups.length);
+            print(riskpointGroups.toList());
+            pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
           }
         }
-        if (riskpointGroups.isNotEmpty) {
-          print(level);
-          print(riskpointGroups.length);
-          print(riskpointGroups.toList());
-          pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
-        }
+        routesOnPolylines.add(FloodMarkerRoute(
+          pointsOnPolyline,
+          polyline,
+        ));
       }
-      routesOnPolylines.add(FloodMarkerRoute(
-        pointsOnPolyline,
-        polyline,
-      ));
+      ;
+    } else if (currentWeatherCode >= 63 && currentWeatherCode <= 99) {
+      for (int polylineIndex = 0;
+          polylineIndex < polylines.length;
+          polylineIndex++) {
+        List<GeoPoint> polyline = polylines[polylineIndex];
+        List<FloodMarkerPoint>? pointsOnPolyline = [];
+        for (var markerPoint in markerPoints) {
+          String level = markerPoint.floodLevel;
+          List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
+          List<List<GeoPoint>> riskpointGroups = [];
+
+          for (var groupPoints in pointGroups) {
+            List<GeoPoint> currentGroup = [];
+
+            for (var point in groupPoints) {
+              for (int i = 0; i < polyline.length - 1; i++) {
+                if (isBetween(polyline[i], polyline[i + 1], point,
+                    epsilon: epsilon)) {
+                  currentGroup.add(point);
+                }
+              }
+            }
+
+            if (currentGroup.isNotEmpty && currentGroup.length > 1) {
+              riskpointGroups.add(currentGroup);
+            }
+          }
+          if (riskpointGroups.isNotEmpty) {
+            print(level);
+            print(riskpointGroups.length);
+            print(riskpointGroups.toList());
+            pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
+          }
+        }
+        routesOnPolylines.add(FloodMarkerRoute(
+          pointsOnPolyline,
+          polyline,
+        ));
+      }
+    } else {
+      for (int i = 0; i < polylines.length; i++) {
+        routesOnPolylines.add(FloodMarkerRoute([], polylines[i]));
+      }
+      return routesOnPolylines;
     }
-      } else{
-        for(int i = 0; i < polylines.length; i++){
-          routesOnPolylines.add(FloodMarkerRoute( [], polylines[i]));
-            }
-         return  routesOnPolylines;
-      }
-
-      
-
-    
 
     return routesOnPolylines;
   }
@@ -604,22 +606,34 @@ class Srvc {
 
     print('You are not in a flood-prone area. Safe to proceed.');
   }
-  
 
-static Future<void> myRoutez ( 
-   GeoPoint myLocation,
-     OpsNotifier notifier,
-     List<GeoPoint> route,
-     
-)async{
- 
+  static Future<void> myRoutez(
+    GeoPoint myLocation,
+    OpsNotifier notifier,
+    List<GeoPoint> route,
+  ) async {
     final dist = await distance2point(route.last, myLocation);
     if (dist > 5) {
       notifier.addNewPointToMyRoute(myLocation);
       print('hey' + notifier.state.myRoute!.toString());
     }
+  }
 
-}
+  static Future<void> sendSavedRoute(List<GeoPoint>? route, String? driverId) async {
+    GeoJsonLineString geoJsonLineString = GeoJsonLineString(route);
+    GeoPoint lastLocation = route?.last ?? GeoPoint(latitude: 0, longitude: 0);
+    String? location = await getAddressFromCoordinates(lastLocation.latitude, lastLocation.longitude);
+    String geoJsonString = jsonEncode(geoJsonLineString.toJson());
+    
+    
+    try{
+      await supabase.rpc('saving_route_geom', params: {'driver_id': driverId, 'name': location, 'route_text': geoJsonString});
+    }
+    catch(e){
+      debugPrint(e.toString());
+    }
+    // debugPrint("Saved Route: ${geoJsonString}");
+  }
 
   static Future<void> updateLocation(
       FloodMarkerRoute routeCHOSEN,
@@ -628,7 +642,6 @@ static Future<void> myRoutez (
       OpsNotifier notifier,
       context) async {
     if (routeCHOSEN.route.isNotEmpty) {
-
       final myposition = await mapController.myLocation();
 
       myRoutez(myposition, notifier, notifier.state.myRoute!);
@@ -637,19 +650,39 @@ static Future<void> myRoutez (
 
       print(dist.toString() + 'hey');
 
-      if (dist < 5 || notifier.goNotifier == false ) {
+      if (dist < 5 || notifier.goNotifier == false) {
         animationController.stop();
         mapController.clearAllRoads();
         removeMarker(routeCHOSEN.points, mapController);
         return;
       }
       checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);
-      
+
       Future.delayed(
           const Duration(seconds: 1),
           () => updateLocation(
-              routeCHOSEN, mapController, animationController, notifier, context,));
+                routeCHOSEN,
+                mapController,
+                animationController,
+                notifier,
+                context,
+              ));
     }
-    
+  }
+}
+
+class GeoJsonLineString {
+  String type = 'LineString';
+  List<List<double>>? coordinates;
+
+  GeoJsonLineString(List<GeoPoint>? points) {
+    coordinates = points?.map((point) => [point.longitude, point.latitude]).toList();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'coordinates': coordinates,
+    };
   }
 }

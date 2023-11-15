@@ -19,6 +19,8 @@ import 'package:shift_project/screens/home/provider/operations_provider.dart';
 import 'package:shift_project/screens/home/srvc.dart';
 import 'package:shift_project/widgets/drawer_widget.dart';
 
+import '../../states/auth/backend/authenticator.dart';
+
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -35,6 +37,7 @@ class _HomePage extends ConsumerState<HomePage>
   bool isMapOverlayVisible = true;
   late AnimationController _animationController;
   late final List<FloodMarkerPoint> markerPoints;
+  final _authenticator = const Authenticator();
 
   @override
   initState() {
@@ -142,6 +145,8 @@ class _HomePage extends ConsumerState<HomePage>
                                           routes!, mapController);
                                       mapController.clearAllRoads();
                                       operationsProvider.clearAllData();
+                                      String? driverId = await _authenticator.userId;
+                                      await Srvc.sendSavedRoute(myRoute, driverId);
                                     },): Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

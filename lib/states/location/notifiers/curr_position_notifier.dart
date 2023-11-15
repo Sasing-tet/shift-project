@@ -12,7 +12,7 @@ class CurrentPositionNotifier extends StateNotifier<CurrentPosition> {
     accuracy: LocationAccuracy.high,
     // By City Update
     // distanceFilter: 2, 
-    distanceFilter: 75,
+    distanceFilter: 200,
   );
   // bool isWeatherUpdated = true;
   String? lastFetchedCity;
