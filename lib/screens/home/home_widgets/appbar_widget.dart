@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:shift_project/screens/home/components/weather_forecast_widget.dart';
-import 'package:shift_project/screens/home/model/operation_state.dart';
 import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 
 class MyAppBar extends StatelessWidget {
@@ -17,8 +16,8 @@ class MyAppBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: EdgeInsets.all(10),
-              padding: EdgeInsets.all(2),
+              margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(8),
@@ -27,7 +26,7 @@ class MyAppBar extends StatelessWidget {
                     color: Colors.grey.withOpacity(0.5),
                     spreadRadius: 2,
                     blurRadius: 10,
-                    offset: Offset(0, 3),
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
@@ -42,10 +41,10 @@ class MyAppBar extends StatelessWidget {
             // WEATHER WIDGET
             Expanded(
               child: Container(
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   minHeight: 90,
                 ),
-                margin: EdgeInsets.only(
+                margin: const EdgeInsets.only(
                   top: 10,
                   right: 10,
                   bottom: 10,
@@ -58,7 +57,7 @@ class MyAppBar extends StatelessWidget {
                       color: Colors.grey.withOpacity(0.5),
                       spreadRadius: 2,
                       blurRadius: 10,
-                      offset: Offset(0, 3),
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),

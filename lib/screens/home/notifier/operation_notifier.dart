@@ -1,10 +1,13 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shift_project/main.dart';
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/operation_state.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'package:shift_project/screens/home/srvc.dart';
-import 'package:shift_project/states/weather/models/weather_data_model.dart';
 
 class OpsNotifier extends StateNotifier<OpsState> {
   OpsNotifier() : super(OpsState());
@@ -56,7 +59,7 @@ class OpsNotifier extends StateNotifier<OpsState> {
     );
   }
 
-  Future<void> fetchAndDrawRoute(MapController mapController,
+  Future<void> fetchAndDrawRoute(String? driverId, MapController mapController,
       List<FloodMarkerPoint> markerPoints, int currentWeatherCode) async {
     final coordinates = state.pointsRoad;
 
@@ -64,6 +67,11 @@ class OpsNotifier extends StateNotifier<OpsState> {
       final polylines =
           await Srvc.fetchOSRMRoutePolylines(coordinates!, mapController);
 
+      if(driverId != null){
+        debugPrint("Sending polylines to Supabase: $polylines");
+        await sendSavedRoutes(polylines, driverId);
+      }
+      
       final routes = await Srvc.getRoutesOnPolylines(
         polylines,
         markerPoints,
@@ -78,11 +86,34 @@ class OpsNotifier extends StateNotifier<OpsState> {
         ], // Adding the new routes to the existing routes list
         polylinezzNotifier: true,
       );
+
       await Srvc.drawRoadManually(routes, mapController);
     } catch (e) {
+      // ignore: avoid_print
       print("Error fetching or drawing route: $e");
     }
   }
+
+  // Example serialization of List<List<Geopoint>> to a JSON string.
+  String serializePolylines(List<List<GeoPoint>> polylines) {
+    var polylineArray = polylines.map((list) => 
+      list.map((point) => [point.latitude, point.longitude]).toList()
+    ).toList();
+
+    return jsonEncode(polylineArray);
+  }
+
+  Future<void> sendPolylinesToSupabase(String driverId, String polylinesJson) async {
+  var response = await supabase.rpc('save_osrm_route', params: {'driver_id': driverId, 'routes': polylinesJson});
+  debugPrint("Response from Supabase: ${response.data}");
+  if (response.error != null) {
+    print("Error inserting data into Supabase: ${response.error.message}");
+  } else {
+    print("Successfully inserted polyline data");
+  }
+}
+
+
 
   void clearData() {
     state = state.copyWith(

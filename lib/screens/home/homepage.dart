@@ -137,6 +137,7 @@ class _HomePage extends ConsumerState<HomePage>
                 final routes = ref.watch(opsProvider).routes;
                 final routeCHOSEN = ref.watch(opsProvider).routeCHOSEN;
                 final myRoute = ref.watch(opsProvider).myRoute;
+        
                 
                 return polylinezzNotifierValue
                     ?  goNotifier ? StopButton(
@@ -145,8 +146,9 @@ class _HomePage extends ConsumerState<HomePage>
                                           routes!, mapController);
                                       mapController.clearAllRoads();
                                       operationsProvider.clearAllData();
-                                      String? driverId = await _authenticator.userId;
+                                      String? driverId = _authenticator.userId;
                                       await Srvc.sendSavedRoute(myRoute, driverId);
+                                      await Srvc.fetchFloodPoints(driverId);
                                     },): Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -198,11 +200,12 @@ class _HomePage extends ConsumerState<HomePage>
                       )
                     : ChooseDestinationButton(
                         onPressed: () async {
+                          String? driverId = _authenticator.userId;
                           var p = await Navigator.pushNamed(context, "/search");
                           operationsProvider
                               .addPointToRoad(await mapController.myLocation());
                           operationsProvider.addPointToRoad(p as GeoPoint);
-                          operationsProvider.fetchAndDrawRoute(
+                          operationsProvider.fetchAndDrawRoute(driverId,
                               mapController, markerPoints, weatherCose!);
                         },
                       );

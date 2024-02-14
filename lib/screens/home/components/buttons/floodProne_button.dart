@@ -1,5 +1,6 @@
+// ignore: file_names
+// ignore: file_names
 import 'package:flutter/material.dart';
-import 'package:shift_project/screens/floodProneDataScreen/flood_prone_area_screen.dart';
 
 class FloodProneButton extends StatelessWidget {
   const FloodProneButton({super.key});

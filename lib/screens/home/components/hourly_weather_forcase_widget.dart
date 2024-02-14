@@ -48,9 +48,9 @@ class HourlyWeatherForcastWidget extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(formattedTime),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     icon,
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Text('$temperature°C'),

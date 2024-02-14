@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../main.dart';
 import '../../user/typedef/user_id.dart';
 
-import '../../constants/auth_constants.dart';
 import '../models/auth_results.dart';
 
 class Authenticator {

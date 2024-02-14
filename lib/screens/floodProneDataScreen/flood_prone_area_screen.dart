@@ -2,9 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class FloodProneScreen extends StatefulWidget {
   const FloodProneScreen({super.key});
@@ -19,80 +17,10 @@ class _FloodProneScreenState extends State<FloodProneScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     mapController = MapController();
   }
 
-  Future<void> _determinePosition() async {
-    bool serviceEnabled;
-    PermissionStatus permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Location Services Disabled'),
-          content:
-              const Text('Please enable location services to use this app.'),
-          actions: <Widget>[
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    permission = await Permission.locationWhenInUse.status;
-    if (permission.isDenied) {
-      permission = await Permission.locationWhenInUse.request();
-      if (permission.isDenied) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            title: const Text('Location Permissions Denied'),
-            content: const Text(
-                'Please grant location permissions to use this app.'),
-            actions: <Widget>[
-              ElevatedButton(
-                child: const Text('OK'),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-    }
-
-    if (permission.isPermanentlyDenied) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          title: const Text('Location Permissions Denied'),
-          content: const Text(
-              'Please enable location permissions from the app settings.'),
-          actions: <Widget>[
-            ElevatedButton(
-              child: const Text('OK'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    final position = await Geolocator.getCurrentPosition();
-
-    setState(() {
-      currentPosition = LatLng(position.latitude, position.longitude);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +35,7 @@ class _FloodProneScreenState extends State<FloodProneScreen> {
           LatLng(11.522445302886247, 124.57101328478292),
         ),
         opacity: 1,
-        imageProvider: AssetImage('assets/images/low susceptibility res.png'),
+        imageProvider: const AssetImage('assets/images/low susceptibility res.png'),
       ),
     ];
 

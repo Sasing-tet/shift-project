@@ -3,7 +3,6 @@ import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 // ignore: unused_import
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
-import 'package:shift_project/states/weather/models/weather_data_model.dart';
 
 class OpsState {
   OpsState({

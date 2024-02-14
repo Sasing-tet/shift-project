@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
       ),
       builder: EasyLoading.init(),
       routes: {
-        "/search": (ctx) => SearchPage(),
+        "/search": (ctx) => const SearchPage(),
       },
     );
   }

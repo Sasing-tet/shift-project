@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:riverpod/riverpod.dart';
 
-import '../../../fetch/weather API/weather_forecast.dart';
 import '../provider/address_provider.dart';
 
 class CurrentPositionNotifier extends StateNotifier<CurrentPosition> {

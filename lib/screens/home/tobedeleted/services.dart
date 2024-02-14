@@ -15,11 +15,11 @@ class Ops{
       final list = await encoded.toListGeo();
       debugPrint(list.toString());
       final roadOption = i == 0
-          ? RoadOption(
+          ? const RoadOption(
               roadColor: Color.fromARGB(181, 71, 19, 16),
               roadWidth: 8,
             ) // Full opacity for the first polyline
-          : RoadOption(
+          : const RoadOption(
               roadColor: Colors.red, roadWidth: 8); // 80% opacity for the rest
 
       await mapController.drawRoadManually(list, roadOption);
@@ -28,7 +28,7 @@ class Ops{
 
   static Future<List<String>> fetchOSRMRoutePolylines(
       List<GeoPoint> coordinates) async {
-    final String profile = 'driving';
+    const String profile = 'driving';
     final String coordinatesString = coordinates
         .map((coord) => '${coord.longitude},${coord.latitude}')
         .join(';');

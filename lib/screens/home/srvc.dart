@@ -16,11 +16,11 @@ import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 import 'package:shift_project/states/location/provider/address_provider.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
 
 import '../../constants/constants.dart';
 import '../../main.dart';
-import '../../states/auth/backend/authenticator.dart';
 
 class Srvc {
   static Future<void> drawRoadManually(List<FloodMarkerRoute> routesOnPolylines,
@@ -165,6 +165,7 @@ class Srvc {
             }
           }
           if (riskpointGroups.isNotEmpty) {
+            // ignore: avoid_print
             print(level);
             print(riskpointGroups.length);
             print(riskpointGroups.toList());
@@ -176,7 +177,6 @@ class Srvc {
           polyline,
         ));
       }
-      ;
     } else if (currentWeatherCode >= 51 && currentWeatherCode <= 61) {
       for (int polylineIndex = 0;
           polylineIndex < polylines.length;
@@ -217,7 +217,6 @@ class Srvc {
           polyline,
         ));
       }
-      ;
     } else if (currentWeatherCode >= 63 && currentWeatherCode <= 99) {
       for (int polylineIndex = 0;
           polylineIndex < polylines.length;
@@ -577,7 +576,7 @@ class Srvc {
       duration: const Duration(seconds: 5),
       snackBarStrategy: StackSnackBarStrategy(),
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
-      mobilePositionSettings: MobilePositionSettings(
+      mobilePositionSettings: const MobilePositionSettings(
         right: 15,
         left: 80,
         bottomOnAppearance: 145,
@@ -615,6 +614,7 @@ class Srvc {
     final dist = await distance2point(route.last, myLocation);
     if (dist > 5) {
       notifier.addNewPointToMyRoute(myLocation);
+      // ignore: avoid_print
       print('hey' + notifier.state.myRoute!.toString());
     }
   }
@@ -632,7 +632,7 @@ class Srvc {
     catch(e){
       debugPrint(e.toString());
     }
-    // debugPrint("Saved Route: ${geoJsonString}");
+    debugPrint("Saved Route: ${geoJsonString}");
   }
 
   static Future<void> updateLocation(
@@ -643,6 +643,7 @@ class Srvc {
       context) async {
     if (routeCHOSEN.route.isNotEmpty) {
       final myposition = await mapController.myLocation();
+      // ignore: invalid_use_of_protected_member
 
       myRoutez(myposition, notifier, notifier.state.myRoute!);
 
@@ -669,11 +670,63 @@ class Srvc {
               ));
     }
   }
+
+  static Future<void> fetchFloodPoints(String? driverId) async {
+  final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
+
+  if (response is List<dynamic>) {
+    // Handle the case when the response is a list
+    debugPrint(response.toString());
+  } else {
+    // Handle the case when the response is an object
+    if (response['error'] != null) {
+      debugPrint(response['error']['message']);
+    } else {
+      debugPrint(response['data'].toString());
+    }
+  }
 }
+
+}
+
+class GeoJsonMultiLineString {
+  List<GeoJsonLineString> lineStrings;
+
+  GeoJsonMultiLineString(this.lineStrings);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': 'MultiLineString',
+      'o_coordinates': lineStrings.map((lineString) {
+        return {
+          'id': lineString.id,
+          'coordinates': lineString.coordinates,
+        };
+      }).toList(),
+    };
+  }
+}
+
+Future<void> sendSavedRoutes(List<List<GeoPoint>> routes, String? driverId) async {
+  List<GeoJsonLineString> geoJsonLineStrings = routes
+      .map((route) => GeoJsonLineString(route))
+      .toList();
+  GeoJsonMultiLineString multiLineString = GeoJsonMultiLineString(geoJsonLineStrings);
+  String geoJsonString = jsonEncode(multiLineString.toJson());
+  
+  try {
+    await supabase.rpc('save_osrm_routes', params: {'driver_id': driverId, 'routes_geojson': geoJsonString});
+  } catch (e) {
+    debugPrint(e.toString());
+  }
+  debugPrint("Saved Routes: $geoJsonString");
+}
+
 
 class GeoJsonLineString {
   String type = 'LineString';
   List<List<double>>? coordinates;
+  String id = const Uuid().v4();
 
   GeoJsonLineString(List<GeoPoint>? points) {
     coordinates = points?.map((point) => [point.longitude, point.latitude]).toList();
@@ -682,6 +735,7 @@ class GeoJsonLineString {
   Map<String, dynamic> toJson() {
     return {
       'type': type,
+      'o_routeid': id,
       'coordinates': coordinates,
     };
   }

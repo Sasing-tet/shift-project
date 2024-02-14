@@ -4,7 +4,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:marquee/marquee.dart';
 import 'package:shift_project/screens/home/components/hourly_weather_forcase_widget.dart';
 import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
-import 'package:shift_project/screens/home/provider/operations_provider.dart';
 import '../../../constants/constants.dart';
 import '../../../fetch/weather API/weather_forecast.dart';
 import '../../../states/location/provider/address_provider.dart';
@@ -62,7 +61,6 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
     final currentPosition = ref.watch(currentPositionProvider);
    
 
-    final updateWeather = true;    
     
     return FutureBuilder<WeatherData>(
       future: fetchWeatherData(
