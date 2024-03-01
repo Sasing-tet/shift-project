@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shift_project/main.dart';
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/operation_state.dart';
+import 'package:shift_project/screens/home/model/routes_with_id.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'package:shift_project/screens/home/srvc.dart';
 
@@ -59,40 +60,48 @@ class OpsNotifier extends StateNotifier<OpsState> {
     );
   }
 
-  Future<void> fetchAndDrawRoute(String? driverId, MapController mapController,
-      List<FloodMarkerPoint> markerPoints, int currentWeatherCode) async {
-    final coordinates = state.pointsRoad;
+ Future<void> fetchAndDrawRoute(String? driverId, MapController mapController,
+    List<FloodMarkerPoint> markerPoints, int currentWeatherCode) async {
+  final coordinates = state.pointsRoad;
 
-    try {
-      final polylines =
-          await Srvc.fetchOSRMRoutePolylines(coordinates!, mapController);
+  try {
+    final polylines =
+        await Srvc.fetchOSRMRoutePolylines(coordinates!, mapController);
 
-      if(driverId != null){
-        debugPrint("Sending polylines to Supabase: $polylines");
-        await sendSavedRoutes(polylines, driverId);
-      }
+    List<RoutesWithId> r = [];
+    if (driverId != null) {
+      debugPrint("Sending polylines to Supabase: $polylines");
+      final oroutes = await Srvc.sendSavedRoutes(polylines, driverId);
+      r = await Srvc.createRoutes(oroutes);
       
-      final routes = await Srvc.getRoutesOnPolylines(
-        polylines,
-        markerPoints,
-        mapController,
-        currentWeatherCode,
-      );
+       final response = await Srvc.fetchFloodPoints(driverId);
+    debugPrint('Response from fetchFloodPoints: $response');
+    final routes = await Srvc.parseFloodMarkerRoutes(response, r);
+    state = state.copyWith(
+      routes: [
+        ...(state.routes ?? []),
+        ...routes
+      ],
+      polylinezzNotifier: true,
+    );
 
-      state = state.copyWith(
-        routes: [
-          ...state.routes ?? [],
-          ...routes
-        ], // Adding the new routes to the existing routes list
-        polylinezzNotifier: true,
-      );
-
-      await Srvc.drawRoadManually(routes, mapController);
-    } catch (e) {
-      // ignore: avoid_print
-      print("Error fetching or drawing route: $e");
+    await Srvc.drawRoadManually(routes, mapController);
     }
+
+  
+
+    
+   
+
+    
+
+    
+  } catch (e) {
+    debugPrint("Error fetching or drawing route: $e");
   }
+}
+
+
 
   // Example serialization of List<List<Geopoint>> to a JSON string.
   String serializePolylines(List<List<GeoPoint>> polylines) {
@@ -107,9 +116,9 @@ class OpsNotifier extends StateNotifier<OpsState> {
   var response = await supabase.rpc('save_osrm_route', params: {'driver_id': driverId, 'routes': polylinesJson});
   debugPrint("Response from Supabase: ${response.data}");
   if (response.error != null) {
-    print("Error inserting data into Supabase: ${response.error.message}");
+    debugPrint("Error inserting data into Supabase: ${response.error.message}");
   } else {
-    print("Successfully inserted polyline data");
+    debugPrint("Successfully inserted polyline data");
   }
 }
 
@@ -128,7 +137,7 @@ class OpsNotifier extends StateNotifier<OpsState> {
     state = state.copyWith(
       pointsRoad: [], // Clear points road
       routes: [],
-      routeCHOSEN: FloodMarkerRoute(null, []), // Clear routes
+      routeCHOSEN: FloodMarkerRoute(null, [],''), // Clear routes
       polylinezzNotifier: false, // Set polylinezzNotifier to false
       goNotifier: false,
     );

@@ -13,6 +13,9 @@ import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
 import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
 import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
+import 'package:shift_project/screens/home/model/geojson_linestring.dart';
+import 'package:shift_project/screens/home/model/geojson_multilinestring.dart';
+import 'package:shift_project/screens/home/model/routes_with_id.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 import 'package:shift_project/states/location/provider/address_provider.dart';
@@ -136,133 +139,7 @@ class Srvc {
       {double epsilon = 1e-8}) async {
     List<FloodMarkerRoute> routesOnPolylines = [];
 
-    if (currentWeatherCode <= 48 && currentWeatherCode >= 2) {
-      for (int polylineIndex = 0;
-          polylineIndex < polylines.length;
-          polylineIndex++) {
-        List<GeoPoint> polyline = polylines[polylineIndex];
-        List<FloodMarkerPoint>? pointsOnPolyline = [];
-        for (var markerPoint
-            in markerPoints.where((mp) => mp.floodLevel == "High")) {
-          String level = markerPoint.floodLevel;
-          List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
-          List<List<GeoPoint>> riskpointGroups = [];
-
-          for (var groupPoints in pointGroups) {
-            List<GeoPoint> currentGroup = [];
-
-            for (var point in groupPoints) {
-              for (int i = 0; i < polyline.length - 1; i++) {
-                if (isBetween(polyline[i], polyline[i + 1], point,
-                    epsilon: epsilon)) {
-                  currentGroup.add(point);
-                }
-              }
-            }
-
-            if (currentGroup.isNotEmpty && currentGroup.length > 1) {
-              riskpointGroups.add(currentGroup);
-            }
-          }
-          if (riskpointGroups.isNotEmpty) {
-            // ignore: avoid_print
-            print(level);
-            print(riskpointGroups.length);
-            print(riskpointGroups.toList());
-            pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
-          }
-        }
-        routesOnPolylines.add(FloodMarkerRoute(
-          pointsOnPolyline,
-          polyline,
-        ));
-      }
-    } else if (currentWeatherCode >= 51 && currentWeatherCode <= 61) {
-      for (int polylineIndex = 0;
-          polylineIndex < polylines.length;
-          polylineIndex++) {
-        List<GeoPoint> polyline = polylines[polylineIndex];
-        List<FloodMarkerPoint>? pointsOnPolyline = [];
-        for (var markerPoint in markerPoints.where(
-            (mp) => mp.floodLevel == "Medium" || mp.floodLevel == "High")) {
-          String level = markerPoint.floodLevel;
-          List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
-          List<List<GeoPoint>> riskpointGroups = [];
-
-          for (var groupPoints in pointGroups) {
-            List<GeoPoint> currentGroup = [];
-
-            for (var point in groupPoints) {
-              for (int i = 0; i < polyline.length - 1; i++) {
-                if (isBetween(polyline[i], polyline[i + 1], point,
-                    epsilon: epsilon)) {
-                  currentGroup.add(point);
-                }
-              }
-            }
-
-            if (currentGroup.isNotEmpty && currentGroup.length > 1) {
-              riskpointGroups.add(currentGroup);
-            }
-          }
-          if (riskpointGroups.isNotEmpty) {
-            print(level);
-            print(riskpointGroups.length);
-            print(riskpointGroups.toList());
-            pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
-          }
-        }
-        routesOnPolylines.add(FloodMarkerRoute(
-          pointsOnPolyline,
-          polyline,
-        ));
-      }
-    } else if (currentWeatherCode >= 63 && currentWeatherCode <= 99) {
-      for (int polylineIndex = 0;
-          polylineIndex < polylines.length;
-          polylineIndex++) {
-        List<GeoPoint> polyline = polylines[polylineIndex];
-        List<FloodMarkerPoint>? pointsOnPolyline = [];
-        for (var markerPoint in markerPoints) {
-          String level = markerPoint.floodLevel;
-          List<List<GeoPoint>> pointGroups = markerPoint.markerPoints;
-          List<List<GeoPoint>> riskpointGroups = [];
-
-          for (var groupPoints in pointGroups) {
-            List<GeoPoint> currentGroup = [];
-
-            for (var point in groupPoints) {
-              for (int i = 0; i < polyline.length - 1; i++) {
-                if (isBetween(polyline[i], polyline[i + 1], point,
-                    epsilon: epsilon)) {
-                  currentGroup.add(point);
-                }
-              }
-            }
-
-            if (currentGroup.isNotEmpty && currentGroup.length > 1) {
-              riskpointGroups.add(currentGroup);
-            }
-          }
-          if (riskpointGroups.isNotEmpty) {
-            print(level);
-            print(riskpointGroups.length);
-            print(riskpointGroups.toList());
-            pointsOnPolyline.add(FloodMarkerPoint(level, riskpointGroups));
-          }
-        }
-        routesOnPolylines.add(FloodMarkerRoute(
-          pointsOnPolyline,
-          polyline,
-        ));
-      }
-    } else {
-      for (int i = 0; i < polylines.length; i++) {
-        routesOnPolylines.add(FloodMarkerRoute([], polylines[i]));
-      }
-      return routesOnPolylines;
-    }
-
+   
     return routesOnPolylines;
   }
 
@@ -362,9 +239,9 @@ class Srvc {
 
     // Create new FloodMarkerPoints and update the markerPoints list
     final newMarkerPoints = [
-      FloodMarkerPoint('Low', lowGeoPoints),
-      FloodMarkerPoint('Medium', midGeoPoints),
-      FloodMarkerPoint('High', highGeoPoints),
+      FloodMarkerPoint('Low', lowGeoPoints,100,'1'),
+      FloodMarkerPoint('Medium', midGeoPoints,100,'2'),
+      FloodMarkerPoint('High', highGeoPoints,100,'3'),
       // Add more FloodMarkerPoint instances as needed
     ];
 
@@ -615,7 +492,7 @@ class Srvc {
     if (dist > 5) {
       notifier.addNewPointToMyRoute(myLocation);
       // ignore: avoid_print
-      print('hey' + notifier.state.myRoute!.toString());
+      print('hey${notifier.state.myRoute!}');
     }
   }
 
@@ -649,7 +526,7 @@ class Srvc {
 
       final dist = await distance2point(myposition, routeCHOSEN.route.last);
 
-      print(dist.toString() + 'hey');
+      print('${dist}hey');
 
       if (dist < 5 || notifier.goNotifier == false) {
         animationController.stop();
@@ -671,43 +548,82 @@ class Srvc {
     }
   }
 
-  static Future<void> fetchFloodPoints(String? driverId) async {
-  final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
+//   static Future<void> fetchFloodPoints(String? driverId) async {
+//   final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
 
-  if (response is List<dynamic>) {
-    // Handle the case when the response is a list
-    debugPrint(response.toString());
-  } else {
-    // Handle the case when the response is an object
-    if (response['error'] != null) {
-      debugPrint(response['error']['message']);
+//   if (response is List<dynamic>) {
+//     // Handle the case when the response is a list
+//     debugPrint(response.toString());
+//   } else {
+//     // Handle the case when the response is an object
+//     if (response['error'] != null) {
+//       debugPrint(response['error']['message']);
+//     } else {
+//       debugPrint(response['data'].toString());
+//     }
+//   }
+// }
+
+static Future<Map<String, dynamic>> fetchFloodPoints(String? driverId) async {
+  try {
+    final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
+    
+    if (response is List) {
+      // Handle list response
+      List<Map<String, dynamic>> jsonResponseList = [];
+      for (var item in response) {
+        if (item is Map<String, dynamic>) {
+          jsonResponseList.add(item);
+        }
+      }
+      return {'data': jsonResponseList};
+    } else if (response is Map<String, dynamic>) {
+      // Handle regular map response
+      return response;
     } else {
-      debugPrint(response['data'].toString());
+      throw Exception('Unexpected response format');
     }
+  } catch (e) {
+    throw Exception('Error fetching flood points: $e');
   }
 }
 
-}
 
-class GeoJsonMultiLineString {
-  List<GeoJsonLineString> lineStrings;
 
-  GeoJsonMultiLineString(this.lineStrings);
+static Future<List<RoutesWithId>> createRoutes(Map<String, dynamic> data) async {
+  List<RoutesWithId> routes = [];
+  try {
+    if (data.containsKey('status') && data['status'] == 'success') {
 
-  Map<String, dynamic> toJson() {
-    return {
-      'type': 'MultiLineString',
-      'o_coordinates': lineStrings.map((lineString) {
-        return {
-          'id': lineString.id,
-          'coordinates': lineString.coordinates,
-        };
-      }).toList(),
-    };
+      String geoJsonString = data['routes_geojson'];
+      Map<String, dynamic> geoJson = jsonDecode(geoJsonString);
+      List<dynamic> coordinates = geoJson['o_coordinates'][0]['coordinates'];
+      String routeId = geoJson['o_coordinates'][0]['id'];
+      List<GeoPoint> points = [];
+
+      coordinates.forEach((pointData) {
+        GeoPoint point = GeoPoint(
+          longitude: pointData[0],
+          latitude: pointData[1],
+        );
+        points.add(point);
+      });
+
+      RoutesWithId route = RoutesWithId(id: routeId, points: points);
+      routes.add(route);
+    } else {
+      print('Error creating routes: ${data['error']}');
+    }
+  } catch (e) {
+    // Handle any parsing errors
+    print('Error creating routes: $e');
   }
+  return routes;
 }
 
-Future<void> sendSavedRoutes(List<List<GeoPoint>> routes, String? driverId) async {
+
+
+static Future<Map<String, dynamic>> sendSavedRoutes(List<List<GeoPoint>> routes, String? driverId) async {
   List<GeoJsonLineString> geoJsonLineStrings = routes
       .map((route) => GeoJsonLineString(route))
       .toList();
@@ -715,28 +631,173 @@ Future<void> sendSavedRoutes(List<List<GeoPoint>> routes, String? driverId) asyn
   String geoJsonString = jsonEncode(multiLineString.toJson());
   
   try {
+    // Call Supabase RPC to save routes
     await supabase.rpc('save_osrm_routes', params: {'driver_id': driverId, 'routes_geojson': geoJsonString});
   } catch (e) {
+    // Handle errors
     debugPrint(e.toString());
-  }
-  debugPrint("Saved Routes: $geoJsonString");
-}
-
-
-class GeoJsonLineString {
-  String type = 'LineString';
-  List<List<double>>? coordinates;
-  String id = const Uuid().v4();
-
-  GeoJsonLineString(List<GeoPoint>? points) {
-    coordinates = points?.map((point) => [point.longitude, point.latitude]).toList();
-  }
-
-  Map<String, dynamic> toJson() {
+    // Return an error response if there's an error
     return {
-      'type': type,
-      'o_routeid': id,
-      'coordinates': coordinates,
+      'status': 'error',
+      'error': e.toString(),
     };
   }
+
+  // Construct and return the success response map
+  return {
+    'status': 'success',
+    'driver_id': driverId,
+    'routes_geojson': geoJsonString,
+  };
 }
+
+
+
+static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseData, List<RoutesWithId> routesWithIds) async {
+  List<FloodMarkerRoute> floodMarkerRoutes = [];
+
+  debugPrint("R1");
+  
+  // Create a map to store routes by ID for efficient access
+  Map<String, List<GeoPoint>> routePointsMap = {};
+  for (var route in routesWithIds) {
+    routePointsMap[route.id] = route.points;
+    // Initialize FloodMarkerRoute with routesWithIds data
+    floodMarkerRoutes.add(
+      FloodMarkerRoute(
+        [], // Initialize with empty list
+        route.points,
+        route.id,
+      ),
+    );
+  }
+  
+  debugPrint("R2");
+
+  // Loop through each item in the response data
+  for (var item in responseData['data']) {
+    
+  debugPrint("R3");
+    // Extract route ID, flood score, intersection ID, and route coordinates
+    String level = item['level'].toString();
+     debugPrint("R3");
+    String routeId = item['o_routeid'];
+     debugPrint("R3");
+    int floodScore = item['floodscore']; // No need for int.parse() here
+     debugPrint("R3");
+    String intersectionId = item['intersection_id'];
+     debugPrint("R3");
+    List<dynamic> coordinates = item['intersecting_geog']['coordinates'];
+     debugPrint("R3");
+
+     for (var coordinate in coordinates) {
+  debugPrint(coordinate.toString());
+}
+    
+// Convert route coordinates into GeoPoint objects
+List<List<GeoPoint>> routePoints = [];
+
+if (coordinates.length > 1) {
+  for (var coordinateList in coordinates) {
+    if (coordinateList.isNotEmpty && coordinateList.length >= 2) {
+      // For coordinates with multiple points
+      List<GeoPoint> points = [];
+      for (var coord in coordinateList) {
+        if (coord is List<dynamic> && coord.length >= 2) {
+      double latitude = double.parse(coord[1].toString());
+      double longitude = double.parse(coord[0].toString());
+      points.add(
+        GeoPoint(
+          latitude: latitude,
+          longitude: longitude,
+        ),
+      );
+          debugPrint("Latitude: $latitude, Longitude: $longitude");
+        }else if (coord is double) {
+      // If coord is a double (single coordinate)
+      // Assume the same coordinate is used for both latitude and longitude
+      double latitude = coord;
+      double longitude = coord; // Adjust this as needed
+      points.add(
+        GeoPoint(
+          latitude: latitude,
+          longitude: longitude,
+        ),
+      );
+      debugPrint("Latitude: $latitude, Longitude: $longitude");
+    } else {
+          debugPrint("Invalid coordinate format in $coordinateList");
+          throw Exception("Invalid coordinate format in $coordinateList");
+        }
+      }
+      routePoints.add(points);
+    } else {
+      debugPrint("Invalid coordinates: $coordinateList");
+      throw Exception("Invalid coordinates: $coordinateList");
+    }
+  }
+} else if (coordinates.length == 1) {
+  // For single coordinate list
+  var coordinateList = coordinates[0];
+  if (coordinateList is List<dynamic> && coordinateList.length >= 2) {
+    double latitude = double.parse(coordinateList[1].toString());
+    double longitude = double.parse(coordinateList[0].toString());
+    routePoints.add([
+      GeoPoint(
+        latitude: latitude,
+        longitude: longitude,
+      ),
+    ]);
+    debugPrint("Latitude: $latitude, Longitude: $longitude");
+  } else {
+    debugPrint("Invalid coordinate format: $coordinateList");
+    throw Exception("Invalid coordinate format: $coordinateList");
+  }
+} else {
+  debugPrint("Invalid coordinates: $coordinates");
+  throw Exception("Invalid coordinates: $coordinates");
+}
+
+
+
+
+
+
+    
+  debugPrint("R4");
+
+    // Find corresponding route points based on route ID
+    List<GeoPoint>? correspondingRoutePoints = routePointsMap[routeId];
+
+
+  debugPrint("R5");
+    // Create FloodMarkerPoint object with route points
+    FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
+      level, 
+      routePoints, 
+      floodScore, 
+      intersectionId,
+    );
+
+ 
+    for (var route in floodMarkerRoutes) {
+      
+  debugPrint("R6");
+      if (route.routeId == routeId) {
+        route.points?.add(floodMarkerPoint);
+      
+      }
+    }
+
+
+  }
+ debugPrint("R9");
+  return floodMarkerRoutes;
+}
+
+
+
+
+}
+
+
