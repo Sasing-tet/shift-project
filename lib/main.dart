@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:shift_project/screens/chooselocation/choose_location_view.dart';
 import 'package:shift_project/screens/home/homepage.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
+import 'package:shift_project/screens/register_screen.dart';
 import 'package:shift_project/states/auth/providers/login_provider.dart';
 import 'package:shift_project/states/loading/provider/isloading_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
       builder: EasyLoading.init(),
       routes: {
         "/search": (ctx) => const SearchPage(),
+        "/register":(ctx) => const RegisterScreen()
       },
     );
   }

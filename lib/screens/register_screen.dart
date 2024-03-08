@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:shift_project/screens/home/homepage.dart';
-import 'package:shift_project/screens/register_screen.dart';
+import 'package:shift_project/screens/login/login_screen.dart';
 import 'package:shift_project/states/auth/models/auth_results.dart';
 
 import '../../constants/constants.dart';
@@ -12,8 +12,8 @@ import '../../main.dart';
 import '../../states/auth/backend/authenticator.dart';
 import '../../states/auth/providers/auth_state_provider.dart';
 
-class LoginScreen extends ConsumerWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends ConsumerWidget {
+  const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,6 +93,12 @@ class LoginScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                             TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Email...',
+                              ),
+                              controller: userController,
+                            ),
                             TextField(
                               decoration: InputDecoration(
                                 hintText: 'Username...',
@@ -105,6 +111,12 @@ class LoginScreen extends ConsumerWidget {
                               ),
                               obscureText: true,
                               controller: passController,
+                            ),
+                             TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Confirm Password...',
+                              ),
+                              controller: userController,
                             ),
                             Container(
                               margin: EdgeInsets.only(
@@ -120,12 +132,12 @@ class LoginScreen extends ConsumerWidget {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => HomePage(),
+                                      builder: (context) => LoginScreen(),
                                     ),
                                   );
                                 },
                                 child: Text(
-                                  'Login',
+                                  'Register',
                                   style: TextStyle(
                                     fontFamily: interFontFamily,
                                     fontSize: titleSubtitleFontSize,
@@ -151,7 +163,7 @@ class LoginScreen extends ConsumerWidget {
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 10),
                                       child: Text(
-                                        "Or Login With",
+                                        "Or Register With",
                                         style: TextStyle(
                                           fontSize: defaultSubtitleFontSize,
                                           color: Colors.grey,
@@ -260,31 +272,6 @@ class LoginScreen extends ConsumerWidget {
                               ],
                             ),
                           ],
-                        ),
-                      ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.symmetric(vertical: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: TextButton(
-                        style: chooseDestination,
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => RegisterScreen(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'Login as Guest',
-                          style: TextStyle(
-                            fontFamily: interFontFamily,
-                            fontSize: titleSubtitleFontSize,
-                            color: Colors.black87,
-                          ),
                         ),
                       ),
                     ),
