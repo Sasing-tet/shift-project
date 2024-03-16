@@ -11,7 +11,8 @@ class WeatherDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user123 = supabase.auth.currentUser?.userMetadata?['full_name'] ?? 'Guest#123';
+    final user = supabase.auth.currentUser?.userMetadata?['full_name'] ?? 'Guest#123';
+    final avatar = supabase.auth.currentUser?.userMetadata?['avatar_url'] ?? 'https://i.pinimg.com/originals/01/53/4a/01534a348a2753893d3b1b45725844fd.jpg';
     Future<void> handleLogoutAndNavigateToLogin() async {
       final authNotifier = ref.read(authStateProvider.notifier);
       await authNotifier.logOut();
@@ -41,14 +42,12 @@ class WeatherDrawer extends ConsumerWidget {
                   const SizedBox(
                     height: 10,
                   ),
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 40,
-                    backgroundImage: AssetImage(
-                      'assets/images/hu tao smol.jpg',
-                    ),
+                    backgroundImage: NetworkImage(avatar)
                   ),
                   Text(
-                    user123,
+                    user,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: titleFontSize,

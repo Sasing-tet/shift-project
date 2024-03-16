@@ -22,6 +22,19 @@ class Authenticator {
     await GoogleSignIn().signOut();
   }
 
+  Future<AuthResult> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await supabase.auth.signInWithPassword(email: email, password: password);
+      return AuthResult.success;
+    } catch (e) {
+      return AuthResult.failure;
+    }
+  }
+
+
   Future<AuthResult> signInWithGoogle() async {
     ///
     /// Web Client ID that you registered with Google Cloud.

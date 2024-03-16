@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:shift_project/screens/home/homepage.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
 import 'package:shift_project/states/auth/models/auth_results.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../constants/constants.dart';
 import '../../main.dart';
@@ -18,7 +18,10 @@ class RegisterScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userController = TextEditingController();
+    final emailController = TextEditingController();
     final passController = TextEditingController();
+    final confPassController = TextEditingController();
+
 
 
     return Scaffold(
@@ -97,7 +100,7 @@ class RegisterScreen extends ConsumerWidget {
                               decoration: InputDecoration(
                                 hintText: 'Email...',
                               ),
-                              controller: userController,
+                              controller: emailController,
                             ),
                             TextField(
                               decoration: InputDecoration(
@@ -116,7 +119,7 @@ class RegisterScreen extends ConsumerWidget {
                               decoration: InputDecoration(
                                 hintText: 'Confirm Password...',
                               ),
-                              controller: userController,
+                              controller: confPassController,
                             ),
                             Container(
                               margin: EdgeInsets.only(
@@ -129,7 +132,15 @@ class RegisterScreen extends ConsumerWidget {
                               ),
                               child: TextButton(
                                 style: chooseDestination,
-                                onPressed: () {
+                                onPressed: () async {
+                                  final AuthResponse res = await supabase.auth.signUp(
+                                    email: emailController.text,
+                                    password: passController.text,
+                                    data: {
+                                      'full_name': userController.text,
+                                    },
+                                  );
+
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => LoginScreen(),
