@@ -34,7 +34,7 @@ class Authenticator {
     }
   }
 
-  Future<AuthResult> signInAndSignUp()async{
+  Future<AuthResult> signInAndSignUp() async {
     try {
      
       return AuthResult.success;

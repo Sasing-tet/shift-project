@@ -42,9 +42,9 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  Future<void> signInAndSignUp() async {
-    state = state.copiedWithIsLoading(true);
-    final result = await _authenticator.signInAndSignUp();
+  Future<void> signInAndSignUps(AuthResult result) async {
+     state = state.copiedWithIsLoading(true);
+    
     final userId = _authenticator.userId;
     if (result == AuthResult.success && userId != null) {
       await saveUserInfo(

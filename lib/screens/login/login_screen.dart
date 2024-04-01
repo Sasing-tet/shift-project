@@ -102,9 +102,19 @@ class LoginScreen extends ConsumerWidget {
                                       debugPrint(supabase.auth.currentUser.toString());
 
                                       if (result == AuthResult.success) {
-                                        ref
+
+                                    
+                                        await ref
                                             .read(authStateProvider.notifier)
-                                            .signInAndSignUp();
+                                            .signInAndSignUps(result);
+
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                              builder: (context) => HomePage(),
+                                            ),
+                                          );
+                                            
+
                                       }
                                     
                             },
@@ -114,9 +124,25 @@ class LoginScreen extends ConsumerWidget {
                                       debugPrint(supabase.auth.currentUser.toString());
 
                                       if (result == AuthResult.success) {
-                                        ref
-                                            .read(authStateProvider.notifier)
-                                            .signInAndSignUp();
+                                          // ignore: use_build_context_synchronously
+                                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Sign Up Complete'),
+                                  content: Text('Please confirm email and proceed with login.'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+    
                                       }
                                     
                             },
@@ -215,22 +241,22 @@ class LoginScreen extends ConsumerWidget {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        width: 1,
-                                        color: shiftGrayBorder,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    padding: EdgeInsets.all(8),
-                                    child: SizedBox(
-                                      height: 40,
-                                      child: facebookLogo,
-                                    ),
-                                  ),
-                                ),
+                                // Expanded(
+                                //   child: Container(
+                                //     decoration: BoxDecoration(
+                                //       border: Border.all(
+                                //         width: 1,
+                                //         color: shiftGrayBorder,
+                                //       ),
+                                //       borderRadius: BorderRadius.circular(8),
+                                //     ),
+                                //     padding: EdgeInsets.all(8),
+                                //     child: SizedBox(
+                                //       height: 40,
+                                //       child: facebookLogo,
+                                //     ),
+                                //   ),
+                                // ),
                                 SizedBox(
                                   width: 10,
                                 ),
@@ -266,38 +292,38 @@ class LoginScreen extends ConsumerWidget {
                                 SizedBox(
                                   width: 10,
                                 ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      final result = await Authenticator()
-                                          .signInWithGitHub();
-                                      if (result == AuthResult.success) {
-                                        ref
-                                            .read(authStateProvider.notifier)
-                                            .signInWithGithub;
-                                          // Navigator.of(context).push(
-                                          //   MaterialPageRoute(
-                                          //     builder: (context) => HomePage(),
-                                          //   ),
-                                          // );
-                                      }
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          width: 1,
-                                          color: shiftGrayBorder,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: EdgeInsets.all(8),
-                                      child: SizedBox(
-                                        height: 40,
-                                        child: githubLogo,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                // Expanded(
+                                //   child: GestureDetector(
+                                //     onTap: () async {
+                                //       final result = await Authenticator()
+                                //           .signInWithGitHub();
+                                //       if (result == AuthResult.success) {
+                                //         ref
+                                //             .read(authStateProvider.notifier)
+                                //             .signInWithGithub;
+                                //           // Navigator.of(context).push(
+                                //           //     MaterialPageRoute(
+                                //           //     builder: (context) => HomePage(),
+                                //           //   ),
+                                //           // );
+                                //       }
+                                //     },
+                                //     child: Container(
+                                //       decoration: BoxDecoration(
+                                //         border: Border.all(
+                                //           width: 1,
+                                //           color: shiftGrayBorder,
+                                //         ),
+                                //         borderRadius: BorderRadius.circular(8),
+                                //       ),
+                                //       padding: EdgeInsets.all(8),
+                                //       child: SizedBox(
+                                //         height: 40,
+                                //         child: githubLogo,
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
                               ],
                             ),
                           ],
