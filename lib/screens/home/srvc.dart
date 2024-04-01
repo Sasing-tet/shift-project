@@ -9,9 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'package:shift_project/screens/home/dataTemp/highflodd.dart';
-import 'package:shift_project/screens/home/dataTemp/lowflood.dart';
-import 'package:shift_project/screens/home/dataTemp/mediumflood.dart';
 import 'package:shift_project/screens/home/model/flood_marker_points.dart';
 import 'package:shift_project/screens/home/model/geojson_linestring.dart';
 import 'package:shift_project/screens/home/model/geojson_multilinestring.dart';
@@ -19,7 +16,6 @@ import 'package:shift_project/screens/home/model/routes_with_id.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 import 'package:shift_project/states/location/provider/address_provider.dart';
-import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
 
 import '../../constants/constants.dart';
@@ -33,11 +29,9 @@ class Srvc {
       final encoded = routeOnPolyline.route;
       final riskPoints = routeOnPolyline.points;
 
-      if (riskPoints!.isNotEmpty) {
-        await addMarkersToMap(riskPoints, mapController);
-      }
 
-      final roadOption = i == 0
+      
+      await mapController.drawRoadManually(encoded, i == 0
           ? const RoadOption(
               roadColor: Color.fromARGB(181, 71, 19, 16),
               roadWidth: 8,
@@ -45,20 +39,25 @@ class Srvc {
           : const RoadOption(
               roadColor: Colors.red,
               roadWidth: 8,
-            ); // 80% opacity for the rest
-
-      await mapController.drawRoadManually(encoded, roadOption);
+            )// 80% opacity for the rest
+);
+      
+      if (riskPoints!.isNotEmpty) {
+        await addMarkersToMap(riskPoints, mapController);
+      }
     }
   }
 
   static Future<void> removeAllMarkers(List<FloodMarkerRoute> routesOnPolylines,
       MapController mapController) async {
+    await mapController.removeAllCircle();
     for (var i = 0; i < routesOnPolylines.length; i++) {
       final routeOnPolyline = routesOnPolylines[i];
       final riskPoints = routeOnPolyline.points;
 
       await removeMarker(riskPoints, mapController);
     }
+    
   }
 
   static Future<List<List<GeoPoint>>> fetchOSRMRoutePolylines(
@@ -145,9 +144,9 @@ class Srvc {
 
   static Color getMarkerColor(String level) {
     // Add logic to determine marker color based on the susceptibility level
-    if (level == 'Low') {
+    if (level == '1') {
       return Colors.green;
-    } else if (level == 'Medium') {
+    } else if (level == '2') {
       return Colors.orange;
     } else {
       return Colors.red;
@@ -161,24 +160,34 @@ class Srvc {
     }
 
     for (var markerPoint in pointsOnPolyline) {
+      int i = 0;
       String level = markerPoint.floodLevel;
-      List<List<GeoPoint>> groupsOfPoints = markerPoint.markerPoints;
+      List<List<GeoPoint>> groupsOfPoints = markerPoint.points;
 
       for (var groupPoints in groupsOfPoints) {
         // Get the marker color based on the level
         Color markerColor = getMarkerColor(level);
 
         // Add the marker to the map
-        await mapController.addMarker(
-          groupPoints.first,
-          markerIcon: MarkerIcon(
-            icon: Icon(
-              Icons.flood,
-              color: markerColor, // Set the marker color based on the level
-              size: 50,
-            ),
-          ),
-        );
+        // await mapController.addMarker(
+        //   groupPoints.first,
+        //   markerIcon: MarkerIcon(
+        //     icon: Icon(
+        //       Icons.flood,
+        //       color: markerColor, // Set the marker color based on the level
+        //       size: 50,
+        //     ),
+        //   ),
+        // );
+        await mapController.drawCircle(CircleOSM(
+              key: "circle$i",
+              centerPoint: groupPoints[groupPoints.length ~/ 2],
+              radius:  await distance2point(groupPoints.first, groupPoints.last) / 2,
+              color: markerColor,
+              strokeWidth: 0.3,
+            ));
+            i++;
+        // await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: Colors.red, roadWidth: 8));
       }
     }
   }
@@ -231,22 +240,7 @@ class Srvc {
     return geoPointsList;
   }
 
-  static List<FloodMarkerPoint> processDataAndAddToMarkerPoints() {
-    List<List<GeoPoint>> highGeoPoints =
-        Srvc.extractGeoPoints(highfloodgeojson);
-    List<List<GeoPoint>> midGeoPoints = Srvc.extractGeoPoints(medFloodgeojson);
-    List<List<GeoPoint>> lowGeoPoints = Srvc.extractGeoPoints(lowGeojson);
-
-    // Create new FloodMarkerPoints and update the markerPoints list
-    final newMarkerPoints = [
-      FloodMarkerPoint('Low', lowGeoPoints,100,'1'),
-      FloodMarkerPoint('Medium', midGeoPoints,100,'2'),
-      FloodMarkerPoint('High', highGeoPoints,100,'3'),
-      // Add more FloodMarkerPoint instances as needed
-    ];
-
-    return newMarkerPoints;
-  }
+  
 
   static Future<LatLng>? determinePosition(context) async {
     bool serviceEnabled;
@@ -656,7 +650,6 @@ static Future<Map<String, dynamic>> sendSavedRoutes(List<List<GeoPoint>> routes,
 static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseData, List<RoutesWithId> routesWithIds) async {
   List<FloodMarkerRoute> floodMarkerRoutes = [];
 
-  debugPrint("R1");
   
   // Create a map to store routes by ID for efficient access
   Map<String, List<GeoPoint>> routePointsMap = {};
@@ -672,27 +665,25 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
     );
   }
   
-  debugPrint("R2");
+
 
   // Loop through each item in the response data
   for (var item in responseData['data']) {
     
-  debugPrint("R3");
+ 
     // Extract route ID, flood score, intersection ID, and route coordinates
     String level = item['level'].toString();
-     debugPrint("R3");
-    String routeId = item['o_routeid'];
-     debugPrint("R3");
-    int floodScore = item['floodscore']; // No need for int.parse() here
-     debugPrint("R3");
-    String intersectionId = item['intersection_id'];
-     debugPrint("R3");
-    List<dynamic> coordinates = item['intersecting_geog']['coordinates'];
-     debugPrint("R3");
 
-     for (var coordinate in coordinates) {
-  debugPrint(coordinate.toString());
-}
+    String routeId = item['o_routeid'];
+
+    int floodScore = item['floodscore']; // No need for int.parse() here
+
+    String intersectionId = item['intersection_id'];
+
+    List<dynamic> coordinates = item['intersecting_geog']['coordinates'];
+  
+
+   
     
 // Convert route coordinates into GeoPoint objects
 List<List<GeoPoint>> routePoints = [];
@@ -712,7 +703,7 @@ if (coordinates.length > 1) {
           longitude: longitude,
         ),
       );
-          debugPrint("Latitude: $latitude, Longitude: $longitude");
+         
         }else if (coord is double) {
       // If coord is a double (single coordinate)
       // Assume the same coordinate is used for both latitude and longitude
@@ -724,7 +715,7 @@ if (coordinates.length > 1) {
           longitude: longitude,
         ),
       );
-      debugPrint("Latitude: $latitude, Longitude: $longitude");
+ 
     } else {
           debugPrint("Invalid coordinate format in $coordinateList");
           throw Exception("Invalid coordinate format in $coordinateList");
@@ -748,7 +739,6 @@ if (coordinates.length > 1) {
         longitude: longitude,
       ),
     ]);
-    debugPrint("Latitude: $latitude, Longitude: $longitude");
   } else {
     debugPrint("Invalid coordinate format: $coordinateList");
     throw Exception("Invalid coordinate format: $coordinateList");
@@ -763,8 +753,6 @@ if (coordinates.length > 1) {
 
 
 
-    
-  debugPrint("R4");
 
     // Find corresponding route points based on route ID
     List<GeoPoint>? correspondingRoutePoints = routePointsMap[routeId];
@@ -782,7 +770,7 @@ if (coordinates.length > 1) {
  
     for (var route in floodMarkerRoutes) {
       
-  debugPrint("R6");
+ 
       if (route.routeId == routeId) {
         route.points?.add(floodMarkerPoint);
       
@@ -791,7 +779,7 @@ if (coordinates.length > 1) {
 
 
   }
- debugPrint("R9");
+
   return floodMarkerRoutes;
 }
 

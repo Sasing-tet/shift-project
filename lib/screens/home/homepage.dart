@@ -59,7 +59,7 @@ class _HomePage extends ConsumerState<HomePage>
     final position = await Srvc.determinePosition(context);
     setState(() {
       currentPosition = position;
-      markerPoints = Srvc.processDataAndAddToMarkerPoints();
+    
     });
   }
 
@@ -129,6 +129,7 @@ class _HomePage extends ConsumerState<HomePage>
                 },
               ),
               Consumer(builder: (context, ref, child) {
+                final startAndDestination = ref.watch(opsProvider).pointsRoad;
                 final weatherCose = ref.watch(opsProvider).weatherData;
                 final operationsProvider = ref.read(opsProvider.notifier);
                 final polylinezzNotifierValue =
@@ -177,6 +178,7 @@ class _HomePage extends ConsumerState<HomePage>
                                     SizedBox(width: 10),
                                     GoButton(
                                       onTap: () async {
+                                        if(startAndDestination != null &&startAndDestination.length == 2){
                                       operationsProvider.stopButtonNotifier();
                                       operationsProvider.clearMyRoute();
                                       operationsProvider.addNewPointToMyRoute( await mapController.myLocation());
@@ -185,8 +187,8 @@ class _HomePage extends ConsumerState<HomePage>
                                             mapController,
                                             _animationController,
                                             operationsProvider,
-          
                                             context);
+                                        }
                                            
                                       },
                                    
@@ -206,7 +208,7 @@ class _HomePage extends ConsumerState<HomePage>
                               .addPointToRoad(await mapController.myLocation());
                           operationsProvider.addPointToRoad(p as GeoPoint);
                           operationsProvider.fetchAndDrawRoute(driverId,
-                              mapController, markerPoints, weatherCose!);
+                              mapController, weatherCose!);
                         },
                       );
               })

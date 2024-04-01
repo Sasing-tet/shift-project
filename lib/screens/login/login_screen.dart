@@ -1,10 +1,11 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import 'package:shift_project/screens/home/homepage.dart';
-import 'package:shift_project/screens/register_screen.dart';
+import 'package:supabase_auth_ui/supabase_auth_ui.dart';
+
 import 'package:shift_project/states/auth/models/auth_results.dart';
 
 import '../../constants/constants.dart';
@@ -17,8 +18,8 @@ class LoginScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userController = TextEditingController();
-    final passController = TextEditingController();
+    // final userController = TextEditingController();
+    // final passController = TextEditingController();
 
 
     return Scaffold(
@@ -93,47 +94,66 @@ class LoginScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Username...',
-                              ),
-                              controller: userController,
-                            ),
-                            TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Password...',
-                              ),
-                              obscureText: true,
-                              controller: passController,
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(
-                                top: 20,
-                                bottom: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: shiftBlack,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: TextButton(
-                                style: chooseDestination,
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => HomePage(),
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  'Login',
-                                  style: TextStyle(
-                                    fontFamily: interFontFamily,
-                                    fontSize: titleSubtitleFontSize,
-                                    color: Colors.white,
+                            SupaEmailAuth(
+                            redirectTo: kIsWeb ? null : 'io.mydomain.myapp://callback',
+                            onSignInComplete: (response) {
+                            },
+                            onSignUpComplete: (response) {},
+                            metadataFields: [
+                              MetaDataField(
+                              prefixIcon: const Icon(Icons.person),
+                              label: 'Username',
+                              key: 'username',
+                              validator: (val) {
+                                      if (val == null || val.isEmpty) {
+                                      return 'Please enter something';
+                                      }
+                                      return null;
+                                    },
                                   ),
-                                ),
-                              ),
-                            ),
+                              ],
+                          ),
+                            // TextField(
+                            //   decoration: InputDecoration(
+                            //     hintText: 'Username...',
+                            //   ),
+                            //   controller: userController,
+                            // ),
+                            // TextField(
+                            //   decoration: InputDecoration(
+                            //     hintText: 'Password...',
+                            //   ),
+                            //   obscureText: true,
+                            //   controller: passController,
+                            // ),
+                            // Container(
+                            //   margin: EdgeInsets.only(
+                            //     top: 20,
+                            //     bottom: 10,
+                            //   ),
+                            //   decoration: BoxDecoration(
+                            //     color: shiftBlack,
+                            //     borderRadius: BorderRadius.circular(8),
+                            //   ),
+                            //   child: TextButton(
+                            //     style: chooseDestination,
+                            //     onPressed: () {
+                            //       Navigator.of(context).push(
+                            //         MaterialPageRoute(
+                            //           builder: (context) => HomePage(),
+                            //         ),
+                            //       );
+                            //     },
+                            //     child: Text(
+                            //       'Login',
+                            //       style: TextStyle(
+                            //         fontFamily: interFontFamily,
+                            //         fontSize: titleSubtitleFontSize,
+                            //         color: Colors.white,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: ConstrainedBox(
@@ -234,11 +254,11 @@ class LoginScreen extends ConsumerWidget {
                                         ref
                                             .read(authStateProvider.notifier)
                                             .signInWithGithub;
-                                        //   Navigator.of(context).push(
-                                        //     MaterialPageRoute(
-                                        //       builder: (context) => MyHomePage(),
-                                        //     ),
-                                        //   );
+                                          // Navigator.of(context).push(
+                                          //   MaterialPageRoute(
+                                          //     builder: (context) => HomePage(),
+                                          //   ),
+                                          // );
                                       }
                                     },
                                     child: Container(
@@ -263,31 +283,31 @@ class LoginScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    Container(
-                      margin: EdgeInsets.symmetric(vertical: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: TextButton(
-                        style: chooseDestination,
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => RegisterScreen(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          'Login as Guest',
-                          style: TextStyle(
-                            fontFamily: interFontFamily,
-                            fontSize: titleSubtitleFontSize,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Container(
+                    //   margin: EdgeInsets.symmetric(vertical: 20),
+                    //   decoration: BoxDecoration(
+                    //     color: Colors.white,
+                    //     borderRadius: BorderRadius.circular(8),
+                    //   ),
+                    //   child: TextButton(
+                    //     style: chooseDestination,
+                    //     onPressed: () {
+                    //       Navigator.of(context).push(
+                    //         MaterialPageRoute(
+                    //           builder: (context) => RegisterScreen(),
+                    //         ),
+                    //       );
+                    //     },
+                    //     child: Text(
+                    //       'Login as Guest',
+                    //       style: TextStyle(
+                    //         fontFamily: interFontFamily,
+                    //         fontSize: titleSubtitleFontSize,
+                    //         color: Colors.black87,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

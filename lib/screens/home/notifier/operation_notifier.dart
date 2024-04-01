@@ -60,8 +60,7 @@ class OpsNotifier extends StateNotifier<OpsState> {
     );
   }
 
- Future<void> fetchAndDrawRoute(String? driverId, MapController mapController,
-    List<FloodMarkerPoint> markerPoints, int currentWeatherCode) async {
+ Future<void> fetchAndDrawRoute(String? driverId, MapController mapController, int currentWeatherCode) async {
   final coordinates = state.pointsRoad;
 
   try {
@@ -87,13 +86,6 @@ class OpsNotifier extends StateNotifier<OpsState> {
 
     await Srvc.drawRoadManually(routes, mapController);
     }
-
-  
-
-    
-   
-
-    
 
     
   } catch (e) {
