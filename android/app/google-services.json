@@ -1,8 +1,8 @@
 {
   "project_info": {
-    "project_number": "133593667373",
-    "project_id": "shift-project-usjr-saspitsia",
-    "storage_bucket": "shift-project-usjr-saspitsia.appspot.com"
+    "project_number": "881978526053",
+    "project_id": "shift-capstone",
+    "storage_bucket": "shift-capstone.appspot.com"
   },
   "client": [
     {
@@ -14,13 +14,21 @@
       },
       "oauth_client": [
         {
-          "client_id": "133593667373-78drmtr2j427p8qd6p0t382vfhd5th1b.apps.googleusercontent.com",
+          "client_id": "881978526053-bqhp6kgva61dc35idla3lc0b8cmpdf5p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shift_project",
+            "certificate_hash": "612fb66f5bb7466162b9536b9baf5e225e553197"
+          }
+        },
+        {
+          "client_id": "881978526053-bqhp6kgva61dc35idla3lc0b8cmpdf5p.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDh2FcrcITXYdC4ne4Gt67xR_lXVFInZdI"
+          "current_key": "AIzaSyBbQ7zUcwuLuDYqcAW3Nle4JrwklrHoiTc"
         }
       ],
       "services": {

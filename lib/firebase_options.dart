@@ -66,6 +66,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '133593667373',
     projectId: 'shift-project-usjr-saspitsia',
     storageBucket: 'shift-project-usjr-saspitsia.appspot.com',
+    androidClientId: '133593667373-vph5hef324mmjv1gm9rt2vf9uq9qfomf.apps.googleusercontent.com',
     iosClientId: '133593667373-doh9mahni8b7mmg3j57p9dk2dlm6gip8.apps.googleusercontent.com',
     iosBundleId: 'com.example.shiftProject',
   );
@@ -76,6 +77,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '133593667373',
     projectId: 'shift-project-usjr-saspitsia',
     storageBucket: 'shift-project-usjr-saspitsia.appspot.com',
+    androidClientId: '133593667373-vph5hef324mmjv1gm9rt2vf9uq9qfomf.apps.googleusercontent.com',
     iosClientId: '133593667373-2lnb1ask9fkgvllos478fihkambcifej.apps.googleusercontent.com',
     iosBundleId: 'com.example.shiftProject.RunnerTests',
   );

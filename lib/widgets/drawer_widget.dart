@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:shift_project/constants/constants.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shift_project/screens/login/login_screen.dart';
+import 'package:shift_project/states/auth/providers/auth_state_provider.dart';
+import '../constants/constants.dart';
+import '../main.dart';
 
-class WeatherDrawer extends StatelessWidget {
+class WeatherDrawer extends ConsumerWidget {
   const WeatherDrawer({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = supabase.auth.currentUser?.userMetadata?['full_name'] ?? 'Guest#123';
+    final avatar = supabase.auth.currentUser?.userMetadata?['avatar_url'] ?? 'https://i.pinimg.com/originals/01/53/4a/01534a348a2753893d3b1b45725844fd.jpg';
+    Future<void> handleLogoutAndNavigateToLogin() async {
+      final authNotifier = ref.read(authStateProvider.notifier);
+      await authNotifier.logOut();
+    }
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -31,15 +42,13 @@ class WeatherDrawer extends StatelessWidget {
                   const SizedBox(
                     height: 10,
                   ),
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 40,
-                    backgroundImage: AssetImage(
-                      'assets/images/hu tao smol.jpg',
-                    ),
+                    backgroundImage: NetworkImage(avatar)
                   ),
-                  const Text(
-                    'Guest#123',
-                    style: TextStyle(
+                  Text(
+                    user,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: titleFontSize,
                     ),
@@ -85,7 +94,15 @@ class WeatherDrawer extends StatelessWidget {
           ),
           ListTile(
             title: const Text('Logout'),
-            onTap: () {},
+            onTap: () {
+              handleLogoutAndNavigateToLogin().then((_) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(),
+                  ),
+                );
+              });
+            },
             shape: const Border(
               bottom: BorderSide(color: shiftGrayBorder, width: 1),
             ),

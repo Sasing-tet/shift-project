@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 const scaffoldBackground = BoxDecoration(
   image: DecorationImage(
@@ -36,8 +35,8 @@ const Color shiftBlack = Color(0xFF1E232C);
 const Color shiftGrayBorder = Color(0xFF888888);
 
 final ButtonStyle chooseDestination = TextButton.styleFrom(
-  minimumSize: Size(double.infinity, 40),
-  padding: EdgeInsets.symmetric(horizontal: 16),
+  minimumSize: const Size(double.infinity, 40),
+  padding: const EdgeInsets.symmetric(horizontal: 16),
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(2)),
   ),

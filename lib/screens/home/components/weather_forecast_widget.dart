@@ -1,43 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:marquee/marquee.dart';
 import 'package:shift_project/screens/home/components/hourly_weather_forcase_widget.dart';
-
+import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 import '../../../constants/constants.dart';
-import '../../../fetch/Address from Coords/get_address_from_coords.dart';
-import '../../../fetch/models/weather_data_model.dart';
 import '../../../fetch/weather API/weather_forecast.dart';
+import '../../../states/location/provider/address_provider.dart';
+import '../../../states/location/provider/curr_location_provider.dart';
+import '../../../states/weather/models/weather_data_model.dart';
 import 'weather code description/weather_code_description.dart';
 
-class WeatherForecastWidget extends StatefulWidget {
-  const WeatherForecastWidget({super.key});
 
+class WeatherForecastWidget extends ConsumerStatefulWidget {
+  
+
+  const WeatherForecastWidget({super.key, required this.opsProvider});
+  final OpsNotifier opsProvider;
   @override
-  State<WeatherForecastWidget> createState() => _WeatherForecastWidgetState();
+  ConsumerState<WeatherForecastWidget> createState() =>
+      _WeatherForecastWidgetState();
 }
 
-class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
+class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
+  
   LatLng? currentPosition;
-  late Future<WeatherData> weatherDataFuture;
+  // late Future<WeatherData> weatherDataFuture;
 
   @override
   void initState() {
     super.initState();
-    _determinePosition();
+    // _determinePosition();
     fetchWeatherData(
       currentPosition?.latitude ?? 0.0,
       currentPosition?.longitude ?? 0.0,
+      widget.opsProvider,
     );
   }
 
-  Future<void> _determinePosition() async {
-    final position = await Geolocator.getCurrentPosition();
+  // Future<void> _determinePosition() async {
+  //   final position = await Geolocator.getCurrentPosition();
 
-    setState(() {
-      currentPosition = LatLng(position.latitude, position.longitude);
-    });
-  }
+  //   setState(() {
+  //     currentPosition = LatLng(position.latitude, position.longitude);
+  //   });
+  // }
 
   // Future<void> _refreshWeatherData() async {
   //   setState(() {
@@ -47,23 +54,29 @@ class _WeatherForecastWidgetState extends State<WeatherForecastWidget> {
   //     );
   //   });
   // }
+  
 
   @override
   Widget build(BuildContext context) {
+    final currentPosition = ref.watch(currentPositionProvider);
+   
+
+    
     return FutureBuilder<WeatherData>(
       future: fetchWeatherData(
-          currentPosition?.latitude ?? 0.0, currentPosition?.longitude ?? 0.0),
+          currentPosition.latitude, currentPosition.longitude, widget.opsProvider),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return const Text('Failed to fetch weather data');
         } else {
+         
           final weatherData = snapshot.data!;
           return FutureBuilder<String?>(
             future: getAddressFromCoordinates(
-              currentPosition?.latitude ?? 0.0,
-              currentPosition?.longitude ?? 0.0,
+              currentPosition.latitude,
+              currentPosition.longitude,
             ),
             builder: (context, addressSnapshot) {
               if (addressSnapshot.connectionState == ConnectionState.waiting) {

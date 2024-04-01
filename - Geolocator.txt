@@ -1,0 +1,4 @@
+- Geolocator
+- Geolocator updates
+- Nominatim updates (delay 1.3 secs)
+- If city changes, pull open Meteo

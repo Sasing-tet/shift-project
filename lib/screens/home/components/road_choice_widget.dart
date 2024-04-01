@@ -4,13 +4,13 @@ import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 class RoadTypeChoiceWidget extends StatelessWidget {
   final Function(RoadType road) setValueCallback;
 
-  RoadTypeChoiceWidget({
+  const RoadTypeChoiceWidget({super.key, 
     required this.setValueCallback,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 96,
       child: WillPopScope(
         onWillPop: () async => false,
@@ -34,9 +34,9 @@ class RoadTypeChoiceWidget extends StatelessWidget {
                     setValueCallback(RoadType.car);
                     Navigator.pop(context, RoadType.car);
                   },
-                  child: Column(
+                  child: const Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.directions_car),
                       Text("Car"),
                     ],
@@ -47,9 +47,9 @@ class RoadTypeChoiceWidget extends StatelessWidget {
                     setValueCallback(RoadType.bike);
                     Navigator.pop(context);
                   },
-                  child: Column(
+                  child: const Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.directions_bike),
                       Text("Bike"),
                     ],
@@ -60,9 +60,9 @@ class RoadTypeChoiceWidget extends StatelessWidget {
                     setValueCallback(RoadType.foot);
                     Navigator.pop(context);
                   },
-                  child: Column(
+                  child: const Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.directions_walk),
                       Text("Foot"),
                     ],
