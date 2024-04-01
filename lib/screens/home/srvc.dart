@@ -93,17 +93,7 @@ class Srvc {
     }
   }
 
-  static Future<void> drawCircle(MapController mapController) async {
-    final circle = CircleOSM(
-      key: 'circle1',
-      centerPoint: GeoPoint(latitude: 10.3157, longitude: 123.8854),
-      radius: 5000,
-      color: Colors.blue.withOpacity(0.3),
-      strokeWidth: 2,
-    );
 
-    await mapController.drawCircle(circle);
-  }
 
   static bool isBetween(GeoPoint a, GeoPoint b, GeoPoint c,
       {double epsilon = 1e-8}) {
