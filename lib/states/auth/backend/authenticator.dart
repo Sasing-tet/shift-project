@@ -34,6 +34,15 @@ class Authenticator {
     }
   }
 
+  Future<AuthResult> signInAndSignUp()async{
+    try {
+     
+      return AuthResult.success;
+    } catch (e) {
+      return AuthResult.failure;
+    }
+  }
+
 
   Future<AuthResult> signInWithGoogle() async {
     ///

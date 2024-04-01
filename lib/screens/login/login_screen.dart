@@ -96,14 +96,35 @@ class LoginScreen extends ConsumerWidget {
                           children: [
                             SupaEmailAuth(
                             redirectTo: kIsWeb ? null : 'io.mydomain.myapp://callback',
-                            onSignInComplete: (response) {
+                            onSignInComplete: (response) async {
+                                final result = await Authenticator()
+                                          .signInAndSignUp();
+                                      debugPrint(supabase.auth.currentUser.toString());
+
+                                      if (result == AuthResult.success) {
+                                        ref
+                                            .read(authStateProvider.notifier)
+                                            .signInAndSignUp();
+                                      }
+                                    
                             },
-                            onSignUpComplete: (response) {},
+                            onSignUpComplete: (response) async{
+                                final result = await Authenticator()
+                                          .signInAndSignUp();
+                                      debugPrint(supabase.auth.currentUser.toString());
+
+                                      if (result == AuthResult.success) {
+                                        ref
+                                            .read(authStateProvider.notifier)
+                                            .signInAndSignUp();
+                                      }
+                                    
+                            },
                             metadataFields: [
                               MetaDataField(
                               prefixIcon: const Icon(Icons.person),
                               label: 'Username',
-                              key: 'username',
+                              key: 'full_name',
                               validator: (val) {
                                       if (val == null || val.isEmpty) {
                                       return 'Please enter something';
