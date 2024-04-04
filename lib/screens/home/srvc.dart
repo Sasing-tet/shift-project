@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_protected_member
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -135,11 +137,11 @@ class Srvc {
   static Color getMarkerColor(String level) {
     // Add logic to determine marker color based on the susceptibility level
     if (level == '1') {
-      return Colors.green;
+      return Color.fromARGB(55, 76, 175, 79);
     } else if (level == '2') {
-      return Colors.orange;
+      return const Color.fromARGB(55, 255, 153, 0);
     } else {
-      return Colors.red;
+      return const Color.fromARGB(55, 244, 67, 54);
     }
   }
 
@@ -170,15 +172,15 @@ class Srvc {
         //   ),
         // );
         await mapController.drawCircle(CircleOSM(
-              key: "circle$i",
+              key: "circle$level-$i",
               centerPoint: groupPoints[groupPoints.length ~/ 2],
               radius:  await distance2point(groupPoints.first, groupPoints.last) / 2,
               color: markerColor,
               strokeWidth: 0.3,
             ));
             i++;
-        // await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: Colors.red, roadWidth: 8));
-      }
+      //   await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: Colors.red, roadWidth: 8));
+     }
     }
   }
 
@@ -434,8 +436,8 @@ class Srvc {
           ),
         );
       }),
-      duration: const Duration(seconds: 5),
-      snackBarStrategy: StackSnackBarStrategy(),
+      duration: const Duration(minutes: 10),
+      snackBarStrategy: RemoveSnackBarStrategy(),
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
       mobilePositionSettings: const MobilePositionSettings(
         right: 15,
@@ -449,17 +451,36 @@ class Srvc {
       GeoPoint userLocation,
       double maxDistance,
       List<FloodMarkerPoint>? floodProneArea,
-      context) async {
+      context, OpsNotifier opsNotifier) async {
+        
     for (var markerPoint in floodProneArea!) {
       String level = markerPoint.floodLevel;
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
 
       for (var polyline in polylines) {
-        bool isInside =
-            await isWithinFloodProneArea(userLocation, maxDistance, polyline);
-        if (isInside) {
-          showAlertDialog(context, level);
+        bool isInside =  await isWithinFloodProneArea(userLocation, maxDistance, polyline);
+
+      //       if(isInside && opsNotifier.floodLevel == '0'){
+      //       opsNotifier.isWithinFloodProneArea(level);
+      //      showAlertDialog(context, level);
+      //     return;
+      //   }
+      //  else if (isInside && opsNotifier.state.floodLevel != level ) {
+      //     opsNotifier.isWithinFloodProneArea(level);
+      //     showAlertDialog(context, level);
+      //     return;
+      //   } else{
+      //       opsNotifier.isWithinFloodProneArea('0');
+      //     return;
+      //   }
+       if(isInside ){
+        debugPrint("Flood Level: ${opsNotifier.floodLevel}");
+          
+           showAlertDialog(context, level);
           return;
+        }
+        else{
+          AnimatedSnackBar.removeAll();
         }
       }
     }
@@ -506,6 +527,7 @@ class Srvc {
       final myposition = await mapController.myLocation();
       // ignore: invalid_use_of_protected_member
 
+      // ignore: invalid_use_of_protected_member
       myRoutez(myposition, notifier, notifier.state.myRoute!);
 
       final dist = await distance2point(myposition, routeCHOSEN.route.last);
@@ -515,10 +537,12 @@ class Srvc {
       if (dist < 5 || notifier.goNotifier == false) {
         animationController.stop();
         mapController.clearAllRoads();
+        mapController.removeAllCircle();
         removeMarker(routeCHOSEN.points, mapController);
+        notifier.clearAllData();
         return;
       }
-      checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);
+      checkFloodProneArea(myposition, 5, routeCHOSEN.points, context, notifier);
 
       Future.delayed(
           const Duration(seconds: 1),
@@ -636,6 +660,93 @@ static Future<Map<String, dynamic>> sendSavedRoutes(List<List<GeoPoint>> routes,
 }
 
 
+// static Future<List<List<GeoPoint>>> removePointsInsideRadius(List<List<GeoPoint>> pointsList) async {
+//   List<List<GeoPoint>> filteredList = [];
+
+//   for (int i = 0; i < pointsList.length; i++) {
+//     List<GeoPoint> group = pointsList[i];
+//     GeoPoint centerPoint = group[group.length ~/ 2]; // Middle point as center
+//     double radius = await distance2point(centerPoint, group.last) ;
+
+//     bool shouldAddGroup = true;
+
+//     // Check if this group overlaps with any other group
+//     for (int j = 0; j < pointsList.length; j++) {
+//       if (i != j) {
+//         GeoPoint otherCenterPoint = pointsList[j][pointsList[j].length ~/ 2];
+        
+//         double distanceBetweenCenters = await distance2point(centerPoint, otherCenterPoint);
+//         if (distanceBetweenCenters < radius ) {
+//           shouldAddGroup = false;
+          
+//         }
+//          if (shouldAddGroup) {
+//       filteredList.add(group);
+//     }
+//       }
+//     }
+
+   
+//   }
+
+//   return filteredList;
+// }
+static bool isPointBetween(GeoPoint point, GeoPoint start, GeoPoint end) {
+  double crossProduct =
+      (point.latitude - start.latitude) * (end.longitude - start.longitude) -
+      (point.longitude - start.longitude) * (end.latitude - start.latitude);
+
+  if (crossProduct.abs() > 1e-8) {
+    return false;
+  }
+
+  double dotProduct =
+      (point.longitude - start.longitude) * (end.longitude - start.longitude) +
+      (point.latitude - start.latitude) * (end.latitude - start.latitude);
+
+  if (dotProduct < 0 ||
+      dotProduct >
+          (end.longitude - start.longitude) * (end.longitude - start.longitude) +
+              (end.latitude - start.latitude) * (end.latitude - start.latitude)) {
+    return false;
+  }
+
+  return true;
+}
+
+static Future<List<List<GeoPoint>>> filterPointsByRoute(List<List<GeoPoint>> pointsList, List<GeoPoint> route)async {
+  List<List<GeoPoint>> filteredList = [];
+
+  for (List<GeoPoint> group in pointsList) {
+    List<GeoPoint> filteredGroup = [];
+
+    // Check if any point in the group is between or intersects the route
+    for (GeoPoint point in group) {
+      bool isPointBetweenRoute = false;
+      for (int i = 0; i < route.length - 1; i++) {
+        if (isPointBetween(point, route[i], route[i + 1])) {
+          isPointBetweenRoute = true;
+          break;
+        }
+      }
+      if (isPointBetweenRoute) {
+        filteredGroup.add(point);
+      }
+    }
+
+    // Ensure all points in the filtered group are between the route's start and end points
+    if (filteredGroup.isNotEmpty) {
+      filteredList.add(filteredGroup);
+    }
+  }
+
+  return filteredList;
+}
+
+
+
+
+
 
 static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseData, List<RoutesWithId> routesWithIds) async {
   List<FloodMarkerRoute> floodMarkerRoutes = [];
@@ -643,6 +754,7 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
   
   // Create a map to store routes by ID for efficient access
   Map<String, List<GeoPoint>> routePointsMap = {};
+  
   for (var route in routesWithIds) {
     routePointsMap[route.id] = route.points;
     // Initialize FloodMarkerRoute with routesWithIds data
@@ -655,7 +767,6 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
     );
   }
   
-
 
   // Loop through each item in the response data
   for (var item in responseData['data']) {
@@ -745,24 +856,27 @@ if (coordinates.length > 1) {
 
 
     // Find corresponding route points based on route ID
-    List<GeoPoint>? correspondingRoutePoints = routePointsMap[routeId];
+    
 
-
-  debugPrint("R5");
-    // Create FloodMarkerPoint object with route points
-    FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
-      level, 
-      routePoints, 
-      floodScore, 
-      intersectionId,
-    );
 
  
     for (var route in floodMarkerRoutes) {
       
  
       if (route.routeId == routeId) {
+        List<List<GeoPoint>> filteredRoutePoints = await filterPointsByRoute(routePoints,  route.route);
+    //
+
+  debugPrint("R5");
+    // Create FloodMarkerPoint object with route points
+    FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
+      level, 
+      filteredRoutePoints, 
+      floodScore, 
+      intersectionId,
+    );
         route.points?.add(floodMarkerPoint);
+        
       
       }
     }

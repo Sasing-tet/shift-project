@@ -14,6 +14,7 @@ class OpsNotifier extends StateNotifier<OpsState> {
   OpsNotifier() : super(OpsState());
 
   bool get goNotifier => state.goNotifier;
+  String? get floodLevel => state.floodLevel;
   void addNewPointToMyRoute(GeoPoint newPoint) {
     state = state.copyWith(myRoute: [...state.myRoute ?? [], newPoint]);
   }
@@ -34,6 +35,9 @@ class OpsNotifier extends StateNotifier<OpsState> {
     state = state.copyWith(
         isExpanded: !state.isExpanded,
         isMapOverlayVisible: !state.isMapOverlayVisible);
+  }
+  void isWithinFloodProneArea(String level){
+    state = state.copyWith(floodLevel: level);
   }
 
   void stopButtonNotifier() {
@@ -134,4 +138,6 @@ class OpsNotifier extends StateNotifier<OpsState> {
       goNotifier: false,
     );
   }
+
+  
 }
