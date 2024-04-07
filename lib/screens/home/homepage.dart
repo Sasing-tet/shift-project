@@ -214,6 +214,7 @@ class _HomePage extends ConsumerState<HomePage>
                           operationsProvider.addPointToRoad(p as GeoPoint);
                           operationsProvider.fetchAndDrawRoute(driverId,
                               mapController, weatherCose!);
+                          operationsProvider.insertRideEntry(await mapController.myLocation(), p, driverId);
                         },
                       );
               })

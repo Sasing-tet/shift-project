@@ -46,7 +46,7 @@ class LoginScreen extends ConsumerWidget {
                           RichText(
                             text: TextSpan(
                               children: [
-                                TextSpan(
+                                TextSpan( 
                                   text: 'SH',
                                   style: TextStyle(
                                     fontFamily: interFontFamily,
