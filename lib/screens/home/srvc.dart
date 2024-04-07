@@ -1,4 +1,4 @@
-// ignore_for_file: invalid_use_of_protected_member
+// ignore_for_file: invalid_use_of_protected_member, duplicate_ignore
 
 import 'dart:async';
 import 'dart:convert';
@@ -63,22 +63,36 @@ class Srvc {
   }
 
   static Future<List<List<GeoPoint>>> fetchOSRMRoutePolylines(
-      List<GeoPoint> coordinates, MapController mapController) async {
+    List<GeoPoint> coordinates, MapController mapController) async {
+  try {
+    // Make request to ORS service
+    final List<List<GeoPoint>> orsCoordinates = await makeRequest(coordinates);
+
+    // If ORS response is not empty, return it
+    if (orsCoordinates.isNotEmpty) {
+      return orsCoordinates;
+    }
+
+    // Construct coordinates string for OSRM request
     const String profile = 'driving';
     final String coordinatesString = coordinates
         .map((coord) => '${coord.longitude},${coord.latitude}')
         .join(';');
 
+    // Construct URL for OSRM request
     final String url =
         'https://router.project-osrm.org/route/v1/$profile/$coordinatesString?alternatives=true&steps=true&geometries=polyline&overview=full&annotations=false';
 
+    // Send request to OSRM service
     final response = await http.get(Uri.parse(url));
     List<List<GeoPoint>> polylines = [];
 
     if (response.statusCode == 200) {
+      // Parse OSRM response
       Map<String, dynamic> map = jsonDecode(response.body);
       List routes = map["routes"];
 
+      // Extract polylines from OSRM response
       for (var route in routes) {
         var geometry = route['geometry'];
         final String list = geometry;
@@ -89,11 +103,104 @@ class Srvc {
         }
       }
 
+      if (polylines.isEmpty) {
+        throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
+      }
+
       return polylines;
     } else {
-      throw Exception('Failed to fetch route polylines');
+      throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
+    }
+  } catch (error) {
+    print('Error: $error');
+    throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
+  }
+}
+
+
+  static Future<List<List<GeoPoint>>> makeRequest(List<GeoPoint> coordinates) async {
+  const String apiUrl = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
+  const String apiKey = '5b3ce3597851110001cf6248845785a9f9cf4c4f9e633248762fc635';
+
+  Map<String, String> headers = {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
+    'Authorization': apiKey,
+  };
+
+  Map<String, dynamic> data = {
+    "coordinates": [[coordinates[0].longitude, coordinates[0].latitude], [coordinates[1].longitude, coordinates[1].latitude]],
+    "alternative_routes": {"target_count": 3, "share_factor": 0.6},
+    "attributes": ["detourfactor"],
+    "geometry_simplify": "false",
+    "instructions": "true",
+    "preference": "fastest"
+  };
+
+  try {
+    http.Response response = await http.post(Uri.parse(apiUrl), headers: headers, body: json.encode(data));
+    if (response.statusCode == 200) {
+      // Parse and extract coordinates from the response
+      print("Responsez: ${response.body}");
+      return extractCoordinates(response.body);
+    } else {
+      // Handle error response
+      print("Error: ${response.statusCode}");
+      return [];
+    }
+  } catch (error) {
+    // Handle connection error
+    print("Connection Error: $error");
+    return [];
+  }
+}
+
+static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
+  List<List<GeoPoint>> coordinatesList = [];
+
+  if (jsonResponse.isEmpty) {
+    // If response is empty, return an empty list
+    return coordinatesList;
+  }
+
+  Map<String, dynamic> responseData = json.decode(jsonResponse);
+  int totalSetsOfCoordinates = 0; // Initialize a counter
+
+  if (responseData.containsKey('features')) {
+    List<dynamic> features = responseData['features'];
+    for (var feature in features) {
+      if (feature.containsKey('geometry')) {
+        Map<String, dynamic> geometry = feature['geometry'];
+        if (geometry.containsKey('coordinates')) {
+          List<dynamic> coordinates = geometry['coordinates'];
+
+          List<GeoPoint> featureCoordinates = [];
+
+          // Extract coordinates from the LineString geometry
+          for (var coordinate in coordinates) {
+            if (coordinate is List<dynamic> && coordinate.length == 2) {
+              GeoPoint point = GeoPoint(latitude: coordinate[1], longitude: coordinate[0]);
+              featureCoordinates.add(point);
+            }
+          }
+
+          // Add extracted coordinates to the main list
+          if (featureCoordinates.isNotEmpty) {
+            coordinatesList.add(featureCoordinates);
+            totalSetsOfCoordinates++; // Increment the counter
+
+            // Print each set of coordinates
+            debugPrint('Setz ${coordinatesList.length}: $featureCoordinates');
+          }
+        }
+      }
     }
   }
+
+  print('Number of sets of coordinates: $totalSetsOfCoordinates'); // Print the number of sets of coordinates
+  return coordinatesList;
+}
+
 
 
 
@@ -144,7 +251,6 @@ class Srvc {
       return const Color.fromARGB(55, 244, 67, 54);
     }
   }
-
   static Future<void> addMarkersToMap(List<FloodMarkerPoint>? pointsOnPolyline,
       MapController mapController) async {
     if (pointsOnPolyline == null) {
@@ -170,16 +276,16 @@ class Srvc {
         //       size: 50,
         //     ),
         //   ),
-        // );
+        // // );
         await mapController.drawCircle(CircleOSM(
               key: "circle$level-$i",
               centerPoint: groupPoints[groupPoints.length ~/ 2],
-              radius:  await distance2point(groupPoints.first, groupPoints.last) / 2,
+              radius:  await distance2point(groupPoints[groupPoints.length ~/ 2], groupPoints.last) ,
               color: markerColor,
               strokeWidth: 0.3,
             ));
             i++;
-      //   await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: Colors.red, roadWidth: 8));
+        // await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: markerColor, roadWidth: 8));
      }
     }
   }
@@ -605,20 +711,22 @@ static Future<List<RoutesWithId>> createRoutes(Map<String, dynamic> data) async 
 
       String geoJsonString = data['routes_geojson'];
       Map<String, dynamic> geoJson = jsonDecode(geoJsonString);
-      List<dynamic> coordinates = geoJson['o_coordinates'][0]['coordinates'];
-      String routeId = geoJson['o_coordinates'][0]['id'];
+      List<dynamic> coordinates = geoJson['o_coordinates'];
+      for(var coordinate in coordinates) {
+      List<dynamic> coord = coordinate['coordinates'];
+      String routeId = coordinate['id'];
       List<GeoPoint> points = [];
 
-      coordinates.forEach((pointData) {
+      for (var pointData in coord) {
         GeoPoint point = GeoPoint(
           longitude: pointData[0],
           latitude: pointData[1],
         );
         points.add(point);
-      });
+      }
 
       RoutesWithId route = RoutesWithId(id: routeId, points: points);
-      routes.add(route);
+      routes.add(route);}
     } else {
       print('Error creating routes: ${data['error']}');
     }
@@ -632,6 +740,8 @@ static Future<List<RoutesWithId>> createRoutes(Map<String, dynamic> data) async 
 
 
 static Future<Map<String, dynamic>> sendSavedRoutes(List<List<GeoPoint>> routes, String? driverId) async {
+
+  debugPrint("howmany ${routes.length}");
   List<GeoJsonLineString> geoJsonLineStrings = routes
       .map((route) => GeoJsonLineString(route))
       .toList();

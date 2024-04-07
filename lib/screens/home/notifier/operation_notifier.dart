@@ -73,10 +73,11 @@ class OpsNotifier extends StateNotifier<OpsState> {
 
     List<RoutesWithId> r = [];
     if (driverId != null) {
-      debugPrint("Sending polylines to Supabase: $polylines");
+      debugPrint("Sending polylines ${polylines.length} to Supabase: $polylines");
       final oroutes = await Srvc.sendSavedRoutes(polylines, driverId);
+      debugPrint("Sending poly ${oroutes.length} to ${oroutes} ");
       r = await Srvc.createRoutes(oroutes);
-      
+      debugPrint("r = ${r.length} $r");
        final response = await Srvc.fetchFloodPoints(driverId);
     debugPrint('Response from fetchFloodPoints: $response');
     final routes = await Srvc.parseFloodMarkerRoutes(response, r);
