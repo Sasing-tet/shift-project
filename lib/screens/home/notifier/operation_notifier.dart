@@ -120,16 +120,22 @@ class OpsNotifier extends StateNotifier<OpsState> {
 }
 
 Future<void> insertRideEntry(GeoPoint currentLocation, GeoPoint setDestination, String? driverId) async {
-  // Convert GeoPoints to WKT format
   String currentLocationWKT = 'POINT(${currentLocation.longitude} ${currentLocation.latitude})';
   String setDestinationWKT = 'POINT(${setDestination.longitude} ${setDestination.latitude})';
 
-  // Adjust the RPC call to use the WKT formatted strings
-  var response = await supabase.rpc('insert_ride', params: {
-    'driver_id': driverId,
-    'current_location': currentLocationWKT,
-    'set_destination': setDestinationWKT,
-  });
+  try {
+   
+    var response = await supabase.rpc('insert_ride', params: {
+      'driver_id': driverId,
+      'current_location': currentLocationWKT,
+      'set_destination': setDestinationWKT,
+    });
+
+    debugPrint("Response from Supabasez: $response");
+  } catch (e) {
+
+    debugPrint("Error inserting ride entry: $e");
+  }
 }
 
 

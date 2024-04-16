@@ -178,6 +178,7 @@ class _HomePage extends ConsumerState<HomePage>
                                     SizedBox(width: 10),
                                     GoButton(
                                       onTap: () async {
+                                          String? driverId = _authenticator.userId;
                                         if(startAndDestination != null &&startAndDestination.length == 2){
                                       operationsProvider.stopButtonNotifier();
                                       operationsProvider.clearMyRoute();
@@ -192,7 +193,7 @@ class _HomePage extends ConsumerState<HomePage>
                                         }
 
 
-                                        // Srvc.sendSavedRoute(myRoute, driverId)
+                                        Srvc.sendSavedRoute(myRoute, driverId);
 
                                            
                                       },
@@ -214,7 +215,8 @@ class _HomePage extends ConsumerState<HomePage>
                           operationsProvider.addPointToRoad(p as GeoPoint);
                           operationsProvider.fetchAndDrawRoute(driverId,
                               mapController, weatherCose!);
-                          operationsProvider.insertRideEntry(await mapController.myLocation(), p, driverId);
+                          // operationsProvider.insertRideEntry(await mapController.myLocation(), p, driverId);
+                          // Srvc.getAltRoutePointsByDriver(driverId!);
                         },
                       );
               })

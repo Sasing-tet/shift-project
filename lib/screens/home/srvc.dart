@@ -35,12 +35,12 @@ class Srvc {
       
       await mapController.drawRoadManually(encoded, i == 0
           ? const RoadOption(
-              roadColor: Color.fromARGB(181, 71, 19, 16),
-              roadWidth: 8,
+              roadColor: Colors.blue,
+              roadWidth: 15,
             ) // Full opacity for the first route
           : const RoadOption(
-              roadColor: Colors.red,
-              roadWidth: 8,
+              roadColor: Color.fromARGB(242, 13, 65, 107),
+              roadWidth: 15,
             )// 80% opacity for the rest
 );
       
@@ -71,7 +71,7 @@ class Srvc {
     // If ORS response is not empty, return it
     if (orsCoordinates.isNotEmpty) {
       return orsCoordinates;
-    }
+    }else{
 
     // Construct coordinates string for OSRM request
     const String profile = 'driving';
@@ -110,7 +110,7 @@ class Srvc {
       return polylines;
     } else {
       throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
-    }
+    }}
   } catch (error) {
     print('Error: $error');
     throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
@@ -130,10 +130,10 @@ class Srvc {
 
   Map<String, dynamic> data = {
     "coordinates": [[coordinates[0].longitude, coordinates[0].latitude], [coordinates[1].longitude, coordinates[1].latitude]],
-    "alternative_routes": {"target_count": 3, "share_factor": 0.6},
+    "alternative_routes": {"target_count": 2, "share_factor": 0.6},
     "attributes": ["detourfactor"],
-    "geometry_simplify": "false",
-    "instructions": "true",
+    "geometry_simplify": "true",
+    "instructions": "false",
     "preference": "fastest"
   };
 
@@ -177,10 +177,12 @@ static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
           List<GeoPoint> featureCoordinates = [];
 
           // Extract coordinates from the LineString geometry
+           debugPrint('Setz 1');
           for (var coordinate in coordinates) {
             if (coordinate is List<dynamic> && coordinate.length == 2) {
               GeoPoint point = GeoPoint(latitude: coordinate[1], longitude: coordinate[0]);
               featureCoordinates.add(point);
+              debugPrint('$coordinate');
             }
           }
 
@@ -190,7 +192,7 @@ static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
             totalSetsOfCoordinates++; // Increment the counter
 
             // Print each set of coordinates
-            debugPrint('Setz ${coordinatesList.length}: $featureCoordinates');
+            // debugPrint('Setz ${coordinatesList.length}: $featureCoordinates');
           }
         }
       }
@@ -680,7 +682,7 @@ static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
 
 static Future<Map<String, dynamic>> fetchFloodPoints(String? driverId) async {
   try {
-    final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
+    final response = await supabase.rpc('get_o_route_points_by_driver', params: {'driver_id_param': driverId});
     
     if (response is List) {
       // Handle list response
@@ -736,6 +738,40 @@ static Future<List<RoutesWithId>> createRoutes(Map<String, dynamic> data) async 
   }
   return routes;
 }
+
+static Future<void> getAltRoutePointsByDriver(String driverId) async {
+  try {
+    // Call the Supabase RPC endpoint
+    var response = await supabase.rpc('get_alt_route_points_by_driver', params: {
+      'driver_id_param': driverId,
+    });
+
+    // Check if the response is a list
+    if (response is List) {
+      debugPrint('Unexpected response format: $response');
+      return;
+    }
+
+    // Check for errors in the response
+    if (response.error != null) {
+      // Handle error
+      debugPrint('Error: ${response.error!.message}');
+    } else if (response.data != null) {
+      // Extract and handle data
+      var data = response.data;
+      debugPrint('Data: $data');
+      // You can parse the JSON data here if needed
+      // Example: var jsonData = json.decode(data);
+    } else {
+      // Handle unexpected response
+      debugPrint('Unexpected response: $response');
+    }
+  } catch (e) {
+    // Handle any exceptions that occur during the RPC call
+    debugPrint('Error during RPC call: $e');
+  }
+}
+
 
 
 
