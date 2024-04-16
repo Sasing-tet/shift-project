@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, use_build_context_synchronously
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -46,7 +46,7 @@ class LoginScreen extends ConsumerWidget {
                           RichText(
                             text: TextSpan(
                               children: [
-                                TextSpan(
+                                TextSpan( 
                                   text: 'SH',
                                   style: TextStyle(
                                     fontFamily: interFontFamily,
@@ -271,6 +271,8 @@ class LoginScreen extends ConsumerWidget {
                                         ref
                                             .read(authStateProvider.notifier)
                                             .signInWithGoogle();
+
+                                            
                                       }
                                     },
                                     child: Container(

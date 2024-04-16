@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_protected_member, duplicate_ignore
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -33,12 +35,12 @@ class Srvc {
       
       await mapController.drawRoadManually(encoded, i == 0
           ? const RoadOption(
-              roadColor: Color.fromARGB(181, 71, 19, 16),
-              roadWidth: 8,
+              roadColor: Colors.blue,
+              roadWidth: 15,
             ) // Full opacity for the first route
           : const RoadOption(
-              roadColor: Colors.red,
-              roadWidth: 8,
+              roadColor: Color.fromARGB(242, 13, 65, 107),
+              roadWidth: 15,
             )// 80% opacity for the rest
 );
       
@@ -61,22 +63,36 @@ class Srvc {
   }
 
   static Future<List<List<GeoPoint>>> fetchOSRMRoutePolylines(
-      List<GeoPoint> coordinates, MapController mapController) async {
+    List<GeoPoint> coordinates, MapController mapController) async {
+  try {
+    // Make request to ORS service
+    final List<List<GeoPoint>> orsCoordinates = await makeRequest(coordinates);
+
+    // If ORS response is not empty, return it
+    if (orsCoordinates.isNotEmpty) {
+      return orsCoordinates;
+    }else{
+
+    // Construct coordinates string for OSRM request
     const String profile = 'driving';
     final String coordinatesString = coordinates
         .map((coord) => '${coord.longitude},${coord.latitude}')
         .join(';');
 
+    // Construct URL for OSRM request
     final String url =
         'https://router.project-osrm.org/route/v1/$profile/$coordinatesString?alternatives=true&steps=true&geometries=polyline&overview=full&annotations=false';
 
+    // Send request to OSRM service
     final response = await http.get(Uri.parse(url));
     List<List<GeoPoint>> polylines = [];
 
     if (response.statusCode == 200) {
+      // Parse OSRM response
       Map<String, dynamic> map = jsonDecode(response.body);
       List routes = map["routes"];
 
+      // Extract polylines from OSRM response
       for (var route in routes) {
         var geometry = route['geometry'];
         final String list = geometry;
@@ -87,11 +103,106 @@ class Srvc {
         }
       }
 
+      if (polylines.isEmpty) {
+        throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
+      }
+
       return polylines;
     } else {
-      throw Exception('Failed to fetch route polylines');
+      throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
+    }}
+  } catch (error) {
+    print('Error: $error');
+    throw Exception('Failed to fetch route polylines from both ORS and OSRM services');
+  }
+}
+
+
+  static Future<List<List<GeoPoint>>> makeRequest(List<GeoPoint> coordinates) async {
+  const String apiUrl = 'https://api.openrouteservice.org/v2/directions/driving-car/geojson';
+  const String apiKey = '5b3ce3597851110001cf6248845785a9f9cf4c4f9e633248762fc635';
+
+  Map<String, String> headers = {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
+    'Authorization': apiKey,
+  };
+
+  Map<String, dynamic> data = {
+    "coordinates": [[coordinates[0].longitude, coordinates[0].latitude], [coordinates[1].longitude, coordinates[1].latitude]],
+    "alternative_routes": {"target_count": 2, "share_factor": 0.6},
+    "attributes": ["detourfactor"],
+    "geometry_simplify": "true",
+    "instructions": "false",
+    "preference": "fastest"
+  };
+
+  try {
+    http.Response response = await http.post(Uri.parse(apiUrl), headers: headers, body: json.encode(data));
+    if (response.statusCode == 200) {
+      // Parse and extract coordinates from the response
+      print("Responsez: ${response.body}");
+      return extractCoordinates(response.body);
+    } else {
+      // Handle error response
+      print("Error: ${response.statusCode}");
+      return [];
+    }
+  } catch (error) {
+    // Handle connection error
+    print("Connection Error: $error");
+    return [];
+  }
+}
+
+static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
+  List<List<GeoPoint>> coordinatesList = [];
+
+  if (jsonResponse.isEmpty) {
+    // If response is empty, return an empty list
+    return coordinatesList;
+  }
+
+  Map<String, dynamic> responseData = json.decode(jsonResponse);
+  int totalSetsOfCoordinates = 0; // Initialize a counter
+
+  if (responseData.containsKey('features')) {
+    List<dynamic> features = responseData['features'];
+    for (var feature in features) {
+      if (feature.containsKey('geometry')) {
+        Map<String, dynamic> geometry = feature['geometry'];
+        if (geometry.containsKey('coordinates')) {
+          List<dynamic> coordinates = geometry['coordinates'];
+
+          List<GeoPoint> featureCoordinates = [];
+
+          // Extract coordinates from the LineString geometry
+           debugPrint('Setz 1');
+          for (var coordinate in coordinates) {
+            if (coordinate is List<dynamic> && coordinate.length == 2) {
+              GeoPoint point = GeoPoint(latitude: coordinate[1], longitude: coordinate[0]);
+              featureCoordinates.add(point);
+              debugPrint('$coordinate');
+            }
+          }
+
+          // Add extracted coordinates to the main list
+          if (featureCoordinates.isNotEmpty) {
+            coordinatesList.add(featureCoordinates);
+            totalSetsOfCoordinates++; // Increment the counter
+
+            // Print each set of coordinates
+            // debugPrint('Setz ${coordinatesList.length}: $featureCoordinates');
+          }
+        }
+      }
     }
   }
+
+  print('Number of sets of coordinates: $totalSetsOfCoordinates'); // Print the number of sets of coordinates
+  return coordinatesList;
+}
+
 
 
 
@@ -135,14 +246,13 @@ class Srvc {
   static Color getMarkerColor(String level) {
     // Add logic to determine marker color based on the susceptibility level
     if (level == '1') {
-      return Colors.green;
+      return Color.fromARGB(55, 76, 175, 79);
     } else if (level == '2') {
-      return Colors.orange;
+      return const Color.fromARGB(55, 255, 153, 0);
     } else {
-      return Colors.red;
+      return const Color.fromARGB(55, 244, 67, 54);
     }
   }
-
   static Future<void> addMarkersToMap(List<FloodMarkerPoint>? pointsOnPolyline,
       MapController mapController) async {
     if (pointsOnPolyline == null) {
@@ -168,17 +278,17 @@ class Srvc {
         //       size: 50,
         //     ),
         //   ),
-        // );
+        // // );
         await mapController.drawCircle(CircleOSM(
-              key: "circle$i",
+              key: "circle$level-$i",
               centerPoint: groupPoints[groupPoints.length ~/ 2],
-              radius:  await distance2point(groupPoints.first, groupPoints.last) / 2,
+              radius:  await distance2point(groupPoints[groupPoints.length ~/ 2], groupPoints.last) ,
               color: markerColor,
               strokeWidth: 0.3,
             ));
             i++;
-        // await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: Colors.red, roadWidth: 8));
-      }
+        // await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: markerColor, roadWidth: 8));
+     }
     }
   }
 
@@ -434,8 +544,8 @@ class Srvc {
           ),
         );
       }),
-      duration: const Duration(seconds: 5),
-      snackBarStrategy: StackSnackBarStrategy(),
+      duration: const Duration(minutes: 10),
+      snackBarStrategy: RemoveSnackBarStrategy(),
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
       mobilePositionSettings: const MobilePositionSettings(
         right: 15,
@@ -449,17 +559,36 @@ class Srvc {
       GeoPoint userLocation,
       double maxDistance,
       List<FloodMarkerPoint>? floodProneArea,
-      context) async {
+      context, OpsNotifier opsNotifier) async {
+        
     for (var markerPoint in floodProneArea!) {
       String level = markerPoint.floodLevel;
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
 
       for (var polyline in polylines) {
-        bool isInside =
-            await isWithinFloodProneArea(userLocation, maxDistance, polyline);
-        if (isInside) {
-          showAlertDialog(context, level);
+        bool isInside =  await isWithinFloodProneArea(userLocation, maxDistance, polyline);
+
+      //       if(isInside && opsNotifier.floodLevel == '0'){
+      //       opsNotifier.isWithinFloodProneArea(level);
+      //      showAlertDialog(context, level);
+      //     return;
+      //   }
+      //  else if (isInside && opsNotifier.state.floodLevel != level ) {
+      //     opsNotifier.isWithinFloodProneArea(level);
+      //     showAlertDialog(context, level);
+      //     return;
+      //   } else{
+      //       opsNotifier.isWithinFloodProneArea('0');
+      //     return;
+      //   }
+       if(isInside ){
+        debugPrint("Flood Level: ${opsNotifier.floodLevel}");
+          
+           showAlertDialog(context, level);
           return;
+        }
+        else{
+          AnimatedSnackBar.removeAll();
         }
       }
     }
@@ -506,6 +635,7 @@ class Srvc {
       final myposition = await mapController.myLocation();
       // ignore: invalid_use_of_protected_member
 
+      // ignore: invalid_use_of_protected_member
       myRoutez(myposition, notifier, notifier.state.myRoute!);
 
       final dist = await distance2point(myposition, routeCHOSEN.route.last);
@@ -515,10 +645,12 @@ class Srvc {
       if (dist < 5 || notifier.goNotifier == false) {
         animationController.stop();
         mapController.clearAllRoads();
+        mapController.removeAllCircle();
         removeMarker(routeCHOSEN.points, mapController);
+        notifier.clearAllData();
         return;
       }
-      checkFloodProneArea(myposition, 5, routeCHOSEN.points, context);
+      checkFloodProneArea(myposition, 5, routeCHOSEN.points, context, notifier);
 
       Future.delayed(
           const Duration(seconds: 1),
@@ -550,7 +682,7 @@ class Srvc {
 
 static Future<Map<String, dynamic>> fetchFloodPoints(String? driverId) async {
   try {
-    final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
+    final response = await supabase.rpc('get_o_route_points_by_driver', params: {'driver_id_param': driverId});
     
     if (response is List) {
       // Handle list response
@@ -581,20 +713,22 @@ static Future<List<RoutesWithId>> createRoutes(Map<String, dynamic> data) async 
 
       String geoJsonString = data['routes_geojson'];
       Map<String, dynamic> geoJson = jsonDecode(geoJsonString);
-      List<dynamic> coordinates = geoJson['o_coordinates'][0]['coordinates'];
-      String routeId = geoJson['o_coordinates'][0]['id'];
+      List<dynamic> coordinates = geoJson['o_coordinates'];
+      for(var coordinate in coordinates) {
+      List<dynamic> coord = coordinate['coordinates'];
+      String routeId = coordinate['id'];
       List<GeoPoint> points = [];
 
-      coordinates.forEach((pointData) {
+      for (var pointData in coord) {
         GeoPoint point = GeoPoint(
           longitude: pointData[0],
           latitude: pointData[1],
         );
         points.add(point);
-      });
+      }
 
       RoutesWithId route = RoutesWithId(id: routeId, points: points);
-      routes.add(route);
+      routes.add(route);}
     } else {
       print('Error creating routes: ${data['error']}');
     }
@@ -605,9 +739,45 @@ static Future<List<RoutesWithId>> createRoutes(Map<String, dynamic> data) async 
   return routes;
 }
 
+static Future<void> getAltRoutePointsByDriver(String driverId) async {
+  try {
+    // Call the Supabase RPC endpoint
+    var response = await supabase.rpc('get_alt_route_points_by_driver', params: {
+      'driver_id_param': driverId,
+    });
+
+    // Check if the response is a list
+    if (response is List) {
+      debugPrint('Unexpected response format: $response');
+      return;
+    }
+
+    // Check for errors in the response
+    if (response.error != null) {
+      // Handle error
+      debugPrint('Error: ${response.error!.message}');
+    } else if (response.data != null) {
+      // Extract and handle data
+      var data = response.data;
+      debugPrint('Data: $data');
+      // You can parse the JSON data here if needed
+      // Example: var jsonData = json.decode(data);
+    } else {
+      // Handle unexpected response
+      debugPrint('Unexpected response: $response');
+    }
+  } catch (e) {
+    // Handle any exceptions that occur during the RPC call
+    debugPrint('Error during RPC call: $e');
+  }
+}
+
+
 
 
 static Future<Map<String, dynamic>> sendSavedRoutes(List<List<GeoPoint>> routes, String? driverId) async {
+
+  debugPrint("howmany ${routes.length}");
   List<GeoJsonLineString> geoJsonLineStrings = routes
       .map((route) => GeoJsonLineString(route))
       .toList();
@@ -636,6 +806,93 @@ static Future<Map<String, dynamic>> sendSavedRoutes(List<List<GeoPoint>> routes,
 }
 
 
+// static Future<List<List<GeoPoint>>> removePointsInsideRadius(List<List<GeoPoint>> pointsList) async {
+//   List<List<GeoPoint>> filteredList = [];
+
+//   for (int i = 0; i < pointsList.length; i++) {
+//     List<GeoPoint> group = pointsList[i];
+//     GeoPoint centerPoint = group[group.length ~/ 2]; // Middle point as center
+//     double radius = await distance2point(centerPoint, group.last) ;
+
+//     bool shouldAddGroup = true;
+
+//     // Check if this group overlaps with any other group
+//     for (int j = 0; j < pointsList.length; j++) {
+//       if (i != j) {
+//         GeoPoint otherCenterPoint = pointsList[j][pointsList[j].length ~/ 2];
+        
+//         double distanceBetweenCenters = await distance2point(centerPoint, otherCenterPoint);
+//         if (distanceBetweenCenters < radius ) {
+//           shouldAddGroup = false;
+          
+//         }
+//          if (shouldAddGroup) {
+//       filteredList.add(group);
+//     }
+//       }
+//     }
+
+   
+//   }
+
+//   return filteredList;
+// }
+static bool isPointBetween(GeoPoint point, GeoPoint start, GeoPoint end) {
+  double crossProduct =
+      (point.latitude - start.latitude) * (end.longitude - start.longitude) -
+      (point.longitude - start.longitude) * (end.latitude - start.latitude);
+
+  if (crossProduct.abs() > 1e-8) {
+    return false;
+  }
+
+  double dotProduct =
+      (point.longitude - start.longitude) * (end.longitude - start.longitude) +
+      (point.latitude - start.latitude) * (end.latitude - start.latitude);
+
+  if (dotProduct < 0 ||
+      dotProduct >
+          (end.longitude - start.longitude) * (end.longitude - start.longitude) +
+              (end.latitude - start.latitude) * (end.latitude - start.latitude)) {
+    return false;
+  }
+
+  return true;
+}
+
+static Future<List<List<GeoPoint>>> filterPointsByRoute(List<List<GeoPoint>> pointsList, List<GeoPoint> route)async {
+  List<List<GeoPoint>> filteredList = [];
+
+  for (List<GeoPoint> group in pointsList) {
+    List<GeoPoint> filteredGroup = [];
+
+    // Check if any point in the group is between or intersects the route
+    for (GeoPoint point in group) {
+      bool isPointBetweenRoute = false;
+      for (int i = 0; i < route.length - 1; i++) {
+        if (isPointBetween(point, route[i], route[i + 1])) {
+          isPointBetweenRoute = true;
+          break;
+        }
+      }
+      if (isPointBetweenRoute) {
+        filteredGroup.add(point);
+      }
+    }
+
+    // Ensure all points in the filtered group are between the route's start and end points
+    if (filteredGroup.isNotEmpty) {
+      filteredList.add(filteredGroup);
+    }
+  }
+
+  return filteredList;
+}
+
+
+
+
+
 
 static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseData, List<RoutesWithId> routesWithIds) async {
   List<FloodMarkerRoute> floodMarkerRoutes = [];
@@ -643,6 +900,7 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
   
   // Create a map to store routes by ID for efficient access
   Map<String, List<GeoPoint>> routePointsMap = {};
+  
   for (var route in routesWithIds) {
     routePointsMap[route.id] = route.points;
     // Initialize FloodMarkerRoute with routesWithIds data
@@ -655,7 +913,6 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
     );
   }
   
-
 
   // Loop through each item in the response data
   for (var item in responseData['data']) {
@@ -745,24 +1002,27 @@ if (coordinates.length > 1) {
 
 
     // Find corresponding route points based on route ID
-    List<GeoPoint>? correspondingRoutePoints = routePointsMap[routeId];
+    
 
-
-  debugPrint("R5");
-    // Create FloodMarkerPoint object with route points
-    FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
-      level, 
-      routePoints, 
-      floodScore, 
-      intersectionId,
-    );
 
  
     for (var route in floodMarkerRoutes) {
       
  
       if (route.routeId == routeId) {
+        List<List<GeoPoint>> filteredRoutePoints = await filterPointsByRoute(routePoints,  route.route);
+    //
+
+  debugPrint("R5");
+    // Create FloodMarkerPoint object with route points
+    FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
+      level, 
+      filteredRoutePoints, 
+      floodScore, 
+      intersectionId,
+    );
         route.points?.add(floodMarkerPoint);
+        
       
       }
     }

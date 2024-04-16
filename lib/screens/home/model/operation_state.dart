@@ -16,6 +16,7 @@ class OpsState {
     this.pointsRoad,
     this.polylinezzNotifier = false, 
     this.myRoute = const [],
+    this.floodLevel = '0'
 
   });
 
@@ -28,6 +29,7 @@ class OpsState {
   final List<GeoPoint>? pointsRoad;
   final bool polylinezzNotifier;
   final List<GeoPoint>? myRoute;
+  final String? floodLevel;
 
   OpsState copyWith({
 
@@ -38,7 +40,7 @@ class OpsState {
     FloodMarkerRoute? routeCHOSEN,
     List<GeoPoint>? pointsRoad,
     bool? polylinezzNotifier,  bool? isMapOverlayVisible,
-      List<GeoPoint>? myRoute
+      List<GeoPoint>? myRoute, String? floodLevel
 
   }) {
     return OpsState(
@@ -52,7 +54,7 @@ class OpsState {
       pointsRoad: pointsRoad ?? this.pointsRoad,
       polylinezzNotifier: polylinezzNotifier ?? this.polylinezzNotifier,
       myRoute: myRoute ?? this.myRoute,
-      
+      floodLevel: floodLevel ?? this.floodLevel
     );
   }
 }

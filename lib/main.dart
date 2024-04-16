@@ -5,6 +5,7 @@ import 'package:shift_project/screens/chooselocation/choose_location_view.dart';
 import 'package:shift_project/screens/home/homepage.dart';
 import 'package:shift_project/screens/login/login_screen.dart';
 import 'package:shift_project/screens/register_screen.dart';
+import 'package:shift_project/states/auth/models/auth_results.dart';
 import 'package:shift_project/states/auth/providers/login_provider.dart';
 import 'package:shift_project/states/loading/provider/isloading_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -25,19 +26,18 @@ void main() async {
 final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'SHIFT',
       theme: ThemeData(
         dividerColor: Colors.transparent,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      // home: const LogoScreen(),
       home: Consumer(
         builder: (context, ref, child) {
           ref.listen<bool?>(
@@ -53,9 +53,12 @@ class MyApp extends StatelessWidget {
 
           final isLoggedIn = ref.watch(isLoggedInProvider);
 
+          // Check if the user is logged in
           if (isLoggedIn) {
+            // User is logged in, navigate to the HomePage
             return const HomePage();
           } else {
+            // User is not logged in, navigate to the LoginScreen
             return const LoginScreen();
           }
         },
@@ -63,7 +66,9 @@ class MyApp extends StatelessWidget {
       builder: EasyLoading.init(),
       routes: {
         "/search": (ctx) => const SearchPage(),
-        "/register":(ctx) => const RegisterScreen()
+        "/register":(ctx) => const RegisterScreen(),
+        "/login":(ctx) => const LoginScreen(),
+        "/home":(ctx) => const HomePage(),
       },
     );
   }

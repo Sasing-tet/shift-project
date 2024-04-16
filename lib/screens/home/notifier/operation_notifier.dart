@@ -14,6 +14,7 @@ class OpsNotifier extends StateNotifier<OpsState> {
   OpsNotifier() : super(OpsState());
 
   bool get goNotifier => state.goNotifier;
+  String? get floodLevel => state.floodLevel;
   void addNewPointToMyRoute(GeoPoint newPoint) {
     state = state.copyWith(myRoute: [...state.myRoute ?? [], newPoint]);
   }
@@ -34,6 +35,9 @@ class OpsNotifier extends StateNotifier<OpsState> {
     state = state.copyWith(
         isExpanded: !state.isExpanded,
         isMapOverlayVisible: !state.isMapOverlayVisible);
+  }
+  void isWithinFloodProneArea(String level){
+    state = state.copyWith(floodLevel: level);
   }
 
   void stopButtonNotifier() {
@@ -69,10 +73,11 @@ class OpsNotifier extends StateNotifier<OpsState> {
 
     List<RoutesWithId> r = [];
     if (driverId != null) {
-      debugPrint("Sending polylines to Supabase: $polylines");
+      debugPrint("Sending polylines ${polylines.length} to Supabase: $polylines");
       final oroutes = await Srvc.sendSavedRoutes(polylines, driverId);
+      debugPrint("Sending poly ${oroutes.length} to ${oroutes} ");
       r = await Srvc.createRoutes(oroutes);
-      
+      debugPrint("r = ${r.length} $r");
        final response = await Srvc.fetchFloodPoints(driverId);
     debugPrint('Response from fetchFloodPoints: $response');
     final routes = await Srvc.parseFloodMarkerRoutes(response, r);
@@ -114,6 +119,24 @@ class OpsNotifier extends StateNotifier<OpsState> {
   }
 }
 
+Future<void> insertRideEntry(GeoPoint currentLocation, GeoPoint setDestination, String? driverId) async {
+  String currentLocationWKT = 'POINT(${currentLocation.longitude} ${currentLocation.latitude})';
+  String setDestinationWKT = 'POINT(${setDestination.longitude} ${setDestination.latitude})';
+
+  try {
+   
+    var response = await supabase.rpc('insert_ride', params: {
+      'driver_id': driverId,
+      'current_location': currentLocationWKT,
+      'set_destination': setDestinationWKT,
+    });
+
+    debugPrint("Response from Supabasez: $response");
+  } catch (e) {
+
+    debugPrint("Error inserting ride entry: $e");
+  }
+}
 
 
   void clearData() {
@@ -134,4 +157,6 @@ class OpsNotifier extends StateNotifier<OpsState> {
       goNotifier: false,
     );
   }
+
+  
 }
