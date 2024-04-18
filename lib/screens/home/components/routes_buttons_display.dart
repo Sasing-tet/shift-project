@@ -38,9 +38,12 @@ class RouteButtons extends StatelessWidget {
 
 
                      },
-          child: RouteOptionWidget(i: index),
+          child: RouteOptionWidget(i: index, isAlternative: opsNotifier.isAlternativeRoute(index), score:  opsNotifier.getTotalFloodscore(index).toString()),
         );
       },
     );
   }
 }
+
+
+

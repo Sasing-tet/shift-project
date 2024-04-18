@@ -4,8 +4,10 @@ import '../../../../constants/constants.dart';
 
 class RouteOptionWidget extends StatelessWidget {
   final int i;
+  final bool isAlternative;
+  final String score;
   const RouteOptionWidget({
-    super.key, required this.i,
+    super.key, required this.i, required this.isAlternative, required this.score,
   });
 
   @override
@@ -27,7 +29,7 @@ class RouteOptionWidget extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            "Route ${i+1}",
+            isAlternative ? "Alternative" :"Route ${i+1}",
             style: const TextStyle(
               color: Colors.black,
               fontFamily: interFontFamily,
@@ -36,16 +38,16 @@ class RouteOptionWidget extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          // Text(
-          //   "via this street churva churva",
-          //   style: TextStyle(
-          //     overflow:
-          //         TextOverflow.ellipsis,
-          //     color: shiftGrayBorder,
-          //     fontFamily: interFontFamily,
-          //     fontSize: defaultFontSize,
-          //   ),
-          // ),
+          Text(
+            score,
+            style: TextStyle(
+              overflow:
+                  TextOverflow.ellipsis,
+              color: shiftGrayBorder,
+              fontFamily: interFontFamily,
+              fontSize: defaultFontSize,
+            ),
+          ),
         ],
       ),
     );

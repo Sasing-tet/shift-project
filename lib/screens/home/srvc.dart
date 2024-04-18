@@ -896,6 +896,7 @@ static Future<List<List<GeoPoint>>> filterPointsByRoute(List<List<GeoPoint>> poi
 
 static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseData, List<RoutesWithId> routesWithIds) async {
   List<FloodMarkerRoute> floodMarkerRoutes = [];
+  
 
   
   // Create a map to store routes by ID for efficient access
@@ -921,7 +922,11 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
     // Extract route ID, flood score, intersection ID, and route coordinates
     String level = item['level'].toString();
 
-    String routeId = item['o_routeid'];
+   String? routeId = item['o_routeid'] ?? item['alt_route_id'];
+
+
+
+
 
     int floodScore = item['floodscore']; // No need for int.parse() here
 
@@ -1010,6 +1015,7 @@ if (coordinates.length > 1) {
       
  
       if (route.routeId == routeId) {
+        debugPrint("matched ${route.routeId} and $routeId");
         List<List<GeoPoint>> filteredRoutePoints = await filterPointsByRoute(routePoints,  route.route);
     //
 
@@ -1024,8 +1030,10 @@ if (coordinates.length > 1) {
         route.points?.add(floodMarkerPoint);
         
       
+      }else{
+        debugPrint("not matched ${route.routeId} and $routeId");
       }
-    }
+      }
 
 
   }

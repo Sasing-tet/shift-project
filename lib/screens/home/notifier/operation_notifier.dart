@@ -89,7 +89,10 @@ class OpsNotifier extends StateNotifier<OpsState> {
       polylinezzNotifier: true,
     );
 
-    await Srvc.drawRoadManually(routes, mapController);
+    final routez = state.routes!;
+    await Srvc.drawRoadManually(routez, mapController);
+
+    
     }
 
     
@@ -130,13 +133,155 @@ Future<void> insertRideEntry(GeoPoint currentLocation, GeoPoint setDestination, 
       'current_location': currentLocationWKT,
       'set_destination': setDestinationWKT,
     });
-
-    debugPrint("Response from Supabasez: $response");
+    var ride = fetchAlternateRoutes(driverId!);
+    
   } catch (e) {
 
     debugPrint("Error inserting ride entry: $e");
   }
 }
+
+Future<List<String>> fetchAlternateRoutes(String driverId) async {
+  List<FloodMarkerRoute> routes = [];
+  List<String> rideIds = [];
+
+ try {
+  // Define the query to fetch data
+  final response = await supabase
+      .from('alt_route_view')
+      .select('coordinates, frequency, ride_id, alt_route_id')
+      .eq('driver_id', driverId)
+      .execute();
+
+  // Check if the query was successful
+  if (response.status == 200 && response.data != null) {
+    // Extract data from response
+    List<dynamic> routesData = response.data as List<dynamic>;
+
+    // Process the retrieved data
+    for (var routeData in routesData) {
+      String rideId = routeData['ride_id'].toString();
+      String altRouteId = routeData['alt_route_id'].toString();
+      int frequency = routeData['frequency'] as int;
+      debugPrint("altRouteId: " + altRouteId);
+      String coordinates = routeData['coordinates'].toString();
+      bool isAltRoute = true;
+
+      try {
+  // Convert coordinates string to list of GeoPoints
+  List<GeoPoint> geoPoints = [];
+  List<dynamic> coordinateList = routeData['coordinates']['coordinates'];
+  for (var coord in coordinateList) {
+    if (coord is List<dynamic> && coord.length == 2) {
+      double longitude = coord[0];
+      double latitude = coord[1];
+      geoPoints.add(GeoPoint(latitude: latitude, longitude: longitude));
+    }
+  }
+
+  // Create FloodMarkerRoute instance
+  FloodMarkerRoute route = FloodMarkerRoute([], geoPoints, altRouteId, frequency: frequency, isAltRoute: isAltRoute);
+
+  // Add route to the list
+  routes.add(route);
+  rideIds.add(rideId);
+} catch (e) {
+  // Handle parsing error
+  print('Error parsing coordinates: $coordinates');
+}
+    }
+  } else {
+    // Handle error
+    print('Error fetching alternate routes: ${response}');
+  }
+} catch (error) {
+  // Handle any exception that occurs during execution
+  print('An error occurred: $error');
+}
+
+
+  if(routes.isNotEmpty){
+    state = state.copyWith(
+      routes: [
+        ...(state.routes ?? []),
+        ...routes
+      ],
+    );
+  }
+  return rideIds;
+}
+
+bool isAlternativeRoute(int i){
+  return state.routes![i].isAltRoute;
+}
+
+int getTotalFloodscore(int i){
+  List<FloodMarkerPoint> points = state.routes![i].points!;
+  int total = 0;
+  if(state.routes![i].isAltRoute == true){
+   debugPrint('This is an alternative route ${state.routes![i].points!.length} points}');
+  }
+  for(var point in points){
+  total += point.floodScore;
+    }
+  return total;
+}
+
+// Future<void> fetchAlternateRoutes(String driverId) async {
+//   try {
+//     // Define the query to fetch data
+//     final response = await supabase
+//         .from('alt_route_view')
+//         .select('coordinates, frequency, ride_id, alt_route_id')
+//         .eq('driver_id', driverId)
+//         .execute();
+
+//     // Check if the query was successful
+//     if (response.status == 200 && response.data != null) {
+//       // Extract data from response
+//       List<dynamic> routesData = response.data as List<dynamic>;
+//       List<Map<String, dynamic>> routes = [];
+
+//       // Process the retrieved data
+//       for (var routeData in routesData) {
+//         try {
+//           // Convert coordinates from string to list
+
+//           String coordinate = routeData['coordinates'].toString();
+//           String frequency = routeData['frequency'].toString();
+//           String rideId = routeData['ride_id'].toString();
+//           String altRouteId = routeData['alt_route_id'].toString();
+
+//           // Create a new route map
+//           Map<String, dynamic> route = {
+//             'coordinates': coordinate,
+//             'frequency': frequency,
+//             'ride_id': rideId,
+//             'alt_route_id': altRouteId,
+//           };
+
+//           // Add route to the list
+//           routes.add(route);
+//         } catch (e) {
+//           // Handle parsing error
+//           print('Error parsing coordinates: ${routeData['coordinates']}');
+//         }
+//       }
+
+//       // Print or process the retrieved routes
+//       for (var route in routes) {
+//         debugPrint(
+//             'Coordinates: ${route['coordinates']}, Frequency: ${route['frequency']}, Ride ID: ${route['ride_id']}, Alt Route ID: ${route['alt_route_id']}');
+//       }
+//     } else {
+//       // Handle error
+//       print('Error fetching alternate routes: ${response}');
+//     }
+//   } catch (error) {
+//     // Handle any exception that occurs during execution
+//     print('An error occurred: $error');
+//   }
+// }
 
 
   void clearData() {
