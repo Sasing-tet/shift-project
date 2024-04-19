@@ -133,7 +133,7 @@ Future<void> insertRideEntry(GeoPoint currentLocation, GeoPoint setDestination, 
       'current_location': currentLocationWKT,
       'set_destination': setDestinationWKT,
     });
-    var ride = fetchAlternateRoutes(driverId!);
+    var ride = fetchAlternateRoutes(driverId!, setDestination);
     
   } catch (e) {
 
@@ -141,7 +141,7 @@ Future<void> insertRideEntry(GeoPoint currentLocation, GeoPoint setDestination, 
   }
 }
 
-Future<List<String>> fetchAlternateRoutes(String driverId) async {
+Future<List<String>> fetchAlternateRoutes(String driverId, GeoPoint destination) async {
   List<FloodMarkerRoute> routes = [];
   List<String> rideIds = [];
 
@@ -153,9 +153,8 @@ Future<List<String>> fetchAlternateRoutes(String driverId) async {
       .eq('driver_id', driverId)
       .execute();
 
-  // Check if the query was successful
   if (response.status == 200 && response.data != null) {
-    // Extract data from response
+   
     List<dynamic> routesData = response.data as List<dynamic>;
 
     // Process the retrieved data
@@ -163,31 +162,22 @@ Future<List<String>> fetchAlternateRoutes(String driverId) async {
       String rideId = routeData['ride_id'].toString();
       String altRouteId = routeData['alt_route_id'].toString();
       int frequency = routeData['frequency'] as int;
-      debugPrint("altRouteId: " + altRouteId);
-      String coordinates = routeData['coordinates'].toString();
       bool isAltRoute = true;
 
       try {
   // Convert coordinates string to list of GeoPoints
-  List<GeoPoint> geoPoints = [];
+  
   List<dynamic> coordinateList = routeData['coordinates']['coordinates'];
-  for (var coord in coordinateList) {
-    if (coord is List<dynamic> && coord.length == 2) {
-      double longitude = coord[0];
-      double latitude = coord[1];
-      geoPoints.add(GeoPoint(latitude: latitude, longitude: longitude));
-    }
-  }
 
-  // Create FloodMarkerRoute instance
-  FloodMarkerRoute route = FloodMarkerRoute([], geoPoints, altRouteId, frequency: frequency, isAltRoute: isAltRoute);
+final routePoint = await  Srvc.modifyRoute(coordinateList, destination);
 
-  // Add route to the list
+  FloodMarkerRoute route = FloodMarkerRoute([], routePoint, altRouteId, frequency: frequency, isAltRoute: isAltRoute);
+
   routes.add(route);
   rideIds.add(rideId);
 } catch (e) {
   // Handle parsing error
-  print('Error parsing coordinates: $coordinates');
+  print('Error parsing coordinates: $e');
 }
     }
   } else {
@@ -198,15 +188,19 @@ Future<List<String>> fetchAlternateRoutes(String driverId) async {
   // Handle any exception that occurs during execution
   print('An error occurred: $error');
 }
-
+try{
+final responseData = await Srvc.getAltRoutePointsByDriver(driverId);
+final altroutes = await Srvc.parseAltFloodMarkerRoutes(responseData, routes);
 
   if(routes.isNotEmpty){
     state = state.copyWith(
       routes: [
         ...(state.routes ?? []),
-        ...routes
+        ...altroutes
       ],
     );
+  }}catch(e){
+    debugPrint('Error fetching alt routes: $e');
   }
   return rideIds;
 }

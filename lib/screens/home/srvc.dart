@@ -739,7 +739,7 @@ static Future<List<RoutesWithId>> createRoutes(Map<String, dynamic> data) async 
   return routes;
 }
 
-static Future<void> getAltRoutePointsByDriver(String driverId) async {
+static Future<Map<String, dynamic>> getAltRoutePointsByDriver(String driverId) async {
   try {
     // Call the Supabase RPC endpoint
     var response = await supabase.rpc('get_alt_route_points_by_driver', params: {
@@ -747,28 +747,25 @@ static Future<void> getAltRoutePointsByDriver(String driverId) async {
     });
 
     // Check if the response is a list
+   
     if (response is List) {
-      debugPrint('Unexpected response format: $response');
-      return;
-    }
-
-    // Check for errors in the response
-    if (response.error != null) {
-      // Handle error
-      debugPrint('Error: ${response.error!.message}');
-    } else if (response.data != null) {
-      // Extract and handle data
-      var data = response.data;
-      debugPrint('Data: $data');
-      // You can parse the JSON data here if needed
-      // Example: var jsonData = json.decode(data);
+      // Handle list response
+      List<Map<String, dynamic>> jsonResponseList = [];
+      for (var item in response) {
+        if (item is Map<String, dynamic>) {
+          jsonResponseList.add(item);
+        }
+      }
+      debugPrint("jsonResponseList: $jsonResponseList");
+      return {'data': jsonResponseList};
+    } else if (response is Map<String, dynamic>) {
+      // Handle regular map response
+      return response;
     } else {
-      // Handle unexpected response
-      debugPrint('Unexpected response: $response');
+      throw Exception('Unexpected response format');
     }
   } catch (e) {
-    // Handle any exceptions that occur during the RPC call
-    debugPrint('Error during RPC call: $e');
+    throw Exception('Error fetching flood points: $e');
   }
 }
 
@@ -896,10 +893,7 @@ static Future<List<List<GeoPoint>>> filterPointsByRoute(List<List<GeoPoint>> poi
 
 static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseData, List<RoutesWithId> routesWithIds) async {
   List<FloodMarkerRoute> floodMarkerRoutes = [];
-  
 
-  
-  // Create a map to store routes by ID for efficient access
   Map<String, List<GeoPoint>> routePointsMap = {};
   
   for (var route in routesWithIds) {
@@ -914,33 +908,16 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
     );
   }
   
-
   // Loop through each item in the response data
   for (var item in responseData['data']) {
-    
- 
-    // Extract route ID, flood score, intersection ID, and route coordinates
     String level = item['level'].toString();
-
-   String? routeId = item['o_routeid'] ?? item['alt_route_id'];
-
-
-
-
+   String? routeId = item['o_routeid'] ?? item['alt_route_id'] ;
 
     int floodScore = item['floodscore']; // No need for int.parse() here
-
     String intersectionId = item['intersection_id'];
-
     List<dynamic> coordinates = item['intersecting_geog']['coordinates'];
-  
-
-   
-    
-// Convert route coordinates into GeoPoint objects
-List<List<GeoPoint>> routePoints = [];
-
-if (coordinates.length > 1) {
+    List<List<GeoPoint>> routePoints = [];
+   if (coordinates.length > 1) {
   for (var coordinateList in coordinates) {
     if (coordinateList.isNotEmpty && coordinateList.length >= 2) {
       // For coordinates with multiple points
@@ -955,12 +932,9 @@ if (coordinates.length > 1) {
           longitude: longitude,
         ),
       );
-         
         }else if (coord is double) {
-      // If coord is a double (single coordinate)
-      // Assume the same coordinate is used for both latitude and longitude
       double latitude = coord;
-      double longitude = coord; // Adjust this as needed
+      double longitude = coord; 
       points.add(
         GeoPoint(
           latitude: latitude,
@@ -999,26 +973,10 @@ if (coordinates.length > 1) {
   debugPrint("Invalid coordinates: $coordinates");
   throw Exception("Invalid coordinates: $coordinates");
 }
-
-
-
-
-
-
-
-    // Find corresponding route points based on route ID
-    
-
-
- 
-    for (var route in floodMarkerRoutes) {
-      
- 
-      if (route.routeId == routeId) {
-        debugPrint("matched ${route.routeId} and $routeId");
+    for (var route in floodMarkerRoutes) { 
+      if (route.routeId == routeId && route.routeId != '' ) {
+        debugPrint("matched by route_id ${route.routeId} and $routeId");
         List<List<GeoPoint>> filteredRoutePoints = await filterPointsByRoute(routePoints,  route.route);
-    //
-
   debugPrint("R5");
     // Create FloodMarkerPoint object with route points
     FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
@@ -1029,8 +987,8 @@ if (coordinates.length > 1) {
     );
         route.points?.add(floodMarkerPoint);
         
-      
-      }else{
+      }
+      else{
         debugPrint("not matched ${route.routeId} and $routeId");
       }
       }
@@ -1041,6 +999,194 @@ if (coordinates.length > 1) {
   return floodMarkerRoutes;
 }
 
+static Future<List<FloodMarkerRoute>> parseAltFloodMarkerRoutes(dynamic responseData, List<FloodMarkerRoute> altFl) async {
+  List<FloodMarkerRoute> floodMarkerRoutes = altFl;
+  
+  // Loop through each item in the response data
+  for (var item in responseData['data']) {
+    String level = item['level'].toString();
+   String? routeId = item['alt_route_id'] ;
+
+    int floodScore = item['floodscore']; // No need for int.parse() here
+    String intersectionId = item['intersection_id'];
+    List<dynamic> coordinates = item['intersecting_geog']['coordinates'];
+    List<List<GeoPoint>> routePoints = [];
+   if (coordinates.length > 1) {
+  for (var coordinateList in coordinates) {
+    if (coordinateList.isNotEmpty && coordinateList.length >= 2) {
+      // For coordinates with multiple points
+      List<GeoPoint> points = [];
+      for (var coord in coordinateList) {
+        if (coord is List<dynamic> && coord.length >= 2) {
+      double latitude = double.parse(coord[1].toString());
+      double longitude = double.parse(coord[0].toString());
+      points.add(
+        GeoPoint(
+          latitude: latitude,
+          longitude: longitude,
+        ),
+      );
+        }else if (coord is double) {
+      double latitude = coord;
+      double longitude = coord; 
+      points.add(
+        GeoPoint(
+          latitude: latitude,
+          longitude: longitude,
+        ),
+      );
+ 
+    } else {
+          debugPrint("Invalid coordinate format in $coordinateList");
+          throw Exception("Invalid coordinate format in $coordinateList");
+        }
+      }
+      routePoints.add(points);
+    } else {
+      debugPrint("Invalid coordinates: $coordinateList");
+      throw Exception("Invalid coordinates: $coordinateList");
+    }
+  }
+} else if (coordinates.length == 1) {
+  // For single coordinate list
+  var coordinateList = coordinates[0];
+  if (coordinateList is List<dynamic> && coordinateList.length >= 2) {
+    double latitude = double.parse(coordinateList[1].toString());
+    double longitude = double.parse(coordinateList[0].toString());
+    routePoints.add([
+      GeoPoint(
+        latitude: latitude,
+        longitude: longitude,
+      ),
+    ]);
+  } else {
+    debugPrint("Invalid coordinate format: $coordinateList");
+    throw Exception("Invalid coordinate format: $coordinateList");
+  }
+} else {
+  debugPrint("Invalid coordinates: $coordinates");
+  throw Exception("Invalid coordinates: $coordinates");
+}
+    for (var route in floodMarkerRoutes) { 
+      if (route.routeId == routeId && route.routeId != '' ) {
+        debugPrint("matched by route_id ${route.routeId} and $routeId");
+        List<List<GeoPoint>> filteredRoutePoints = await filterPointsByRoute(routePoints,  route.route);
+  debugPrint("R5");
+    // Create FloodMarkerPoint object with route points
+    FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
+      level, 
+      filteredRoutePoints, 
+      floodScore, 
+      intersectionId,
+    );
+        route.points?.add(floodMarkerPoint);
+        
+      }
+      else{
+        debugPrint("not matched ${route.routeId} and $routeId");
+      }
+      }
+
+
+  }
+
+  return floodMarkerRoutes;
+}
+
+
+static Future<List<GeoPoint>> modifyRoute(List<dynamic> routeData, GeoPoint destination, {double threshold = 0.1}) async {
+  List<GeoPoint> geoPoints = [];
+  List<GeoPoint> alternateRoute = [];
+  
+  // Extract coordinates from routeData
+  for (var currentCoord in routeData) {
+    if (currentCoord is List<dynamic> && currentCoord.length == 2) {
+      double longitude = currentCoord[0];
+      double latitude = currentCoord[1];
+      geoPoints.add(GeoPoint(latitude: latitude, longitude: longitude));
+    }
+  }
+
+  // Find the index of the point closest to the destination
+  int closestIndex = -1;
+  double minDistance = double.infinity;
+  for (int i = geoPoints.length - 1; i >= 0; i--) {
+    double distance = await distance2point(geoPoints[i], destination);
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestIndex = i;
+    }
+  }
+
+  if (closestIndex != -1) {
+    // Remove points after the closest point
+    geoPoints.removeRange(closestIndex + 1, geoPoints.length);
+
+    // Check distances to determine whether to add destination or replace last point
+    if (closestIndex > 0) {
+      double distanceToLastPoint = await distance2point(geoPoints[closestIndex - 1], destination);
+      double distanceToDest = await distance2point(geoPoints[closestIndex], destination);
+
+      if (distanceToDest < distanceToLastPoint) {
+        geoPoints.add(destination); // Add destination
+      } else if (distanceToDest > distanceToLastPoint) {
+        geoPoints[closestIndex] = destination; // Replace last point with destination
+      }
+      // If distances are equal, do nothing
+    }
+  }
+
+   final String coordinatesString = geoPoints
+        .map((coord) => '${coord.longitude},${coord.latitude}')
+        .join(';');
+
+  String url = 'http://router.project-osrm.org/match/v1/driving/$coordinatesString?geometries=polyline&overview=simplified&annotations=true';
+
+  // Make the API call
+ try {
+  http.Response response = await http.get(Uri.parse(url));
+  if (response.statusCode == 200) {
+    // Handle successful response
+    String responseBody = response.body;
+    String geometry = extractGeometry(responseBody);
+    debugPrint('hahay: $geometry');
+    alternateRoute = await geometry.toListGeo();
+  } else {
+    // Handle other status codes
+    debugPrint('Failed to call OSRM API: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
+  }
+} catch (e) {
+  // Handle any exceptions
+  print('Exception occurred while calling OSRM API: $e');
+}
+
+  return alternateRoute;
+}
+
+static String extractGeometry(String responseBody) {
+  try {
+    // Parse the JSON response
+    Map<String, dynamic> jsonResponse = json.decode(responseBody);
+    
+    // Check if the response contains matchings
+    if (jsonResponse.containsKey('matchings')) {
+      List<dynamic> matchings = jsonResponse['matchings'];
+      if (matchings.isNotEmpty) {
+        // Take the geometry from the first matching
+        Map<String, dynamic> firstMatching = matchings[0];
+        if (firstMatching.containsKey('geometry')) {
+          return firstMatching['geometry'] as String;
+        }
+      }
+    }
+  } catch (e) {
+    print('Error parsing JSON response: $e');
+  }
+  
+  // Return an empty string if the geometry cannot be extracted
+  return '';
+}
 
 
 
