@@ -18,6 +18,7 @@ import 'package:shift_project/screens/home/model/routes_with_id.dart';
 import 'package:shift_project/screens/home/model/routes_with_risk_points.dart';
 import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
 import 'package:shift_project/states/location/provider/address_provider.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
 
 import '../../constants/constants.dart';
@@ -32,7 +33,7 @@ class Srvc {
       final riskPoints = routeOnPolyline.points;
 
 
-      
+      debugPrint('$i maoo ni kabuok: ${encoded.length} ug mao ni points: ${routeOnPolyline.points?.length}');
       await mapController.drawRoadManually(encoded, i == 0
           ? const RoadOption(
               roadColor: Colors.blue,
@@ -48,17 +49,26 @@ class Srvc {
         await addMarkersToMap(riskPoints, mapController);
       }
     }
+
+      await mapController.addMarker(routesOnPolylines[0].route.last,  markerIcon: const MarkerIcon(
+                          icon: Icon(
+                            Icons.location_on,
+                            color: Colors.redAccent,
+                            size: 100,
+                          )
+                            ));
+                       
   }
 
   static Future<void> removeAllMarkers(List<FloodMarkerRoute> routesOnPolylines,
       MapController mapController) async {
     await mapController.removeAllCircle();
-    for (var i = 0; i < routesOnPolylines.length; i++) {
-      final routeOnPolyline = routesOnPolylines[i];
-      final riskPoints = routeOnPolyline.points;
+    // for (var i = 0; i < routesOnPolylines.length; i++) {
+    //   final routeOnPolyline = routesOnPolylines[i];
+    //   final riskPoints = routeOnPolyline.points;
 
-      await removeMarker(riskPoints, mapController);
-    }
+    //   await removeMarker(riskPoints, mapController);
+    // }
     
   }
 
@@ -230,19 +240,6 @@ static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
     return true;
   }
 
-  static Future<List<FloodMarkerRoute>> getRoutesOnPolylines(
-      List<List<GeoPoint>> polylines, // Changed to List<List<GeoPoint>>
-      List<FloodMarkerPoint> markerPoints,
-      MapController
-          mapController, // Pass the mapController for the toListGeo() function
-      int currentWeatherCode,
-      {double epsilon = 1e-8}) async {
-    List<FloodMarkerRoute> routesOnPolylines = [];
-
-   
-    return routesOnPolylines;
-  }
-
   static Color getMarkerColor(String level) {
     // Add logic to determine marker color based on the susceptibility level
     if (level == '1') {
@@ -255,12 +252,14 @@ static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
   }
   static Future<void> addMarkersToMap(List<FloodMarkerPoint>? pointsOnPolyline,
       MapController mapController) async {
+      
     if (pointsOnPolyline == null) {
       return;
     }
-
+ var uuid = Uuid();
     for (var markerPoint in pointsOnPolyline) {
-      int i = 0;
+       
+          String markerId = uuid.v4();
       String level = markerPoint.floodLevel;
       List<List<GeoPoint>> groupsOfPoints = markerPoint.points;
 
@@ -280,14 +279,14 @@ static List<List<GeoPoint>> extractCoordinates(String jsonResponse) {
         //   ),
         // // );
         await mapController.drawCircle(CircleOSM(
-              key: "circle$level-$i",
+              key: markerId,
               centerPoint: groupPoints[groupPoints.length ~/ 2],
               radius:  await distance2point(groupPoints[groupPoints.length ~/ 2], groupPoints.last) ,
               color: markerColor,
-              strokeWidth: 0.3,
+              strokeWidth: 0.5,
             ));
-            i++;
-        // await mapController.drawRoadManually(groupPoints, RoadOption(roadColor: markerColor, roadWidth: 8));
+   
+      
      }
     }
   }
@@ -911,7 +910,7 @@ static Future<List<FloodMarkerRoute>> parseFloodMarkerRoutes(dynamic responseDat
   // Loop through each item in the response data
   for (var item in responseData['data']) {
     String level = item['level'].toString();
-   String? routeId = item['o_routeid'] ?? item['alt_route_id'] ;
+   String routeId = item['o_routeid'] ;
 
     int floodScore = item['floodscore']; // No need for int.parse() here
     String intersectionId = item['intersection_id'];
@@ -1140,7 +1139,7 @@ static Future<List<GeoPoint>> modifyRoute(List<dynamic> routeData, GeoPoint dest
         .map((coord) => '${coord.longitude},${coord.latitude}')
         .join(';');
 
-  String url = 'http://router.project-osrm.org/match/v1/driving/$coordinatesString?geometries=polyline&overview=simplified&annotations=true';
+  String url = 'http://router.project-osrm.org/match/v1/driving/$coordinatesString?geometries=polyline&overview=simplified&annotations=true&tidy=true';
 
   // Make the API call
  try {
@@ -1151,6 +1150,8 @@ static Future<List<GeoPoint>> modifyRoute(List<dynamic> routeData, GeoPoint dest
     String geometry = extractGeometry(responseBody);
     debugPrint('hahay: $geometry');
     alternateRoute = await geometry.toListGeo();
+    debugPrint('Response body: ${response.body}');
+    debugPrint('alternateRoute: $alternateRoute');
   } else {
     // Handle other status codes
     debugPrint('Failed to call OSRM API: ${response.statusCode}');
@@ -1189,7 +1190,55 @@ static String extractGeometry(String responseBody) {
 }
 
 
+static Future<List<FloodMarkerRoute>> mrClean(List<FloodMarkerRoute> altRoutes, List<FloodMarkerRoute> routes) async {
+  final routesToRemove = <String>[];
 
+  // Iterate through altRoutes and compare flood scores and total distances
+  for (final altRoute in altRoutes) {
+    final altTotalFloodScore = await _calculateTotalFloodScore(altRoute);
+    final altTotalDistance = await _calculateTotalDistance(altRoute.route);
+
+    // Iterate through routes and compare flood scores and total distances
+    for (final route in routes) {
+      final totalFloodScore = await _calculateTotalFloodScore(route);
+      final totalDistance = await _calculateTotalDistance(route.route);
+      debugPrint('altTotalFloodScore: $altTotalFloodScore totalFloodScore: $totalFloodScore altTotalDistance: $altTotalDistance totalDistance: $totalDistance');
+      // If flood scores and total distances match, add route ID to routesToRemove list
+      if (altTotalFloodScore == totalFloodScore &&  (altTotalDistance - totalDistance).abs() < 6) {
+        routesToRemove.add(route.routeId);
+      }
+    }
+  }
+
+  // Remove routes with matching flood scores and total distances
+  routes.removeWhere((route) => routesToRemove.contains(route.routeId));
+
+  return routes;
+}
+
+
+
+// Helper function to calculate the total flood score of a route
+static Future<int> _calculateTotalFloodScore(FloodMarkerRoute route) async {
+  int total = 0;
+
+  if(route.points != null){
+
+  for (var point in route.points!) {
+    total += point.floodScore;
+  }
+  }
+
+  return total;
+}
+
+static Future<double> _calculateTotalDistance(List<GeoPoint> route) async {
+  double totalDistance = 0.0;
+  for (int i = 0; i < route.length - 1; i++) {
+    totalDistance += await distance2point(route[i], route[i + 1]);
+  }
+  return totalDistance;
+}
 }
 
 

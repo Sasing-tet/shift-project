@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -63,11 +63,13 @@ class OpsNotifier extends StateNotifier<OpsState> {
       pointsRoad: [...state.pointsRoad ?? [], newPoint],
     );
   }
+  
 
- Future<void> fetchAndDrawRoute(String? driverId, MapController mapController, int currentWeatherCode) async {
+ Future<void> fetchAndDrawRoute(String? driverId, MapController mapController, int currentWeatherCode,GeoPoint currentLocation, GeoPoint setDestination) async {
   final coordinates = state.pointsRoad;
 
   try {
+    final altroutes = await insertRideEntry( currentLocation,  setDestination, driverId);
     final polylines =
         await Srvc.fetchOSRMRoutePolylines(coordinates!, mapController);
 
@@ -81,21 +83,23 @@ class OpsNotifier extends StateNotifier<OpsState> {
        final response = await Srvc.fetchFloodPoints(driverId);
     debugPrint('Response from fetchFloodPoints: $response');
     final routes = await Srvc.parseFloodMarkerRoutes(response, r);
+
+    final routesTobeAdded = await Srvc.mrClean(altroutes, routes) ;
+
+    debugPrint('RoutesTobeAdded: ${routesTobeAdded.length}');
+    
     state = state.copyWith(
       routes: [
         ...(state.routes ?? []),
-        ...routes
+        ...routesTobeAdded
       ],
       polylinezzNotifier: true,
     );
 
     final routez = state.routes!;
     await Srvc.drawRoadManually(routez, mapController);
-
-    
     }
-
-    
+  
   } catch (e) {
     debugPrint("Error fetching or drawing route: $e");
   }
@@ -122,26 +126,34 @@ class OpsNotifier extends StateNotifier<OpsState> {
   }
 }
 
-Future<void> insertRideEntry(GeoPoint currentLocation, GeoPoint setDestination, String? driverId) async {
+Future<List<FloodMarkerRoute>> insertRideEntry(GeoPoint currentLocation, GeoPoint setDestination, String? driverId) async {
+  // Generate UUID
+  var uuid = Uuid();
+  String rideId = uuid.v4();
+
+  debugPrint('front ride_id: $rideId'); 
+
   String currentLocationWKT = 'POINT(${currentLocation.longitude} ${currentLocation.latitude})';
   String setDestinationWKT = 'POINT(${setDestination.longitude} ${setDestination.latitude})';
 
   try {
    
     var response = await supabase.rpc('insert_ride', params: {
+      'ride_id': rideId,
       'driver_id': driverId,
       'current_location': currentLocationWKT,
       'set_destination': setDestinationWKT,
     });
-    var ride = fetchAlternateRoutes(driverId!, setDestination);
-    
+    var ride = fetchAlternateRoutes(driverId!, setDestination,rideId);
+    return ride;
   } catch (e) {
 
     debugPrint("Error inserting ride entry: $e");
+    rethrow;
   }
 }
 
-Future<List<String>> fetchAlternateRoutes(String driverId, GeoPoint destination) async {
+Future<List<FloodMarkerRoute>> fetchAlternateRoutes(String driverId, GeoPoint destination, String ride_id)async {
   List<FloodMarkerRoute> routes = [];
   List<String> rideIds = [];
 
@@ -150,12 +162,13 @@ Future<List<String>> fetchAlternateRoutes(String driverId, GeoPoint destination)
   final response = await supabase
       .from('alt_route_view')
       .select('coordinates, frequency, ride_id, alt_route_id')
-      .eq('driver_id', driverId)
+      .eq('ride_id', ride_id)
       .execute();
 
   if (response.status == 200 && response.data != null) {
    
     List<dynamic> routesData = response.data as List<dynamic>;
+debugPrint('Routes data: $routesData');
 
     // Process the retrieved data
     for (var routeData in routesData) {
@@ -202,7 +215,7 @@ final altroutes = await Srvc.parseAltFloodMarkerRoutes(responseData, routes);
   }}catch(e){
     debugPrint('Error fetching alt routes: $e');
   }
-  return rideIds;
+  return routes;
 }
 
 bool isAlternativeRoute(int i){
@@ -221,61 +234,6 @@ int getTotalFloodscore(int i){
   return total;
 }
 
-// Future<void> fetchAlternateRoutes(String driverId) async {
-//   try {
-//     // Define the query to fetch data
-//     final response = await supabase
-//         .from('alt_route_view')
-//         .select('coordinates, frequency, ride_id, alt_route_id')
-//         .eq('driver_id', driverId)
-//         .execute();
-
-//     // Check if the query was successful
-//     if (response.status == 200 && response.data != null) {
-//       // Extract data from response
-//       List<dynamic> routesData = response.data as List<dynamic>;
-//       List<Map<String, dynamic>> routes = [];
-
-//       // Process the retrieved data
-//       for (var routeData in routesData) {
-//         try {
-//           // Convert coordinates from string to list
-
-//           String coordinate = routeData['coordinates'].toString();
-//           String frequency = routeData['frequency'].toString();
-//           String rideId = routeData['ride_id'].toString();
-//           String altRouteId = routeData['alt_route_id'].toString();
-
-//           // Create a new route map
-//           Map<String, dynamic> route = {
-//             'coordinates': coordinate,
-//             'frequency': frequency,
-//             'ride_id': rideId,
-//             'alt_route_id': altRouteId,
-//           };
-
-//           // Add route to the list
-//           routes.add(route);
-//         } catch (e) {
-//           // Handle parsing error
-//           print('Error parsing coordinates: ${routeData['coordinates']}');
-//         }
-//       }
-
-//       // Print or process the retrieved routes
-//       for (var route in routes) {
-//         debugPrint(
-//             'Coordinates: ${route['coordinates']}, Frequency: ${route['frequency']}, Ride ID: ${route['ride_id']}, Alt Route ID: ${route['alt_route_id']}');
-//       }
-//     } else {
-//       // Handle error
-//       print('Error fetching alternate routes: ${response}');
-//     }
-//   } catch (error) {
-//     // Handle any exception that occurs during execution
-//     print('An error occurred: $error');
-//   }
-// }
 
 
   void clearData() {

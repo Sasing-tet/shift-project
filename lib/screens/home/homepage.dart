@@ -149,7 +149,8 @@ class _HomePage extends ConsumerState<HomePage>
                                       operationsProvider.clearAllData();
                                       String? driverId = _authenticator.userId;
                                       await Srvc.sendSavedRoute(myRoute, driverId);
-                                      await Srvc.fetchFloodPoints(driverId);
+                                      // await Srvc.fetchFloodPoints(driverId);
+                                      mapController.removeMarker(routes[0].route.last);
                                     },): Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -157,7 +158,9 @@ class _HomePage extends ConsumerState<HomePage>
                             onPressed: () async {
                               await Srvc.removeAllMarkers(
                                   routes!, mapController);
+                                    mapController.removeMarker(routes[0].route.last);
                               mapController.clearAllRoads();
+                            
                               operationsProvider.clearAllData();
                             },
                           ),
@@ -210,14 +213,12 @@ class _HomePage extends ConsumerState<HomePage>
                         onPressed: () async {
                           String? driverId = _authenticator.userId;
                           var p = await Navigator.pushNamed(context, "/search");
-                          operationsProvider
+                           operationsProvider
                               .addPointToRoad(await mapController.myLocation());
-                          operationsProvider.addPointToRoad(p as GeoPoint);
-                              operationsProvider.insertRideEntry(await mapController.myLocation(), p, driverId);
-                          operationsProvider.fetchAndDrawRoute(driverId,
-                              mapController, weatherCose!);
-                      
-                          Srvc.getAltRoutePointsByDriver(driverId!);
+                           operationsProvider.addPointToRoad(p as GeoPoint);
+                         await operationsProvider.fetchAndDrawRoute(driverId,
+                              mapController, weatherCose!,await mapController.myLocation(), p);
+                         
                         },
                       );
               })
