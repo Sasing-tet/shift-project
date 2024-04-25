@@ -65,7 +65,6 @@ dependencies:
   uuid: ^3.0.7
   supabase_auth_ui: ^0.2.1
 
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -106,26 +105,25 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Inter
+    - family: Inter Bold
       fonts:
-        - asset: assets/fonts/Inter-Black.ttf
-        - asset: assets/fonts/Inter-BlackItalic.ttf
         - asset: assets/fonts/Inter-Bold.ttf
-        - asset: assets/fonts/Inter-BoldItalic.ttf
-        - asset: assets/fonts/Inter-ExtraBold.ttf
-        - asset: assets/fonts/Inter-ExtraBoldItalic.ttf
-        - asset: assets/fonts/Inter-ExtraLight.ttf
-        - asset: assets/fonts/Inter-ExtraLightItalic.ttf
-        - asset: assets/fonts/Inter-Italic.ttf
-        - asset: assets/fonts/Inter-Light.ttf
-        - asset: assets/fonts/Inter-LightItalic.ttf
+          weight: 700
+
+    - family: Inter Medium
+      fonts:
         - asset: assets/fonts/Inter-Medium.ttf
-        - asset: assets/fonts/Inter-MediumItalic.ttf
-        - asset: assets/fonts/Inter-Regular.ttf
-        - asset: assets/fonts/Inter-SemiBold.ttf
-        - asset: assets/fonts/Inter-SemiBoldItalic.ttf
-        - asset: assets/fonts/Inter-Thin.ttf
-        - asset: assets/fonts/Inter-ThinItalic.ttf
+          weight: 500
+
+    - family: Inter Light
+      fonts:
+        - asset: assets/fonts/Inter-Light.ttf
+          weight: 300
+
+    - family: Inter Italic
+      fonts:
+        - asset: assets/fonts/Inter-Italic.ttf
+
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:

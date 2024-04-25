@@ -41,3 +41,56 @@ final ButtonStyle chooseDestination = TextButton.styleFrom(
     borderRadius: BorderRadius.all(Radius.circular(2)),
   ),
 );
+
+TextTheme constTextTheme() {
+  return const TextTheme(
+    headlineLarge: TextStyle(
+      fontFamily: 'Sailec Bold',
+      fontSize: 30,
+      height: 1.2,
+      color: Colors.white,
+    ),
+    headlineMedium: TextStyle(
+      fontFamily: 'Sailec Medium',
+      fontSize: 22,
+      height: 1.2,
+      color: Colors.white,
+    ),
+    headlineSmall: TextStyle(
+      fontFamily: 'Sailec Light',
+      fontSize: 15,
+      height: 1.2,
+      color: Colors.white,
+    ),
+    displayMedium: TextStyle(
+      fontFamily: 'Sailec Light',
+      height: 1.2,
+      fontSize: 22,
+      color: Colors.white,
+    ),
+    displaySmall: TextStyle(
+      fontFamily: 'Sailec Medium',
+      fontSize: 15,
+      height: 1.2,
+      color: Colors.white,
+    ),
+  );
+}
+
+final ThemeData constElevatedButtonTheme = ThemeData(
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ButtonStyle(
+      backgroundColor: MaterialStateProperty.all<Color>(
+        const Color(0XFF001c52),
+      ),
+      foregroundColor: MaterialStateProperty.all<Color>(
+        Colors.white,
+      ),
+      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    ),
+  ),
+);
