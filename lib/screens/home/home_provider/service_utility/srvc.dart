@@ -266,36 +266,28 @@ class Srvc {
     if (pointsOnPolyline == null) {
       return;
     }
-    var uuid = Uuid();
-    for (var markerPoint in pointsOnPolyline) {
-      String markerId = uuid.v4();
+
+  for (var markerPoint in pointsOnPolyline) {
+
       String level = markerPoint.floodLevel;
       List<List<GeoPoint>> groupsOfPoints = markerPoint.points;
-
       for (var groupPoints in groupsOfPoints) {
         // Get the marker color based on the level
         Color markerColor = getMarkerColor(level);
 
-        // Add the marker to the map
-        // await mapController.addMarker(
-        //   groupPoints.first,
-        //   markerIcon: MarkerIcon(
-        //     icon: Icon(
-        //       Icons.flood,
-        //       color: markerColor, // Set the marker color based on the level
-        //       size: 50,
-        //     ),
-        //   ),
-        // // );
+        var uuid =const  Uuid();
+        String markerId = uuid.v4();
+    
         await mapController.drawCircle(CircleOSM(
-          key: markerId,
-          centerPoint: groupPoints[groupPoints.length ~/ 2],
-          radius: await distance2point(
-              groupPoints[groupPoints.length ~/ 2], groupPoints.last),
-          color: markerColor,
-          strokeWidth: 0.5,
-        ));
-      }
+              key: markerId,
+              centerPoint: groupPoints[groupPoints.length ~/ 2],
+              radius: await distance2point(groupPoints.first, groupPoints.last) * 0.5 <= 20 ? 20 : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
+              color: markerColor,
+              strokeWidth: 0.5,
+            ));
+   
+      
+     }
     }
   }
 
@@ -304,7 +296,7 @@ class Srvc {
     if (pointsOnPolyline == null) {
       return;
     }
-
+await mapController.removeAllCircle();
     for (var markerPoint in pointsOnPolyline) {
       List<List<GeoPoint>> groupsOfPoints = markerPoint.markerPoints;
 
@@ -846,7 +838,7 @@ class Srvc {
             (end.longitude - start.longitude) -
         (point.longitude - start.longitude) * (end.latitude - start.latitude);
 
-    if (crossProduct.abs() > 1e-8) {
+    if (crossProduct.abs() > 1e-9) {
       return false;
     }
 
@@ -983,11 +975,11 @@ class Srvc {
           debugPrint("matched by route_id ${route.routeId} and $routeId");
           List<List<GeoPoint>> filteredRoutePoints =
               await filterPointsByRoute(routePoints, route.route);
-          debugPrint("R5");
+          // debugPrint("R5");
           // Create FloodMarkerPoint object with route points
           FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
             level,
-            filteredRoutePoints,
+            routePoints,
             floodScore,
             intersectionId,
           );
@@ -1074,11 +1066,11 @@ class Srvc {
           debugPrint("matched by route_id ${route.routeId} and $routeId");
           List<List<GeoPoint>> filteredRoutePoints =
               await filterPointsByRoute(routePoints, route.route);
-          debugPrint("R5");
+          // debugPrint("R5");
           // Create FloodMarkerPoint object with route points
           FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
             level,
-            filteredRoutePoints,
+            routePoints,
             floodScore,
             intersectionId,
           );
@@ -1238,9 +1230,9 @@ class Srvc {
 
   static Future<double> _calculateTotalDistance(List<GeoPoint> route) async {
     double totalDistance = 0.0;
-    for (int i = 0; i < route.length - 1; i++) {
-      totalDistance += await distance2point(route[i], route[i + 1]);
-    }
+    
+      totalDistance += await distance2point(route.first, route.last);
+    
     return totalDistance;
   }
 }
