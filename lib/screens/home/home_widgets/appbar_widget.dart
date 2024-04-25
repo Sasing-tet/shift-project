@@ -1,11 +1,11 @@
 // app_bar_widget.dart
 
 import 'package:flutter/material.dart';
-import 'package:shift_project/screens/home/components/weather_forecast_widget.dart';
-import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
+import 'package:shift_project/screens/home/home_widgets/components/weather_forecast_widget.dart';
+import 'package:shift_project/screens/home/home_provider/notifier/operation_notifier.dart';
 
 class MyAppBar extends StatelessWidget {
-  const MyAppBar( {super.key, required this.opsNotifier});
+  const MyAppBar({super.key, required this.opsNotifier});
   final OpsNotifier opsNotifier;
 
   @override
@@ -61,7 +61,9 @@ class MyAppBar extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: WeatherForecastWidget( opsProvider: opsNotifier,),
+                child: WeatherForecastWidget(
+                  opsProvider: opsNotifier,
+                ),
               ),
             ),
           ],

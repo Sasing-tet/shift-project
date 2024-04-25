@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shift_project/screens/home/notifier/operation_notifier.dart';
+import 'package:shift_project/screens/home/home_provider/notifier/operation_notifier.dart';
 
-import '../../screens/home/components/weather code description/weather_code_description.dart';
+import '../../screens/home/home_widgets/components/weather code description/weather_code_description.dart';
 import '../../states/weather/models/hourly_weather_data_model.dart';
 import '../../states/weather/models/weather_data_model.dart';
 
-
-Future<WeatherData> fetchWeatherData(double latitude, double longitude, OpsNotifier opsNotifier) async {
+Future<WeatherData> fetchWeatherData(
+    double latitude, double longitude, OpsNotifier opsNotifier) async {
   final dio = Dio();
   final position = await Geolocator.getCurrentPosition(
     desiredAccuracy: LocationAccuracy.high,
