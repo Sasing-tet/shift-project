@@ -838,7 +838,7 @@ await mapController.removeAllCircle();
             (end.longitude - start.longitude) -
         (point.longitude - start.longitude) * (end.latitude - start.latitude);
 
-    if (crossProduct.abs() > 1e-9) {
+    if (crossProduct.abs() > 1e-7) {
       return false;
     }
 
@@ -880,7 +880,7 @@ await mapController.removeAllCircle();
       }
 
       // Ensure all points in the filtered group are between the route's start and end points
-      if (filteredGroup.isNotEmpty) {
+      if (filteredGroup.isNotEmpty && filteredGroup.length > 1) {
         filteredList.add(filteredGroup);
       }
     }
@@ -979,7 +979,7 @@ await mapController.removeAllCircle();
           // Create FloodMarkerPoint object with route points
           FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
             level,
-            routePoints,
+            filteredRoutePoints,
             floodScore,
             intersectionId,
           );
@@ -1070,7 +1070,7 @@ await mapController.removeAllCircle();
           // Create FloodMarkerPoint object with route points
           FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
             level,
-            routePoints,
+            filteredRoutePoints,
             floodScore,
             intersectionId,
           );
