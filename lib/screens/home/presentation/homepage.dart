@@ -1,5 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -10,6 +9,7 @@ import 'package:shift_project/screens/home/home_widgets/components/buttons/flood
 import 'package:shift_project/screens/home/home_widgets/components/buttons/go_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/buttons/stop_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/buttons/user_location_button.dart';
+import 'package:shift_project/screens/home/home_widgets/components/loadingscreen/loading_screen.dart';
 import 'package:shift_project/screens/home/home_widgets/components/route_buttons_container.dart';
 import 'package:shift_project/screens/home/home_widgets/components/routes_buttons_display.dart';
 import 'package:shift_project/screens/home/home_widgets/appbar_widget.dart';
@@ -212,21 +212,41 @@ class _HomePage extends ConsumerState<HomePage>
                               )
                             ],
                           )
-                    : ChooseDestinationButton(
+                    :ChooseDestinationButton(
                         onPressed: () async {
                           String? driverId = _authenticator.userId;
-                          var p = await Navigator.pushNamed(context, "/search");
-                          operationsProvider
-                              .addPointToRoad(await mapController.myLocation());
-                          operationsProvider.addPointToRoad(p as GeoPoint);
-                          await operationsProvider.fetchAndDrawRoute(
+                          
+              
+
+                            var p = await Navigator.pushNamed(context, "/search");
+                             operationsProvider.addPointToRoad(await mapController.myLocation());
+                             operationsProvider.addPointToRoad(p as GeoPoint);
+
+                          showDialog(
+                              context: context,
+                              barrierDismissible: false, // Prevent dismissing dialog on tap outside
+                              builder: (BuildContext context) {
+                                return const Center(
+                                  child: LoadingScreen(),
+                                );
+                              },
+                            );
+
+                          try {
+                            await operationsProvider.fetchAndDrawRoute(
                               driverId,
                               mapController,
                               weatherCose!,
                               await mapController.myLocation(),
-                              p);
+                              p,
+                            );
+                          } finally {
+                            // Hide loading screen
+                            Navigator.of(context).pop();
+                          }
                         },
                       );
+
               })
             ]),
           )
