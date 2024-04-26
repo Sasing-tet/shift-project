@@ -281,7 +281,7 @@ class Srvc {
         await mapController.drawCircle(CircleOSM(
               key: markerId,
               centerPoint: groupPoints[groupPoints.length ~/ 2],
-              radius: await distance2point(groupPoints.first, groupPoints.last) * 0.5 <= 20 ? 20 : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
+              radius: await distance2point(groupPoints.first, groupPoints.last) * 0.5 <= 10 ? 10 : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
               color: markerColor,
               strokeWidth: 0.5,
             ));
@@ -417,10 +417,12 @@ await mapController.removeAllCircle();
       if (distanceToSegment <= maxDistance) {
         return true;
       }
-    }
-
-    return false;
+    // }
+    // if(isBetween(point, point1,point2)){
+    //   return true;
+    // }
   }
+  return false;}
 
 // Function to calculate the distance between a point and a line segment
   static Future<double> calculateDistanceToSegment(
@@ -542,7 +544,7 @@ await mapController.removeAllCircle();
         );
       }),
       duration: const Duration(minutes: 10),
-      snackBarStrategy: RemoveSnackBarStrategy(),
+      snackBarStrategy:  ColumnSnackBarStrategy(),
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
       mobilePositionSettings: const MobilePositionSettings(
         right: 15,
@@ -552,45 +554,58 @@ await mapController.removeAllCircle();
     ).show(context);
   }
 
-  static Future<void> checkFloodProneArea(
+  static Future<String> checkFloodProneArea(
       GeoPoint userLocation,
       double maxDistance,
       List<FloodMarkerPoint>? floodProneArea,
       context,
-      OpsNotifier opsNotifier) async {
+      OpsNotifier opsNotifier,
+      String prevlevel) async {
+         List<String> levelsToCheck = [];
+    if (opsNotifier.state.weatherData != null) {
+      if (opsNotifier.state.weatherData! < 53) {
+        levelsToCheck.add('3');
+      } else if (opsNotifier.state.weatherData! >= 53 &&
+          opsNotifier.state.weatherData! <= 63) {
+        levelsToCheck.addAll(['2', "3"]);
+      } else {
+        levelsToCheck.addAll(["1", "2", "3"]);
+      }
+    }
+
     for (var markerPoint in floodProneArea!) {
-      String level = markerPoint.floodLevel;
+       String level = markerPoint.floodLevel;
+     if (!levelsToCheck.contains(level)) {
+        // if(level == '2'){
+        continue;
+      }
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
 
       for (var polyline in polylines) {
         bool isInside =
             await isWithinFloodProneArea(userLocation, maxDistance, polyline);
 
-        //       if(isInside && opsNotifier.floodLevel == '0'){
-        //       opsNotifier.isWithinFloodProneArea(level);
-        //      showAlertDialog(context, level);
-        //     return;
-        //   }
-        //  else if (isInside && opsNotifier.state.floodLevel != level ) {
-        //     opsNotifier.isWithinFloodProneArea(level);
-        //     showAlertDialog(context, level);
-        //     return;
-        //   } else{
-        //       opsNotifier.isWithinFloodProneArea('0');
-        //     return;
-        //   }
         if (isInside) {
-          debugPrint("Flood Level: ${opsNotifier.floodLevel}");
-
-          showAlertDialog(context, level);
-          return;
-        } else {
+          debugPrint("Flood Level: ${level} and $prevlevel");
+          if (prevlevel != level && prevlevel == '0') {
+            showAlertDialog(context, level);}
+            else if(prevlevel != level && prevlevel != '0'){
+                debugPrint("Flood Level: ${level} and $prevlevel");
+              AnimatedSnackBar.removeAll();
+              showAlertDialog(context, level);
+            }
+           
+          return level;
+        } 
+        else{
+            debugPrint("Flood Level: ${level} and $prevlevel");
           AnimatedSnackBar.removeAll();
+          prevlevel = '4';
         }
+      
       }
     }
-
-    print('You are not in a flood-prone area. Safe to proceed.');
+      return '4';
   }
 
   static Future<void> myRoutez(
@@ -631,7 +646,8 @@ await mapController.removeAllCircle();
       MapController mapController,
       AnimationController animationController,
       OpsNotifier notifier,
-      context) async {
+      context, String prlevel ) async {
+        String prevlevel = prlevel;
     if (routeCHOSEN.route.isNotEmpty) {
       final myposition = await mapController.myLocation();
       // ignore: invalid_use_of_protected_member
@@ -649,9 +665,10 @@ await mapController.removeAllCircle();
         mapController.removeAllCircle();
         removeMarker(routeCHOSEN.points, mapController);
         notifier.clearAllData();
+         AnimatedSnackBar.removeAll();
         return;
       }
-      checkFloodProneArea(myposition, 5, routeCHOSEN.points, context, notifier);
+     prevlevel = await checkFloodProneArea(myposition, 4, routeCHOSEN.points, context, notifier,prevlevel);
 
       Future.delayed(
           const Duration(seconds: 1),
@@ -661,25 +678,12 @@ await mapController.removeAllCircle();
                 animationController,
                 notifier,
                 context,
+                prevlevel
               ));
     }
   }
 
-//   static Future<void> fetchFloodPoints(String? driverId) async {
-//   final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
 
-//   if (response is List<dynamic>) {
-//     // Handle the case when the response is a list
-//     debugPrint(response.toString());
-//   } else {
-//     // Handle the case when the response is an object
-//     if (response['error'] != null) {
-//       debugPrint(response['error']['message']);
-//     } else {
-//       debugPrint(response['data'].toString());
-//     }
-//   }
-// }
 
   static Future<Map<String, dynamic>> fetchFloodPoints(String? driverId) async {
     try {
