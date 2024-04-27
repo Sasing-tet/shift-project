@@ -101,7 +101,7 @@ class OpsNotifier extends StateNotifier<OpsState> {
         );
 
         final routez = state.routes!;
-        await Srvc.drawRoadManually(routez, mapController);
+        await Srvc.drawRoadManually(routez, mapController, state.weatherData!);
       }
     } catch (e) {
       debugPrint("Error fetching or drawing route: $e");

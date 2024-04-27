@@ -26,7 +26,7 @@ import '../../../../main.dart';
 
 class Srvc {
   static Future<void> drawRoadManually(List<FloodMarkerRoute> routesOnPolylines,
-      MapController mapController) async {
+      MapController mapController, int weatherData) async {
     for (var i = 0; i < routesOnPolylines.length; i++) {
       final routeOnPolyline = routesOnPolylines[i];
       final encoded = routeOnPolyline.route;
@@ -48,7 +48,7 @@ class Srvc {
           );
 
       if (riskPoints!.isNotEmpty) {
-        await addMarkersToMap(riskPoints, mapController);
+        await addMarkersToMap(riskPoints, mapController, weatherData);
       }
     }
 
@@ -250,52 +250,66 @@ class Srvc {
     return true;
   }
 
-  static Color getMarkerColor(String level) {
+  static Color getMarkerColor(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
-    if (level == '1') {
-      return Color.fromARGB(55, 76, 175, 79);
-    } else if (level == '2') {
-      return const Color.fromARGB(55, 255, 153, 0);
-    } else {
-      return const Color.fromARGB(55, 244, 67, 54);
-    }
+    
+      if (weatherData < 53) {
+        if (level == '1') {
+          return const Color.fromARGB(62, 76, 175, 79);
+        } else if (level == '2') {
+          return const Color.fromARGB(62, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+      } else if (weatherData >= 53 && weatherData <= 63) {
+         if (level == '1') {
+          return const Color.fromARGB(101, 76, 175, 79);
+        } else if (level == '2') {
+          return const Color.fromARGB(62, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+        
+      } else {
+         if (level == '1') {
+          return const Color.fromARGB(101, 76, 175, 79);
+        } else if (level == '2') {
+          return  const Color.fromARGB(101, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+     
+      }
+    
   }
 
   static Future<void> addMarkersToMap(List<FloodMarkerPoint>? pointsOnPolyline,
-      MapController mapController) async {
+      MapController mapController, int weatherData)async {
     if (pointsOnPolyline == null) {
       return;
     }
-    var uuid = Uuid();
-    for (var markerPoint in pointsOnPolyline) {
-      String markerId = uuid.v4();
+
+  for (var markerPoint in pointsOnPolyline) {
+
       String level = markerPoint.floodLevel;
       List<List<GeoPoint>> groupsOfPoints = markerPoint.points;
-
       for (var groupPoints in groupsOfPoints) {
         // Get the marker color based on the level
-        Color markerColor = getMarkerColor(level);
+        Color markerColor = getMarkerColor(level,weatherData);
 
-        // Add the marker to the map
-        // await mapController.addMarker(
-        //   groupPoints.first,
-        //   markerIcon: MarkerIcon(
-        //     icon: Icon(
-        //       Icons.flood,
-        //       color: markerColor, // Set the marker color based on the level
-        //       size: 50,
-        //     ),
-        //   ),
-        // // );
+        var uuid =const  Uuid();
+        String markerId = uuid.v4();
+    
         await mapController.drawCircle(CircleOSM(
-          key: markerId,
-          centerPoint: groupPoints[groupPoints.length ~/ 2],
-          radius: await distance2point(
-              groupPoints[groupPoints.length ~/ 2], groupPoints.last),
-          color: markerColor,
-          strokeWidth: 0.5,
-        ));
-      }
+              key: markerId,
+              centerPoint: groupPoints[groupPoints.length ~/ 2],
+              radius: await distance2point(groupPoints.first, groupPoints.last) * 0.5 <= 10 ? 10 : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
+              color: markerColor,
+              strokeWidth: 0.5,
+            ));
+   
+      
+     }
     }
   }
 
@@ -304,7 +318,7 @@ class Srvc {
     if (pointsOnPolyline == null) {
       return;
     }
-
+await mapController.removeAllCircle();
     for (var markerPoint in pointsOnPolyline) {
       List<List<GeoPoint>> groupsOfPoints = markerPoint.markerPoints;
 
@@ -425,10 +439,12 @@ class Srvc {
       if (distanceToSegment <= maxDistance) {
         return true;
       }
-    }
-
-    return false;
+    // }
+    // if(isBetween(point, point1,point2)){
+    //   return true;
+    // }
   }
+  return false;}
 
 // Function to calculate the distance between a point and a line segment
   static Future<double> calculateDistanceToSegment(
@@ -550,7 +566,7 @@ class Srvc {
         );
       }),
       duration: const Duration(minutes: 10),
-      snackBarStrategy: RemoveSnackBarStrategy(),
+      snackBarStrategy:  RemoveSnackBarStrategy(),
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
       mobilePositionSettings: const MobilePositionSettings(
         right: 15,
@@ -560,45 +576,58 @@ class Srvc {
     ).show(context);
   }
 
-  static Future<void> checkFloodProneArea(
+  static Future<String> checkFloodProneArea(
       GeoPoint userLocation,
       double maxDistance,
       List<FloodMarkerPoint>? floodProneArea,
       context,
-      OpsNotifier opsNotifier) async {
+      OpsNotifier opsNotifier,
+      String prevlevel) async {
+         List<String> levelsToCheck = [];
+    if (opsNotifier.state.weatherData != null) {
+      if (opsNotifier.state.weatherData! < 53) {
+        levelsToCheck.add('3');
+      } else if (opsNotifier.state.weatherData! >= 53 &&
+          opsNotifier.state.weatherData! <= 63) {
+        levelsToCheck.addAll(['2', "3"]);
+      } else {
+        levelsToCheck.addAll(["1", "2", "3"]);
+      }
+    }
+
     for (var markerPoint in floodProneArea!) {
-      String level = markerPoint.floodLevel;
+       String level = markerPoint.floodLevel;
+    //  if (!levelsToCheck.contains(level)) {
+        if(level == '3'){
+        continue;
+      }
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
 
       for (var polyline in polylines) {
         bool isInside =
             await isWithinFloodProneArea(userLocation, maxDistance, polyline);
 
-        //       if(isInside && opsNotifier.floodLevel == '0'){
-        //       opsNotifier.isWithinFloodProneArea(level);
-        //      showAlertDialog(context, level);
-        //     return;
-        //   }
-        //  else if (isInside && opsNotifier.state.floodLevel != level ) {
-        //     opsNotifier.isWithinFloodProneArea(level);
-        //     showAlertDialog(context, level);
-        //     return;
-        //   } else{
-        //       opsNotifier.isWithinFloodProneArea('0');
-        //     return;
-        //   }
         if (isInside) {
-          debugPrint("Flood Level: ${opsNotifier.floodLevel}");
-
-          showAlertDialog(context, level);
-          return;
-        } else {
+          debugPrint("Flood Level: ${level} and $prevlevel");
+          if (prevlevel != level && prevlevel == '0') {
+            showAlertDialog(context, level);}
+            else if(prevlevel != level && prevlevel != '0'){
+                debugPrint("Flood Level: ${level} and $prevlevel");
+              AnimatedSnackBar.removeAll();
+              showAlertDialog(context, level);
+            }
+           
+          return level;
+        } 
+        else{
+            debugPrint("Flood Level: ${level} and $prevlevel");
           AnimatedSnackBar.removeAll();
+          prevlevel = '4';
         }
+      
       }
     }
-
-    print('You are not in a flood-prone area. Safe to proceed.');
+      return '4';
   }
 
   static Future<void> myRoutez(
@@ -639,7 +668,8 @@ class Srvc {
       MapController mapController,
       AnimationController animationController,
       OpsNotifier notifier,
-      context) async {
+      context, String prlevel ) async {
+        String prevlevel = prlevel;
     if (routeCHOSEN.route.isNotEmpty) {
       final myposition = await mapController.myLocation();
       // ignore: invalid_use_of_protected_member
@@ -657,9 +687,10 @@ class Srvc {
         mapController.removeAllCircle();
         removeMarker(routeCHOSEN.points, mapController);
         notifier.clearAllData();
+         AnimatedSnackBar.removeAll();
         return;
       }
-      checkFloodProneArea(myposition, 5, routeCHOSEN.points, context, notifier);
+     prevlevel = await checkFloodProneArea(myposition, 5, routeCHOSEN.points, context, notifier,prevlevel);
 
       Future.delayed(
           const Duration(seconds: 1),
@@ -669,25 +700,12 @@ class Srvc {
                 animationController,
                 notifier,
                 context,
+                prevlevel
               ));
     }
   }
 
-//   static Future<void> fetchFloodPoints(String? driverId) async {
-//   final response = await supabase.rpc('get_intersecting_points_by_driver', params: {'driver_id_param': driverId});
 
-//   if (response is List<dynamic>) {
-//     // Handle the case when the response is a list
-//     debugPrint(response.toString());
-//   } else {
-//     // Handle the case when the response is an object
-//     if (response['error'] != null) {
-//       debugPrint(response['error']['message']);
-//     } else {
-//       debugPrint(response['data'].toString());
-//     }
-//   }
-// }
 
   static Future<Map<String, dynamic>> fetchFloodPoints(String? driverId) async {
     try {
@@ -846,7 +864,7 @@ class Srvc {
             (end.longitude - start.longitude) -
         (point.longitude - start.longitude) * (end.latitude - start.latitude);
 
-    if (crossProduct.abs() > 1e-8) {
+    if (crossProduct.abs() > 1e-7) {
       return false;
     }
 
@@ -888,7 +906,7 @@ class Srvc {
       }
 
       // Ensure all points in the filtered group are between the route's start and end points
-      if (filteredGroup.isNotEmpty) {
+      if (filteredGroup.isNotEmpty && filteredGroup.length > 1) {
         filteredList.add(filteredGroup);
       }
     }
@@ -983,7 +1001,7 @@ class Srvc {
           debugPrint("matched by route_id ${route.routeId} and $routeId");
           List<List<GeoPoint>> filteredRoutePoints =
               await filterPointsByRoute(routePoints, route.route);
-          debugPrint("R5");
+          // debugPrint("R5");
           // Create FloodMarkerPoint object with route points
           FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
             level,
@@ -1074,7 +1092,7 @@ class Srvc {
           debugPrint("matched by route_id ${route.routeId} and $routeId");
           List<List<GeoPoint>> filteredRoutePoints =
               await filterPointsByRoute(routePoints, route.route);
-          debugPrint("R5");
+          // debugPrint("R5");
           // Create FloodMarkerPoint object with route points
           FloodMarkerPoint floodMarkerPoint = FloodMarkerPoint(
             level,
@@ -1238,9 +1256,9 @@ class Srvc {
 
   static Future<double> _calculateTotalDistance(List<GeoPoint> route) async {
     double totalDistance = 0.0;
-    for (int i = 0; i < route.length - 1; i++) {
-      totalDistance += await distance2point(route[i], route[i + 1]);
-    }
+    
+      totalDistance += await distance2point(route.first, route.last);
+    
     return totalDistance;
   }
 }
