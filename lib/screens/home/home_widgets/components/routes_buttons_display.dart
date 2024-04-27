@@ -10,12 +10,13 @@ class RouteButtons extends StatelessWidget {
     super.key,
     required this.mapController,
     required this.routes,
-    required this.opsNotifier,
+    required this.opsNotifier, required this.weatherData,
   });
   final List<FloodMarkerRoute>? routes;
 
   final MapController mapController;
   final OpsNotifier opsNotifier;
+  final int weatherData;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,7 @@ class RouteButtons extends StatelessWidget {
         return GestureDetector(
           onTap: () {
             Srvc.removeAllMarkers(routes!, mapController);
-            Srvc.addMarkersToMap(routes![index].markerPoints, mapController);
+            Srvc.addMarkersToMap(routes![index].markerPoints, mapController, weatherData);
             mapController.clearAllRoads();
             mapController.drawRoadManually(
               routes![index].route,

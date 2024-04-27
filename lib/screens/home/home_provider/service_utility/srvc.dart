@@ -26,7 +26,7 @@ import '../../../../main.dart';
 
 class Srvc {
   static Future<void> drawRoadManually(List<FloodMarkerRoute> routesOnPolylines,
-      MapController mapController) async {
+      MapController mapController, int weatherData) async {
     for (var i = 0; i < routesOnPolylines.length; i++) {
       final routeOnPolyline = routesOnPolylines[i];
       final encoded = routeOnPolyline.route;
@@ -48,7 +48,7 @@ class Srvc {
           );
 
       if (riskPoints!.isNotEmpty) {
-        await addMarkersToMap(riskPoints, mapController);
+        await addMarkersToMap(riskPoints, mapController, weatherData);
       }
     }
 
@@ -250,19 +250,41 @@ class Srvc {
     return true;
   }
 
-  static Color getMarkerColor(String level) {
+  static Color getMarkerColor(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
-    if (level == '1') {
-      return Color.fromARGB(55, 76, 175, 79);
-    } else if (level == '2') {
-      return const Color.fromARGB(55, 255, 153, 0);
-    } else {
-      return const Color.fromARGB(55, 244, 67, 54);
-    }
+    
+      if (weatherData < 53) {
+        if (level == '1') {
+          return const Color.fromARGB(62, 76, 175, 79);
+        } else if (level == '2') {
+          return const Color.fromARGB(62, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+      } else if (weatherData >= 53 && weatherData <= 63) {
+         if (level == '1') {
+          return const Color.fromARGB(101, 76, 175, 79);
+        } else if (level == '2') {
+          return const Color.fromARGB(62, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+        
+      } else {
+         if (level == '1') {
+          return const Color.fromARGB(101, 76, 175, 79);
+        } else if (level == '2') {
+          return  const Color.fromARGB(101, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+     
+      }
+    
   }
 
   static Future<void> addMarkersToMap(List<FloodMarkerPoint>? pointsOnPolyline,
-      MapController mapController) async {
+      MapController mapController, int weatherData)async {
     if (pointsOnPolyline == null) {
       return;
     }
@@ -273,7 +295,7 @@ class Srvc {
       List<List<GeoPoint>> groupsOfPoints = markerPoint.points;
       for (var groupPoints in groupsOfPoints) {
         // Get the marker color based on the level
-        Color markerColor = getMarkerColor(level);
+        Color markerColor = getMarkerColor(level,weatherData);
 
         var uuid =const  Uuid();
         String markerId = uuid.v4();
@@ -544,7 +566,7 @@ await mapController.removeAllCircle();
         );
       }),
       duration: const Duration(minutes: 10),
-      snackBarStrategy:  ColumnSnackBarStrategy(),
+      snackBarStrategy:  RemoveSnackBarStrategy(),
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
       mobilePositionSettings: const MobilePositionSettings(
         right: 15,
@@ -575,8 +597,8 @@ await mapController.removeAllCircle();
 
     for (var markerPoint in floodProneArea!) {
        String level = markerPoint.floodLevel;
-     if (!levelsToCheck.contains(level)) {
-        // if(level == '2'){
+    //  if (!levelsToCheck.contains(level)) {
+        if(level == '3'){
         continue;
       }
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
@@ -668,7 +690,7 @@ await mapController.removeAllCircle();
          AnimatedSnackBar.removeAll();
         return;
       }
-     prevlevel = await checkFloodProneArea(myposition, 4, routeCHOSEN.points, context, notifier,prevlevel);
+     prevlevel = await checkFloodProneArea(myposition, 5, routeCHOSEN.points, context, notifier,prevlevel);
 
       Future.delayed(
           const Duration(seconds: 1),

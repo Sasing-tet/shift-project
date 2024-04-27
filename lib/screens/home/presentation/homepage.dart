@@ -127,6 +127,7 @@ class _HomePage extends ConsumerState<HomePage>
                 },
               ),
               Consumer(builder: (context, ref, child) {
+                final weatherData = ref.watch(opsProvider).weatherData;
                 final startAndDestination = ref.watch(opsProvider).pointsRoad;
                 final weatherCose = ref.watch(opsProvider).weatherData;
                 final operationsProvider = ref.read(opsProvider.notifier);
@@ -176,6 +177,7 @@ class _HomePage extends ConsumerState<HomePage>
                                             routes: routes!,
                                             mapController: mapController,
                                             opsNotifier: operationsProvider,
+                                            weatherData: weatherData!,
                                           ),
                                         ),
                                         const SizedBox(width: 10),
