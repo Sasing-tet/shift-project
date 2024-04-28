@@ -6,17 +6,19 @@ class RouteOptionWidget extends StatelessWidget {
   final int i;
   final bool isAlternative;
   final String score;
+  final  String weatherBasedScore;
   const RouteOptionWidget({
     super.key,
     required this.i,
     required this.isAlternative,
-    required this.score,
+    required this.score, 
+    required this.weatherBasedScore,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 100,
+      width: 200,
       margin: const EdgeInsets.symmetric(
         horizontal: 5,
       ),
@@ -39,8 +41,17 @@ class RouteOptionWidget extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+           Text(
+            "Weather based Score: $weatherBasedScore",
+            style: TextStyle(
+              overflow: TextOverflow.ellipsis,
+              color: shiftGrayBorder,
+              fontFamily: interFontFamily,
+              fontSize: defaultFontSize,
+            ),
+          ),
           Text(
-            score,
+            "Total Score: $score",
             style: TextStyle(
               overflow: TextOverflow.ellipsis,
               color: shiftGrayBorder,
