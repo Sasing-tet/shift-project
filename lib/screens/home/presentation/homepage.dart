@@ -71,6 +71,7 @@ class _HomePage extends ConsumerState<HomePage>
   @override
   Widget build(BuildContext context) {
     final opProvider = ref.read(opsProvider.notifier);
+    final serviceProvider = ref.read(opsProvider.notifier);
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size(double.infinity, 250),
@@ -114,7 +115,12 @@ class _HomePage extends ConsumerState<HomePage>
             bottom: 15,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const FloodProneButton(),
+                // FloodProneButton(
+                //   onPressed: () async{
+                //    await Sr
+                //   },
+                // ),
+             
               UserLocationButton(
                 onPressed: () async {
                   if (currentPosition != null) {

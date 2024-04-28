@@ -66,7 +66,7 @@ Future<WeatherData> fetchWeatherData(
     // );
     print(data);
     // ignore: avoid_print
-    print("ayee" + weatherData.currentWeatherUnit);
+    print("ayee${weatherData.currentWeatherUnit}");
     opsNotifier.addWeatherData(hourlyForecastWeatherCode[0]);
     return weatherData;
   } else {
