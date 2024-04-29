@@ -255,9 +255,9 @@ class Srvc {
     
       if (weatherData < 53) {
         if (level == '1') {
-          return const Color.fromARGB(62, 76, 175, 79);
+          return Color.fromARGB(5, 76, 175, 79);
         } else if (level == '2') {
-          return const Color.fromARGB(62, 255, 153, 0);
+          return const Color.fromARGB(5, 255, 153, 0);
         } else {
           return const Color.fromARGB(101, 244, 67, 54);
         }
@@ -265,7 +265,7 @@ class Srvc {
          if (level == '1') {
           return const Color.fromARGB(101, 76, 175, 79);
         } else if (level == '2') {
-          return const Color.fromARGB(62, 255, 153, 0);
+          return const Color.fromARGB(5, 255, 153, 0);
         } else {
           return const Color.fromARGB(101, 244, 67, 54);
         }
@@ -304,7 +304,7 @@ class Srvc {
               key: markerId,
               centerPoint: groupPoints[groupPoints.length ~/ 2],
               radius: await distance2point(groupPoints.first, groupPoints.last) * 0.5 <= 10 ? 10 : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
-              color: markerColor,
+             color: markerColor.withOpacity(0.5),
               strokeWidth: 0.5,
             ));
    

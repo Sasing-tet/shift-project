@@ -114,7 +114,7 @@ class _HomePage extends ConsumerState<HomePage>
             bottom: 15,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const FloodProneButton(),
+              // const FloodProneButton(),
               UserLocationButton(
                 onPressed: () async {
                   if (currentPosition != null) {

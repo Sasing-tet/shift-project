@@ -42,7 +42,7 @@ class RouteButtons extends StatelessWidget {
           child: RouteOptionWidget(
               i: index,
               isAlternative: opsNotifier.isAlternativeRoute(index),
-              score: opsNotifier.getTotalFloodscore(index).toString()),
+              score: opsNotifier.getTotalFloodscore(index).toString(), weatherBasedScore: opsNotifier.getTotalFloodscoreBasedOnWeather(index),),
         );
       },
     );
