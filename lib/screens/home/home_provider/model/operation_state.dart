@@ -14,9 +14,7 @@ class OpsState {
       this.pointsRoad,
       this.polylinezzNotifier = false,
       this.myRoute = const [],
-      this.floodLevel = '0',
-      this.isDisplayed = false
-      });
+      this.floodLevel = '0'});
 
   final int? weatherData;
   final bool isExpanded;
@@ -28,7 +26,6 @@ class OpsState {
   final bool polylinezzNotifier;
   final List<GeoPoint>? myRoute;
   final String? floodLevel;
-  final bool isDisplayed;
 
   OpsState copyWith(
       {int? weatherData,
@@ -40,8 +37,7 @@ class OpsState {
       bool? polylinezzNotifier,
       bool? isMapOverlayVisible,
       List<GeoPoint>? myRoute,
-      String? floodLevel,
-      bool? isDisplayed}) {
+      String? floodLevel}) {
     return OpsState(
         weatherData: weatherData ?? this.weatherData,
         isExpanded: isExpanded ?? this.isExpanded,
@@ -53,6 +49,5 @@ class OpsState {
         polylinezzNotifier: polylinezzNotifier ?? this.polylinezzNotifier,
         myRoute: myRoute ?? this.myRoute,
         floodLevel: floodLevel ?? this.floodLevel);
-        isDisplayed: isDisplayed ?? this.isDisplayed;
   }
 }

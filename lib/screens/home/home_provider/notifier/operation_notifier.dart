@@ -48,7 +48,6 @@ class OpsNotifier extends StateNotifier<OpsState> {
   void isPolylinesGenerated() {
     state = state.copyWith(polylinezzNotifier: !state.polylinezzNotifier);
   }
-  
 
   void clearChosenRoute() {
     state = state.copyWith(routeCHOSEN: null);
@@ -232,7 +231,6 @@ class OpsNotifier extends StateNotifier<OpsState> {
   bool isAlternativeRoute(int i) {
     return state.routes![i].isAltRoute;
   }
-  
 
   int getTotalFloodscore(int i) {
     List<FloodMarkerPoint> points = state.routes![i].points!;
@@ -246,32 +244,6 @@ class OpsNotifier extends StateNotifier<OpsState> {
     }
     return total;
   }
-
-   String getTotalFloodscoreBasedOnWeather(int i) {
-  List<FloodMarkerPoint> points = state.routes![i].points!;
-  int total = 0;
-  if (state.routes![i].isAltRoute == true) {
-    debugPrint(
-        'This is an alternative route ${state.routes![i].points!.length} points}');
-  }
-
-  for (var point in points) {
-    if (state.weatherData! <= 53 ) {
-        if(point.floodLevel == '3'){
-        total += point.floodScore;
-        }
-
-     
-    } else if (state.weatherData! > 53 && state.weatherData! <= 63) {
-      if(point.floodLevel == '2' || point.floodLevel == '3'){
-      total += point.floodScore;}
-    } else {
-      total += point.floodScore;
-    }
-  }
-
-  return total.toString(); // Assuming you want to return the total as a string
-}
 
   void clearData() {
     state = state.copyWith(
@@ -290,8 +262,5 @@ class OpsNotifier extends StateNotifier<OpsState> {
       polylinezzNotifier: false, // Set polylinezzNotifier to false
       goNotifier: false,
     );
-    if(state.isDisplayed){
-      state = state.copyWith(isDisplayed: false);
-    }
   }
 }

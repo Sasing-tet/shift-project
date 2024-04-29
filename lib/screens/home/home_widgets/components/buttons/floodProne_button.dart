@@ -3,11 +3,8 @@
 import 'package:flutter/material.dart';
 
 class FloodProneButton extends StatelessWidget {
-  const FloodProneButton({super.key, required this.onPressed});
+  const FloodProneButton({super.key});
 
-  final Function() onPressed;
-  
-  
   @override
   Widget build(BuildContext context) {
     return  Container(
@@ -17,7 +14,7 @@ class FloodProneButton extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color:const Color.fromARGB(255, 241, 197, 0) ,
+                    color: const Color.fromARGB(255, 241, 197, 0),
                     borderRadius: BorderRadius.circular(50),
                     boxShadow: [
                       BoxShadow(
@@ -29,11 +26,17 @@ class FloodProneButton extends StatelessWidget {
                     ],
                   ),
                   child: IconButton(
-                    icon:  Icon(
-                  Icons.warning_rounded ,
+                    icon: const Icon(
+                      Icons.warning_rounded,
                       size: 35,
                     ),
-                    onPressed: onPressed,
+                    onPressed: () {
+                      // Navigator.of(context).push(
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const FloodProneScreen(),
+                      //   ),
+                      // );
+                    },
                   ),
                 );
   }
