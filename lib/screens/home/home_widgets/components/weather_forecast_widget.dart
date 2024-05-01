@@ -13,10 +13,8 @@ import '../../../../states/weather/models/weather_data_model.dart';
 import 'weather code description/weather_code_description.dart';
 
 class WeatherForecastWidget extends ConsumerStatefulWidget {
-  const WeatherForecastWidget(
-      {super.key, required this.opsProvider, required this.onRefreshPressed});
+  const WeatherForecastWidget({super.key, required this.opsProvider});
   final OpsNotifier opsProvider;
-  final VoidCallback onRefreshPressed;
 
   @override
   ConsumerState<WeatherForecastWidget> createState() =>
@@ -26,14 +24,29 @@ class WeatherForecastWidget extends ConsumerStatefulWidget {
 class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
   LatLng? currentPosition;
 
+  void _refreshAppBar() {
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
-    fetchWeatherData(
-      currentPosition?.latitude ?? 0.0,
-      currentPosition?.longitude ?? 0.0,
+    // fetchWeatherData(
+    //   currentPosition?.latitude ?? 0.0,
+    //   currentPosition?.longitude ?? 0.0,
+    //   widget.opsProvider,
+    // );
+    _fetchData();
+  }
+
+  void _fetchData() async {
+    final currentPosition = ref.read(currentPositionProvider);
+    await fetchWeatherData(
+      currentPosition.latitude,
+      currentPosition.longitude,
       widget.opsProvider,
     );
+    setState(() {});
   }
 
   @override
@@ -55,7 +68,7 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
           return const Text('Failed to fetch weather data');
         } else {
           final weatherData = snapshot.data!;
-          return FutureBuilder<String?>(
+          return FutureBuilder<String>(
             future: getAddressFromCoordinates(
               currentPosition.latitude,
               currentPosition.longitude,
@@ -94,7 +107,7 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
                                     ),
                                   ),
                                   RefreshButton(
-                                    onPressed: widget.onRefreshPressed,
+                                    onPressed: _refreshAppBar,
                                   ),
                                 ],
                               ),

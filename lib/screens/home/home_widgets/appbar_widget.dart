@@ -16,11 +16,6 @@ class MyAppBar extends StatefulWidget {
 }
 
 class _MyAppBarState extends State<MyAppBar> {
-  void _refreshAppBar() {
-    // Call setState to trigger a rebuild of the MyAppBar widget
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -75,7 +70,6 @@ class _MyAppBarState extends State<MyAppBar> {
                 ),
                 child: WeatherForecastWidget(
                   opsProvider: widget.opsNotifier,
-                  onRefreshPressed: _refreshAppBar,
                 ),
               ),
             ),

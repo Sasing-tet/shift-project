@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shift_project/screens/data_sources/presentation/data_source_screen.dart';
 import 'package:shift_project/screens/login/presentation/login_screen.dart';
 import 'package:shift_project/states/auth/providers/auth_state_provider.dart';
 import '../../../constants/constants.dart';
@@ -87,7 +88,13 @@ class WeatherDrawer extends ConsumerWidget {
           // ),
           ListTile(
             title: const Text('Data Sources'),
-            onTap: () {},
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const DataSourceScreen(),
+                ),
+              );
+            },
             shape: const Border(
               bottom: BorderSide(color: shiftGrayBorder, width: 1),
             ),

@@ -48,7 +48,7 @@ TextTheme constTextTheme() {
       fontFamily: 'Inter Bold',
       fontSize: 30,
       height: 1.2,
-      color: Colors.white,
+      color: Colors.black,
     ),
     headlineMedium: TextStyle(
       fontFamily: 'Inter Medium',
@@ -60,13 +60,13 @@ TextTheme constTextTheme() {
       fontFamily: 'Inter Light',
       fontSize: 15,
       height: 1.2,
-      color: Colors.white,
+      color: Colors.black,
     ),
     displayMedium: TextStyle(
       fontFamily: 'Inter Light',
       height: 1.2,
       fontSize: 22,
-      color: Colors.white,
+      color: Colors.black,
     ),
     displaySmall: TextStyle(
       fontFamily: 'Inter Medium',

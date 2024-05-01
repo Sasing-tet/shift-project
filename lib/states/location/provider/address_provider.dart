@@ -7,10 +7,12 @@ import 'curr_location_provider.dart';
 
 final addressProvider = FutureProvider.autoDispose<String?>((ref) async {
   final currentPosition = ref.watch(currentPositionProvider);
-  return getAddressFromCoordinates(currentPosition.latitude, currentPosition.longitude);
+  return getAddressFromCoordinates(
+      currentPosition.latitude, currentPosition.longitude);
 });
 
-Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
+Future<String> getAddressFromCoordinates(
+    double latitude, double longitude) async {
   final url =
       'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude';
 
@@ -24,10 +26,11 @@ Future<String?> getAddressFromCoordinates(double latitude, double longitude) asy
   } catch (e) {
     Exception('Failed to get address: $e');
   }
-  return null;
+  return 'Failed to fetch address';
 }
 
-Future<String?> getCityFromCoordinates(double latitude, double longitude) async {
+Future<String?> getCityFromCoordinates(
+    double latitude, double longitude) async {
   final url =
       'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude';
 
