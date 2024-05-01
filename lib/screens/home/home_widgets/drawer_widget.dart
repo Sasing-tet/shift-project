@@ -12,7 +12,7 @@ class WeatherDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user =
-        supabase.auth.currentUser?.userMetadata?['full_name'] ?? 'Guest#123';
+        supabase.auth.currentUser?.userMetadata?['full_name'] ?? 'Guest User';
     final avatar = supabase.auth.currentUser?.userMetadata?['avatar_url'] ??
         'https://www.gravatar.com/avatar/00000000000000000000000000000000?s=200&d=mp';
     Future<void> handleLogoutAndNavigateToLogin() async {
@@ -54,7 +54,7 @@ class WeatherDrawer extends ConsumerWidget {
                     ),
                   ),
                   const Text(
-                    'Guest User',
+                    'SHIFT User',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: titleSubtitleFontSize,
@@ -64,27 +64,27 @@ class WeatherDrawer extends ConsumerWidget {
               ),
             ),
           ),
-          ListTile(
-            title: const Text('Feedback'),
-            onTap: () {},
-            shape: const Border(
-              bottom: BorderSide(color: shiftGrayBorder, width: 1),
-            ),
-          ),
-          ListTile(
-            title: const Text('About Us'),
-            onTap: () {},
-            shape: const Border(
-              bottom: BorderSide(color: shiftGrayBorder, width: 1),
-            ),
-          ),
-          ListTile(
-            title: const Text('Settings'),
-            onTap: () {},
-            shape: const Border(
-              bottom: BorderSide(color: shiftGrayBorder, width: 1),
-            ),
-          ),
+          // ListTile(
+          //   title: const Text('Feedback'),
+          //   onTap: () {},
+          //   shape: const Border(
+          //     bottom: BorderSide(color: shiftGrayBorder, width: 1),
+          //   ),
+          // ),
+          // ListTile(
+          //   title: const Text('About Us'),
+          //   onTap: () {},
+          //   shape: const Border(
+          //     bottom: BorderSide(color: shiftGrayBorder, width: 1),
+          //   ),
+          // ),
+          // ListTile(
+          //   title: const Text('Settings'),
+          //   onTap: () {},
+          //   shape: const Border(
+          //     bottom: BorderSide(color: shiftGrayBorder, width: 1),
+          //   ),
+          // ),
           ListTile(
             title: const Text('Data Sources'),
             onTap: () {},

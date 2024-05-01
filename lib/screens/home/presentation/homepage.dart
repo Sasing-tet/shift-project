@@ -1,4 +1,5 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, overridden_fields, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:shift_project/screens/home/home_widgets/components/buttons/choos
 import 'package:shift_project/screens/home/home_widgets/components/buttons/clear_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/buttons/floodProne_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/buttons/go_button.dart';
+import 'package:shift_project/screens/home/home_widgets/components/buttons/refresh_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/buttons/stop_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/buttons/user_location_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/loadingscreen/loading_screen.dart';
@@ -45,7 +47,7 @@ class _HomePage extends ConsumerState<HomePage>
     mapController = MapController.withUserPosition(
         trackUserLocation: const UserTrackingOption(
       enableTracking: true,
-      unFollowUser: false,
+      unFollowUser: true,
     ));
 
     _animationController = AnimationController(
@@ -74,7 +76,9 @@ class _HomePage extends ConsumerState<HomePage>
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size(double.infinity, 250),
-        child: MyAppBar(opsNotifier: opProvider),
+        child: MyAppBar(
+          opsNotifier: opProvider,
+        ),
       ),
       extendBodyBehindAppBar: true,
       drawer: const SafeArea(
@@ -85,6 +89,8 @@ class _HomePage extends ConsumerState<HomePage>
           currentPosition == null
               ? const Center(child: CircularProgressIndicator())
               : OSMFlutter(
+                  userTrackingOption:
+                      const UserTrackingOption(unFollowUser: true),
                   enableRotationByGesture: true,
                   controller: mapController,
                   initZoom: 15,
@@ -99,13 +105,28 @@ class _HomePage extends ConsumerState<HomePage>
                         size: 100,
                       ),
                     ),
-                    directionArrowMarker: const MarkerIcon(
-                      icon: Icon(
+                    directionArrowMarker: CustomMarkerIcon(
+                      icon: const Icon(
                         Icons.navigation,
                         color: Colors.blueAccent,
                         size: 100,
                       ),
+                      pulseAnimation: PulseAnimation(
+                        color: Colors.blueAccent.withOpacity(0.6),
+                        initialSize: 600.0,
+                        finalSize: 800.0,
+                        duration: const Duration(seconds: 2),
+                      ),
                     ),
+
+                    // directionArrowMarker:
+                    // const MarkerIcon(
+                    //   icon: Icon(
+                    //     Icons.navigation,
+                    //     color: Colors.blueAccent,
+                    //     size: 100,
+                    //   ),
+                    // ),
                   ),
                 ),
           Positioned(
@@ -114,7 +135,6 @@ class _HomePage extends ConsumerState<HomePage>
             bottom: 15,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const FloodProneButton(),
               UserLocationButton(
                 onPressed: () async {
                   if (currentPosition != null) {
@@ -200,7 +220,8 @@ class _HomePage extends ConsumerState<HomePage>
                                                   mapController,
                                                   _animationController,
                                                   operationsProvider,
-                                                  context, '0');
+                                                  context,
+                                                  '0');
                                             }
 
                                             Srvc.sendSavedRoute(
@@ -214,25 +235,25 @@ class _HomePage extends ConsumerState<HomePage>
                               )
                             ],
                           )
-                    :ChooseDestinationButton(
+                    : ChooseDestinationButton(
                         onPressed: () async {
                           String? driverId = _authenticator.userId;
-                          
-              
 
-                            var p = await Navigator.pushNamed(context, "/search");
-                             operationsProvider.addPointToRoad(await mapController.myLocation());
-                             operationsProvider.addPointToRoad(p as GeoPoint);
+                          var p = await Navigator.pushNamed(context, "/search");
+                          operationsProvider
+                              .addPointToRoad(await mapController.myLocation());
+                          operationsProvider.addPointToRoad(p as GeoPoint);
 
                           showDialog(
-                              context: context,
-                              barrierDismissible: false, // Prevent dismissing dialog on tap outside
-                              builder: (BuildContext context) {
-                                return const Center(
-                                  child: LoadingScreen(),
-                                );
-                              },
-                            );
+                            context: context,
+                            barrierDismissible:
+                                false, // Prevent dismissing dialog on tap outside
+                            builder: (BuildContext context) {
+                              return const Center(
+                                child: LoadingScreen(),
+                              );
+                            },
+                          );
 
                           try {
                             await operationsProvider.fetchAndDrawRoute(
@@ -248,11 +269,106 @@ class _HomePage extends ConsumerState<HomePage>
                           }
                         },
                       );
-
               })
             ]),
           )
         ],
+      ),
+    );
+  }
+}
+
+class CustomMarkerIcon extends MarkerIcon {
+  @override
+  final Icon icon;
+  final Widget pulseAnimation;
+
+  const CustomMarkerIcon({
+    super.key,
+    required this.icon,
+    required this.pulseAnimation,
+  }) : super(icon: icon);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        icon,
+        Positioned.fill(
+          child: pulseAnimation,
+        ),
+      ],
+    );
+  }
+}
+
+class PulseAnimation extends StatefulWidget {
+  final Color color;
+  final double initialSize;
+  final double finalSize;
+  final Duration duration;
+
+  const PulseAnimation({
+    Key? key,
+    required this.color,
+    required this.initialSize,
+    required this.finalSize,
+    required this.duration,
+  }) : super(key: key);
+
+  @override
+  _PulseAnimationState createState() => _PulseAnimationState();
+}
+
+class _PulseAnimationState extends State<PulseAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: widget.duration,
+    );
+
+    _animation = Tween<double>(
+      begin: widget.initialSize,
+      end: widget.finalSize,
+    ).animate(_controller)
+      ..addListener(() {
+        setState(() {});
+      });
+
+    _controller.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final opacity = 0.5 *
+            (1 -
+                ((_animation.value - widget.initialSize) /
+                    (widget.finalSize - widget.initialSize))) +
+        0.5;
+
+    return Opacity(
+      opacity: opacity,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: widget.color,
+        ),
+        width: _animation.value,
+        height: _animation.value,
       ),
     );
   }
