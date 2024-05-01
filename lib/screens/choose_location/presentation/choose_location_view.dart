@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:shift_project/constants/constants.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -37,92 +39,112 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return CustomPickerLocation(
       controller: controller,
-      topWidgetPicker: Padding(
-        padding: const EdgeInsets.only(
-          top: 56,
-          left: 8,
-          right: 8,
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                PointerInterceptor(
-                  child: TextButton(
-                    style: TextButton.styleFrom(),
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Icon(
-                      Icons.arrow_back_ios,
+      topWidgetPicker: Column(
+        children: [
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
-                  ),
+                  ],
                 ),
-                Expanded(
-                  child: PointerInterceptor(
-                    child: TextField(
-                      controller: textEditingController,
-                      onEditingComplete: () async {
-                        FocusScope.of(context).requestFocus(FocusNode());
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(
-                          Icons.search,
-                          color: Colors.black,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      PointerInterceptor(
+                        child: TextButton(
+                          style: TextButton.styleFrom(),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Icon(
+                            color: Colors.black,
+                            Icons.arrow_back_ios,
+                          ),
                         ),
-                        suffix: ValueListenableBuilder<TextEditingValue>(
-                          valueListenable: textEditingController,
-                          builder: (ctx, text, child) {
-                            if (text.text.isNotEmpty) {
-                              return child!;
-                            }
-                            return const SizedBox.shrink();
-                          },
-                          child: InkWell(
-                            focusNode: FocusNode(),
-                            onTap: () {
-                              textEditingController.clear();
-                              controller.setSearchableText("");
+                      ),
+                      Expanded(
+                        child: PointerInterceptor(
+                          child: TextField(
+                            controller: textEditingController,
+                            onEditingComplete: () async {
                               FocusScope.of(context).requestFocus(FocusNode());
                             },
-                            child: const Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Colors.black,
+                            decoration: InputDecoration(
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: Colors.black,
+                              ),
+                              suffix: ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: textEditingController,
+                                builder: (ctx, text, child) {
+                                  if (text.text.isNotEmpty) {
+                                    return child!;
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                                child: InkWell(
+                                  focusNode: FocusNode(),
+                                  onTap: () {
+                                    textEditingController.clear();
+                                    controller.setSearchableText("");
+                                    FocusScope.of(context)
+                                        .requestFocus(FocusNode());
+                                  },
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              focusColor: Colors.black,
+                              filled: true,
+                              hintText: "search",
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              fillColor: Colors.grey[300],
+                              errorBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.red),
+                              ),
                             ),
                           ),
                         ),
-                        focusColor: Colors.black,
-                        filled: true,
-                        hintText: "search",
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        fillColor: Colors.grey[300],
-                        errorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(
-              height: 8,
-            ),
-            const TopSearchWidget()
-          ],
-        ),
+          ),
+          const TopSearchWidget()
+        ],
       ),
       bottomWidgetPicker: Positioned(
         bottom: 12,
         right: 8,
         child: PointerInterceptor(
-          child: FloatingActionButton(
+          child: FloatingActionButton.extended(
+            foregroundColor: Colors.white,
+            backgroundColor: shiftBlue,
             onPressed: () async {
               GeoPoint p = await controller.selectAdvancedPositionPicker();
               // ignore: use_build_context_synchronously
               Navigator.pop(context, p);
             },
-            child: const Icon(Icons.arrow_forward),
+            label: Text(
+              'GO',
+              style: constTextTheme().headlineMedium,
+            ),
+            icon: const Icon(Icons.arrow_forward),
           ),
         ),
       ),
@@ -204,63 +226,88 @@ class _TopSearchWidgetState extends State<TopSearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: notifierAutoCompletion,
-      builder: (ctx, isVisible, child) {
-        return AnimatedContainer(
-          duration: const Duration(
-            milliseconds: 500,
-          ),
-          height: isVisible ? MediaQuery.of(context).size.height / 4 : 0,
-          child: Card(
-            child: child!,
-          ),
-        );
-      },
-      child: StreamBuilder<List<SearchInfo>>(
-        stream: streamSuggestion.stream,
-        key: streamKey,
-        builder: (ctx, snap) {
-          if (snap.hasData) {
-            return ListView.builder(
-              itemExtent: 50.0,
-              itemBuilder: (ctx, index) {
-                return PointerInterceptor(
-                  child: ListTile(
-                    title: Text(
-                      snap.data![index].address.toString(),
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                    ),
-                    onTap: () async {
-                      /// go to location selected by address
-                      controller.goToLocation(
-                        snap.data![index].point!,
-                      );
-
-                      /// hide suggestion card
-                      notifierAutoCompletion.value = false;
-                      await reInitStream();
-                      // ignore: use_build_context_synchronously
-                      FocusScope.of(context).requestFocus(
-                        FocusNode(),
-                      );
-                    },
-                  ),
-                );
-              },
-              itemCount: snap.data!.length,
-            );
-          }
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Card(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-          return const SizedBox();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: ValueListenableBuilder<bool>(
+        valueListenable: notifierAutoCompletion,
+        builder: (ctx, isVisible, child) {
+          return AnimatedContainer(
+            duration: const Duration(
+              milliseconds: 200,
+            ),
+            height: isVisible ? MediaQuery.of(context).size.height / 4 : 0,
+            child: Card(
+              color: Colors.white,
+              child: child!,
+            ),
+          );
         },
+        child: StreamBuilder<List<SearchInfo>>(
+          stream: streamSuggestion.stream,
+          key: streamKey,
+          builder: (ctx, snap) {
+            if (snap.hasData) {
+              return ListView.builder(
+                padding: EdgeInsets.zero,
+                itemExtent: 50.0,
+                itemBuilder: (ctx, index) {
+                  return PointerInterceptor(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey.withOpacity(0.5),
+                          ),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            snap.data![index].address.toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.fade,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                          onTap: () async {
+                            /// go to location selected by address
+                            controller.goToLocation(
+                              snap.data![index].point!,
+                            );
+
+                            /// hide suggestion card
+                            notifierAutoCompletion.value = false;
+                            await reInitStream();
+                            // ignore: use_build_context_synchronously
+                            FocusScope.of(context).requestFocus(
+                              FocusNode(),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                itemCount: snap.data!.length,
+              );
+            }
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Card(
+                color: Colors.white,
+                elevation: 0,
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+            return const SizedBox();
+          },
+        ),
       ),
     );
   }

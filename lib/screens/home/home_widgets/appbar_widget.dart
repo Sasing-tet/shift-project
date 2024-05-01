@@ -4,9 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:shift_project/screens/home/home_widgets/components/weather_forecast_widget.dart';
 import 'package:shift_project/screens/home/home_provider/notifier/operation_notifier.dart';
 
-class MyAppBar extends StatelessWidget {
-  const MyAppBar({super.key, required this.opsNotifier});
+class MyAppBar extends StatefulWidget {
+  const MyAppBar({
+    super.key,
+    required this.opsNotifier,
+  });
   final OpsNotifier opsNotifier;
+
+  @override
+  State<MyAppBar> createState() => _MyAppBarState();
+}
+
+class _MyAppBarState extends State<MyAppBar> {
+  void _refreshAppBar() {
+    // Call setState to trigger a rebuild of the MyAppBar widget
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +51,6 @@ class MyAppBar extends StatelessWidget {
                 iconSize: 30,
               ),
             ),
-            // WEATHER WIDGET
             Expanded(
               child: Container(
                 constraints: const BoxConstraints(
@@ -62,7 +74,8 @@ class MyAppBar extends StatelessWidget {
                   ],
                 ),
                 child: WeatherForecastWidget(
-                  opsProvider: opsNotifier,
+                  opsProvider: widget.opsNotifier,
+                  onRefreshPressed: _refreshAppBar,
                 ),
               ),
             ),

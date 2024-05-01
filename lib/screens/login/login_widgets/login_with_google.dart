@@ -34,7 +34,7 @@ class LoginWithGoogle extends StatelessWidget {
                   width: 1,
                   color: shiftGrayBorder,
                 ),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(16),
               ),
               padding: const EdgeInsets.all(8),
               child: SizedBox(

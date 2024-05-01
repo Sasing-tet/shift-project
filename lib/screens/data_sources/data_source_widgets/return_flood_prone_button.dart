@@ -1,10 +1,7 @@
-// ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
-import 'package:shift_project/screens/data_sources/presentation/data_sources_visualization.dart';
 
-class FloodProneButton extends StatelessWidget {
-  const FloodProneButton({super.key});
+class ReturnFloodProneButton extends StatelessWidget {
+  const ReturnFloodProneButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +12,7 @@ class FloodProneButton extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 241, 197, 0),
+        color: const Color(0xffd1455c),
         borderRadius: BorderRadius.circular(50),
         boxShadow: [
           BoxShadow(
@@ -28,15 +25,12 @@ class FloodProneButton extends StatelessWidget {
       ),
       child: IconButton(
         icon: const Icon(
-          Icons.warning_rounded,
+          color: Colors.white,
+          Icons.arrow_back_outlined,
           size: 35,
         ),
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const DataSourceVisualization(),
-            ),
-          );
+          Navigator.of(context).pop();
         },
       ),
     );

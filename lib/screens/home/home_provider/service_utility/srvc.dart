@@ -252,64 +252,62 @@ class Srvc {
 
   static Color getMarkerColor(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
-    
-      if (weatherData < 53) {
-        if (level == '1') {
-          return const Color.fromARGB(62, 76, 175, 79);
-        } else if (level == '2') {
-          return const Color.fromARGB(62, 255, 153, 0);
-        } else {
-          return const Color.fromARGB(101, 244, 67, 54);
-        }
-      } else if (weatherData >= 53 && weatherData <= 63) {
-         if (level == '1') {
-          return const Color.fromARGB(101, 76, 175, 79);
-        } else if (level == '2') {
-          return const Color.fromARGB(62, 255, 153, 0);
-        } else {
-          return const Color.fromARGB(101, 244, 67, 54);
-        }
-        
+
+    if (weatherData < 53) {
+      if (level == '1') {
+        return const Color.fromARGB(62, 76, 175, 79);
+      } else if (level == '2') {
+        return const Color.fromARGB(62, 255, 153, 0);
       } else {
-         if (level == '1') {
-          return const Color.fromARGB(101, 76, 175, 79);
-        } else if (level == '2') {
-          return  const Color.fromARGB(101, 255, 153, 0);
-        } else {
-          return const Color.fromARGB(101, 244, 67, 54);
-        }
-     
+        return const Color.fromARGB(101, 244, 67, 54);
       }
-    
+    } else if (weatherData >= 53 && weatherData <= 63) {
+      if (level == '1') {
+        return const Color.fromARGB(101, 76, 175, 79);
+      } else if (level == '2') {
+        return const Color.fromARGB(62, 255, 153, 0);
+      } else {
+        return const Color.fromARGB(101, 244, 67, 54);
+      }
+    } else {
+      if (level == '1') {
+        return const Color.fromARGB(101, 76, 175, 79);
+      } else if (level == '2') {
+        return const Color.fromARGB(101, 255, 153, 0);
+      } else {
+        return const Color.fromARGB(101, 244, 67, 54);
+      }
+    }
   }
 
   static Future<void> addMarkersToMap(List<FloodMarkerPoint>? pointsOnPolyline,
-      MapController mapController, int weatherData)async {
+      MapController mapController, int weatherData) async {
     if (pointsOnPolyline == null) {
       return;
     }
 
-  for (var markerPoint in pointsOnPolyline) {
-
+    for (var markerPoint in pointsOnPolyline) {
       String level = markerPoint.floodLevel;
       List<List<GeoPoint>> groupsOfPoints = markerPoint.points;
       for (var groupPoints in groupsOfPoints) {
         // Get the marker color based on the level
-        Color markerColor = getMarkerColor(level,weatherData);
+        Color markerColor = getMarkerColor(level, weatherData);
 
-        var uuid =const  Uuid();
+        var uuid = const Uuid();
         String markerId = uuid.v4();
-    
+
         await mapController.drawCircle(CircleOSM(
-              key: markerId,
-              centerPoint: groupPoints[groupPoints.length ~/ 2],
-              radius: await distance2point(groupPoints.first, groupPoints.last) * 0.5 <= 10 ? 10 : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
-              color: markerColor,
-              strokeWidth: 0.5,
-            ));
-   
-      
-     }
+          key: markerId,
+          centerPoint: groupPoints[groupPoints.length ~/ 2],
+          radius: await distance2point(groupPoints.first, groupPoints.last) *
+                      0.5 <=
+                  10
+              ? 10
+              : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
+          color: markerColor,
+          strokeWidth: 0.5,
+        ));
+      }
     }
   }
 
@@ -318,7 +316,7 @@ class Srvc {
     if (pointsOnPolyline == null) {
       return;
     }
-await mapController.removeAllCircle();
+    await mapController.removeAllCircle();
     for (var markerPoint in pointsOnPolyline) {
       List<List<GeoPoint>> groupsOfPoints = markerPoint.markerPoints;
 
@@ -439,12 +437,13 @@ await mapController.removeAllCircle();
       if (distanceToSegment <= maxDistance) {
         return true;
       }
-    // }
-    // if(isBetween(point, point1,point2)){
-    //   return true;
-    // }
+      // }
+      // if(isBetween(point, point1,point2)){
+      //   return true;
+      // }
+    }
+    return false;
   }
-  return false;}
 
 // Function to calculate the distance between a point and a line segment
   static Future<double> calculateDistanceToSegment(
@@ -566,12 +565,12 @@ await mapController.removeAllCircle();
         );
       }),
       duration: const Duration(minutes: 10),
-      snackBarStrategy:  RemoveSnackBarStrategy(),
+      snackBarStrategy: RemoveSnackBarStrategy(),
       mobileSnackBarPosition: MobileSnackBarPosition.bottom,
       mobilePositionSettings: const MobilePositionSettings(
         right: 15,
         left: 80,
-        bottomOnAppearance: 145,
+        bottomOnAppearance: 100,
       ),
     ).show(context);
   }
@@ -583,7 +582,7 @@ await mapController.removeAllCircle();
       context,
       OpsNotifier opsNotifier,
       String prevlevel) async {
-         List<String> levelsToCheck = [];
+    List<String> levelsToCheck = [];
     if (opsNotifier.state.weatherData != null) {
       if (opsNotifier.state.weatherData! < 53) {
         levelsToCheck.add('3');
@@ -596,9 +595,9 @@ await mapController.removeAllCircle();
     }
 
     for (var markerPoint in floodProneArea!) {
-       String level = markerPoint.floodLevel;
-    //  if (!levelsToCheck.contains(level)) {
-        if(level == '3'){
+      String level = markerPoint.floodLevel;
+      //  if (!levelsToCheck.contains(level)) {
+      if (level == '3') {
         continue;
       }
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
@@ -608,26 +607,24 @@ await mapController.removeAllCircle();
             await isWithinFloodProneArea(userLocation, maxDistance, polyline);
 
         if (isInside) {
-          debugPrint("Flood Level: ${level} and $prevlevel");
+          debugPrint("Flood Level: $level and $prevlevel");
           if (prevlevel != level && prevlevel == '0') {
-            showAlertDialog(context, level);}
-            else if(prevlevel != level && prevlevel != '0'){
-                debugPrint("Flood Level: ${level} and $prevlevel");
-              AnimatedSnackBar.removeAll();
-              showAlertDialog(context, level);
-            }
-           
+            showAlertDialog(context, level);
+          } else if (prevlevel != level && prevlevel != '0') {
+            debugPrint("Flood Level: $level and $prevlevel");
+            AnimatedSnackBar.removeAll();
+            showAlertDialog(context, level);
+          }
+
           return level;
-        } 
-        else{
-            debugPrint("Flood Level: ${level} and $prevlevel");
+        } else {
+          debugPrint("Flood Level: $level and $prevlevel");
           AnimatedSnackBar.removeAll();
           prevlevel = '4';
         }
-      
       }
     }
-      return '4';
+    return '4';
   }
 
   static Future<void> myRoutez(
@@ -660,7 +657,7 @@ await mapController.removeAllCircle();
     } catch (e) {
       debugPrint(e.toString());
     }
-    debugPrint("Saved Route: ${geoJsonString}");
+    debugPrint("Saved Route: $geoJsonString");
   }
 
   static Future<void> updateLocation(
@@ -668,8 +665,9 @@ await mapController.removeAllCircle();
       MapController mapController,
       AnimationController animationController,
       OpsNotifier notifier,
-      context, String prlevel ) async {
-        String prevlevel = prlevel;
+      context,
+      String prlevel) async {
+    String prevlevel = prlevel;
     if (routeCHOSEN.route.isNotEmpty) {
       final myposition = await mapController.myLocation();
       // ignore: invalid_use_of_protected_member
@@ -687,25 +685,18 @@ await mapController.removeAllCircle();
         mapController.removeAllCircle();
         removeMarker(routeCHOSEN.points, mapController);
         notifier.clearAllData();
-         AnimatedSnackBar.removeAll();
+        AnimatedSnackBar.removeAll();
         return;
       }
-     prevlevel = await checkFloodProneArea(myposition, 5, routeCHOSEN.points, context, notifier,prevlevel);
+      prevlevel = await checkFloodProneArea(
+          myposition, 5, routeCHOSEN.points, context, notifier, prevlevel);
 
       Future.delayed(
           const Duration(seconds: 1),
-          () => updateLocation(
-                routeCHOSEN,
-                mapController,
-                animationController,
-                notifier,
-                context,
-                prevlevel
-              ));
+          () => updateLocation(routeCHOSEN, mapController, animationController,
+              notifier, context, prevlevel));
     }
   }
-
-
 
   static Future<Map<String, dynamic>> fetchFloodPoints(String? driverId) async {
     try {
@@ -1256,9 +1247,9 @@ await mapController.removeAllCircle();
 
   static Future<double> _calculateTotalDistance(List<GeoPoint> route) async {
     double totalDistance = 0.0;
-    
-      totalDistance += await distance2point(route.first, route.last);
-    
+
+    totalDistance += await distance2point(route.first, route.last);
+
     return totalDistance;
   }
 }

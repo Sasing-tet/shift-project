@@ -45,31 +45,31 @@ final ButtonStyle chooseDestination = TextButton.styleFrom(
 TextTheme constTextTheme() {
   return const TextTheme(
     headlineLarge: TextStyle(
-      fontFamily: 'Sailec Bold',
+      fontFamily: 'Inter Bold',
       fontSize: 30,
       height: 1.2,
       color: Colors.white,
     ),
     headlineMedium: TextStyle(
-      fontFamily: 'Sailec Medium',
+      fontFamily: 'Inter Medium',
       fontSize: 22,
       height: 1.2,
       color: Colors.white,
     ),
     headlineSmall: TextStyle(
-      fontFamily: 'Sailec Light',
+      fontFamily: 'Inter Light',
       fontSize: 15,
       height: 1.2,
       color: Colors.white,
     ),
     displayMedium: TextStyle(
-      fontFamily: 'Sailec Light',
+      fontFamily: 'Inter Light',
       height: 1.2,
       fontSize: 22,
       color: Colors.white,
     ),
     displaySmall: TextStyle(
-      fontFamily: 'Sailec Medium',
+      fontFamily: 'Inter Medium',
       fontSize: 15,
       height: 1.2,
       color: Colors.white,

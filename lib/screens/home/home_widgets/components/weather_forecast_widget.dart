@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:marquee/marquee.dart';
+import 'package:shift_project/screens/home/home_widgets/components/buttons/refresh_button.dart';
 import 'package:shift_project/screens/home/home_widgets/components/hourly_weather_forcase_widget.dart';
 import 'package:shift_project/screens/home/home_provider/notifier/operation_notifier.dart';
 import '../../../../constants/constants.dart';
@@ -12,8 +13,11 @@ import '../../../../states/weather/models/weather_data_model.dart';
 import 'weather code description/weather_code_description.dart';
 
 class WeatherForecastWidget extends ConsumerStatefulWidget {
-  const WeatherForecastWidget({super.key, required this.opsProvider});
+  const WeatherForecastWidget(
+      {super.key, required this.opsProvider, required this.onRefreshPressed});
   final OpsNotifier opsProvider;
+  final VoidCallback onRefreshPressed;
+
   @override
   ConsumerState<WeatherForecastWidget> createState() =>
       _WeatherForecastWidgetState();
@@ -21,35 +25,16 @@ class WeatherForecastWidget extends ConsumerStatefulWidget {
 
 class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
   LatLng? currentPosition;
-  // late Future<WeatherData> weatherDataFuture;
 
   @override
   void initState() {
     super.initState();
-    // _determinePosition();
     fetchWeatherData(
       currentPosition?.latitude ?? 0.0,
       currentPosition?.longitude ?? 0.0,
       widget.opsProvider,
     );
   }
-
-  // Future<void> _determinePosition() async {
-  //   final position = await Geolocator.getCurrentPosition();
-
-  //   setState(() {
-  //     currentPosition = LatLng(position.latitude, position.longitude);
-  //   });
-  // }
-
-  // Future<void> _refreshWeatherData() async {
-  //   setState(() {
-  //     weatherDataFuture = fetchWeatherData(
-  //       currentPosition?.latitude ?? 0.0,
-  //       currentPosition?.longitude ?? 0.0,
-  //     );
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +45,12 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
           currentPosition.longitude, widget.opsProvider),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+            ],
+          );
         } else if (snapshot.hasError) {
           return const Text('Failed to fetch weather data');
         } else {
@@ -72,7 +62,12 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
             ),
             builder: (context, addressSnapshot) {
               if (addressSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                  ],
+                );
               } else if (addressSnapshot.hasError) {
                 return const Text('Failed to fetch address');
               } else {
@@ -88,13 +83,20 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Text(
-                                '${weatherData.currentTemperature}${weatherData.currentWeatherUnit}',
-                                style: const TextStyle(
-                                  fontSize: titleFontSize,
-                                  fontFamily: interFontFamily,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    '${weatherData.currentTemperature}${weatherData.currentWeatherUnit}',
+                                    style: const TextStyle(
+                                      fontSize: titleFontSize,
+                                      fontFamily: interFontFamily,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  RefreshButton(
+                                    onPressed: widget.onRefreshPressed,
+                                  ),
+                                ],
                               ),
                               SizedBox(
                                 height: 22,
