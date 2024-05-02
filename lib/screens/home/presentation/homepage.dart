@@ -87,8 +87,6 @@ class _HomePage extends ConsumerState<HomePage>
           currentPosition == null
               ? const Center(child: CircularProgressIndicator())
               : OSMFlutter(
-                  userTrackingOption:
-                      const UserTrackingOption(unFollowUser: true),
                   enableRotationByGesture: true,
                   controller: mapController,
                   initZoom: 15,
