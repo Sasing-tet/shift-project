@@ -236,7 +236,9 @@ class _HomePage extends ConsumerState<HomePage>
                           String? driverId = _authenticator.userId;
 
                           var p = await Navigator.pushNamed(context, "/search");
-                          operationsProvider
+                         
+                              if(p != null || await distance2point(p as GeoPoint  , startAndDestination!. first) > 1){
+                                 operationsProvider
                               .addPointToRoad(await mapController.myLocation());
                           operationsProvider.addPointToRoad(p as GeoPoint);
 
@@ -263,7 +265,7 @@ class _HomePage extends ConsumerState<HomePage>
                             // Hide loading screen
                             Navigator.of(context).pop();
                           }
-                        },
+                        }},
                       );
               })
             ]),

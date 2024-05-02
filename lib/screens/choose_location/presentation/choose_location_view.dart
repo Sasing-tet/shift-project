@@ -64,7 +64,7 @@ class _SearchPageState extends State<SearchPage> {
                       PointerInterceptor(
                         child: TextButton(
                           style: TextButton.styleFrom(),
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () =>  Navigator.pop(context, null),
                           child: const Icon(
                             color: Colors.black,
                             Icons.arrow_back_ios,
