@@ -19,6 +19,7 @@ class Authenticator {
 
   Future<void> logOut() async {
     await supabase.auth.signOut();
+    await GoogleSignIn().signOut();
     
   }
 

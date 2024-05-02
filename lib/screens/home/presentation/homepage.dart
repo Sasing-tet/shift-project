@@ -203,8 +203,8 @@ class _HomePage extends ConsumerState<HomePage>
                                           onTap: () async {
                                             String? driverId =
                                                 _authenticator.userId;
-
-                                                if(routeCHOSEN?.route != null ){
+                                            debugPrint(" tara : ${routeCHOSEN?.route.toString()}");
+                                               if (routeCHOSEN?.route.isNotEmpty ?? false){
                                             // if (startAndDestination != null &&
                                             //     startAndDestination.length ==
                                             //         2) {
