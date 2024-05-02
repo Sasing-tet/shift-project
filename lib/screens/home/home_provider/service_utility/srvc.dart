@@ -270,17 +270,6 @@ class Srvc {
           return const Color.fromARGB(101, 244, 67, 54);
         }
         
-      } else {
-        return const Color.fromARGB(101, 244, 67, 54);
-      }
-    } else if (weatherData >= 53 && weatherData <= 63) {
-      if (level == '1') {
-        return const Color.fromARGB(101, 76, 175, 79);
-      } else if (level == '2') {
-        return const Color.fromARGB(62, 255, 153, 0);
-      } else {
-        return const Color.fromARGB(101, 244, 67, 54);
-      }
     } else {
       if (level == '1') {
         return const Color.fromARGB(101, 76, 175, 79);
