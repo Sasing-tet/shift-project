@@ -619,7 +619,11 @@ class Srvc {
     }
 
     for (var markerPoint in floodProneArea!) {
-      String level = markerPoint.floodLevel;
+     String level = markerPoint.floodLevel == "1"
+    ? 'Low'
+    : markerPoint.floodLevel == "2"
+        ? 'Moderate'
+        : 'High';
       //  if (!levelsToCheck.contains(level)) {
       if (level == '3') {
         continue;
@@ -633,6 +637,7 @@ class Srvc {
         if (isInside) {
           debugPrint("Flood Level: $level and $prevlevel");
           if (prevlevel != level && prevlevel == '0') {
+            
             showAlertDialog(context, level);
           } else if (prevlevel != level && prevlevel != '0') {
             debugPrint("Flood Level: $level and $prevlevel");
