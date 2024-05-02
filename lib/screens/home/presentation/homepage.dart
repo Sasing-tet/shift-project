@@ -205,9 +205,7 @@ class _HomePage extends ConsumerState<HomePage>
                                                 _authenticator.userId;
                                             debugPrint(" tara : ${routeCHOSEN?.route.toString()}");
                                                if (routeCHOSEN?.route.isNotEmpty ?? false){
-                                            // if (startAndDestination != null &&
-                                            //     startAndDestination.length ==
-                                            //         2) {
+                                          
                                               operationsProvider
                                                   .stopButtonNotifier();
                                               operationsProvider.clearMyRoute();
@@ -222,7 +220,7 @@ class _HomePage extends ConsumerState<HomePage>
                                                   operationsProvider,
                                                   context,
                                                   '0');
-                                            // }
+                                       
 
                                             Srvc.sendSavedRoute(
                                                 myRoute, driverId);
