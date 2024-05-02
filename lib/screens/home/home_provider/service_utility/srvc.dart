@@ -252,12 +252,24 @@ class Srvc {
 
   static Color getMarkerColor(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
-
-    if (weatherData < 53) {
-      if (level == '1') {
-        return const Color.fromARGB(62, 76, 175, 79);
-      } else if (level == '2') {
-        return const Color.fromARGB(62, 255, 153, 0);
+    
+      if (weatherData < 53) {
+        if (level == '1') {
+          return Color.fromARGB(5, 76, 175, 79);
+        } else if (level == '2') {
+          return const Color.fromARGB(5, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+      } else if (weatherData >= 53 && weatherData <= 63) {
+         if (level == '1') {
+          return const Color.fromARGB(101, 76, 175, 79);
+        } else if (level == '2') {
+          return const Color.fromARGB(5, 255, 153, 0);
+        } else {
+          return const Color.fromARGB(101, 244, 67, 54);
+        }
+        
       } else {
         return const Color.fromARGB(101, 244, 67, 54);
       }
