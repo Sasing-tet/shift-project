@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, overridden_fields, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -45,13 +46,14 @@ class _HomePage extends ConsumerState<HomePage>
     mapController = MapController.withUserPosition(
         trackUserLocation: const UserTrackingOption(
       enableTracking: true,
-      unFollowUser: true,
+      unFollowUser: false,
     ));
 
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
+    
   }
 
   void _userLoc() async {
@@ -201,9 +203,11 @@ class _HomePage extends ConsumerState<HomePage>
                                           onTap: () async {
                                             String? driverId =
                                                 _authenticator.userId;
-                                            if (startAndDestination != null &&
-                                                startAndDestination.length ==
-                                                    2) {
+
+                                                if(routeCHOSEN?.route != null ){
+                                            // if (startAndDestination != null &&
+                                            //     startAndDestination.length ==
+                                            //         2) {
                                               operationsProvider
                                                   .stopButtonNotifier();
                                               operationsProvider.clearMyRoute();
@@ -218,11 +222,29 @@ class _HomePage extends ConsumerState<HomePage>
                                                   operationsProvider,
                                                   context,
                                                   '0');
-                                            }
+                                            // }
 
                                             Srvc.sendSavedRoute(
                                                 myRoute, driverId);
-                                          },
+                                          } else {
+                                               showDialog(
+                                                context: context,
+                                                barrierDismissible:
+                                                    false, 
+                                                builder: (BuildContext context) {
+                                                  return const Center(
+                                                    child: LoadingScreen(lotlot: 'assets/images/pick.json',text:  'Choose a route first!'),
+                                                  );
+                                                },
+                                              );
+
+                                       
+                                        Future.delayed(const Duration(seconds: 3), () {
+                                          Navigator.of(context).pop();
+                                        });
+                                          }
+                                          
+                                          }
                                         )
                                       ],
                                     ),
@@ -235,11 +257,14 @@ class _HomePage extends ConsumerState<HomePage>
                         onPressed: () async {
                           String? driverId = _authenticator.userId;
 
+                           
+
                           var p = await Navigator.pushNamed(context, "/search");
                          
-                              if(p != null || await distance2point(p as GeoPoint  , startAndDestination!. first) > 1){
-                                 operationsProvider
+                              if(p != GeoPoint(latitude: 0.0, longitude: 0.0)){
+                                operationsProvider
                               .addPointToRoad(await mapController.myLocation());
+                               
                           operationsProvider.addPointToRoad(p as GeoPoint);
 
                           showDialog(
@@ -248,7 +273,7 @@ class _HomePage extends ConsumerState<HomePage>
                                 false, // Prevent dismissing dialog on tap outside
                             builder: (BuildContext context) {
                               return const Center(
-                                child: LoadingScreen(),
+                                child:  LoadingScreen(lotlot: 'assets/images/loading.json',text:  'Calculating the route',),
                               );
                             },
                           );

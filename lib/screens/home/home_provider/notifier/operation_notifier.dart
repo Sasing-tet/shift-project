@@ -65,6 +65,12 @@ class OpsNotifier extends StateNotifier<OpsState> {
     );
   }
 
+   void clearPointToRoad() {
+    state = state.copyWith(
+      pointsRoad: [],
+    );
+  }
+
   Future<void> fetchAndDrawRoute(
       String? driverId,
       MapController mapController,
