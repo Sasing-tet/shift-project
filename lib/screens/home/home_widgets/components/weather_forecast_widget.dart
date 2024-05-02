@@ -25,17 +25,12 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
   LatLng? currentPosition;
 
   void _refreshAppBar() {
-    setState(() {});
+    _fetchData();
   }
 
   @override
   void initState() {
     super.initState();
-    // fetchWeatherData(
-    //   currentPosition?.latitude ?? 0.0,
-    //   currentPosition?.longitude ?? 0.0,
-    //   widget.opsProvider,
-    // );
     _fetchData();
   }
 
@@ -46,6 +41,13 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
       currentPosition.longitude,
       widget.opsProvider,
     );
+    print(
+        'CURRENT LOC: Latitude: ${currentPosition.latitude}, Longitude: ${currentPosition.longitude}');
+    await getAddressFromCoordinates(
+      currentPosition.latitude,
+      currentPosition.longitude,
+    );
+    await ref.refresh(addressProvider);
     setState(() {});
   }
 
@@ -68,7 +70,7 @@ class _WeatherForecastWidgetState extends ConsumerState<WeatherForecastWidget> {
           return const Text('Failed to fetch weather data');
         } else {
           final weatherData = snapshot.data!;
-          return FutureBuilder<String>(
+          return FutureBuilder<String?>(
             future: getAddressFromCoordinates(
               currentPosition.latitude,
               currentPosition.longitude,
