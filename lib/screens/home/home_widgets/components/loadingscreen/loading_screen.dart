@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 class LoadingScreen extends StatelessWidget {
-  const LoadingScreen({super.key});
+  const LoadingScreen({super.key, required this.lotlot, required this.text});
+  final String lotlot;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +19,14 @@ class LoadingScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Lottie.asset(
-              'assets/images/loading.json',
+              lotlot,
               width: 100,
               height: 100,
             ),
             const SizedBox(height: 16.0),
-            const Text(
-              'Calculating the route',
-              style: TextStyle(
+             Text(
+             text,
+              style: const TextStyle(
                 fontSize: 16.0,
                 fontWeight: FontWeight.bold,
               ),

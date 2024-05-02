@@ -250,6 +250,28 @@ class Srvc {
     return true;
   }
 
+
+  static double getOpacity(String level, int weatherData) {
+    // Add logic to determine marker color based on the susceptibility level
+    
+      if (weatherData < 53) {
+        if (level == '3') {
+          return  .5;
+        } else {
+          return .2;
+        }
+      } else if (weatherData >= 53 && weatherData <= 63) {
+         if (level == '1') {
+          return .2;
+        } else {
+          return .5;
+        }
+        
+    } else {
+     return .5;
+    }
+  }
+
   static Color getMarkerColor(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
     
@@ -263,9 +285,9 @@ class Srvc {
         }
       } else if (weatherData >= 53 && weatherData <= 63) {
          if (level == '1') {
-          return const Color.fromARGB(101, 76, 175, 79);
+          return const Color.fromARGB(5, 76, 175, 79);
         } else if (level == '2') {
-          return const Color.fromARGB(5, 255, 153, 0);
+          return const Color.fromARGB(101, 255, 153, 0);
         } else {
           return const Color.fromARGB(101, 244, 67, 54);
         }
@@ -293,6 +315,7 @@ class Srvc {
       for (var groupPoints in groupsOfPoints) {
         // Get the marker color based on the level
         Color markerColor = getMarkerColor(level, weatherData);
+        double opacity = getOpacity(level, weatherData);
 
         var uuid = const Uuid();
         String markerId = uuid.v4();
@@ -305,7 +328,7 @@ class Srvc {
                   10
               ? 10
               : await distance2point(groupPoints.first, groupPoints.last) * 0.5,
-          color: markerColor,
+          color: markerColor.withOpacity(opacity),
           strokeWidth: 0.5,
         ));
       }
