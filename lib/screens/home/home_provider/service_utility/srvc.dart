@@ -250,48 +250,45 @@ class Srvc {
     return true;
   }
 
-
   static double getOpacity(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
-    
-      if (weatherData < 53) {
-        if (level == '3') {
-          return  .5;
-        } else {
-          return .2;
-        }
-      } else if (weatherData >= 53 && weatherData <= 63) {
-         if (level == '1') {
-          return .2;
-        } else {
-          return .5;
-        }
-        
+
+    if (weatherData < 53) {
+      if (level == '3') {
+        return .5;
+      } else {
+        return .2;
+      }
+    } else if (weatherData >= 53 && weatherData <= 63) {
+      if (level == '1') {
+        return .2;
+      } else {
+        return .5;
+      }
     } else {
-     return .5;
+      return .5;
     }
   }
 
   static Color getMarkerColor(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
-    
-      if (weatherData < 53) {
-        if (level == '1') {
-          return Color.fromARGB(5, 76, 175, 79);
-        } else if (level == '2') {
-          return const Color.fromARGB(5, 255, 153, 0);
-        } else {
-          return const Color.fromARGB(101, 244, 67, 54);
-        }
-      } else if (weatherData >= 53 && weatherData <= 63) {
-         if (level == '1') {
-          return const Color.fromARGB(5, 76, 175, 79);
-        } else if (level == '2') {
-          return const Color.fromARGB(101, 255, 153, 0);
-        } else {
-          return const Color.fromARGB(101, 244, 67, 54);
-        }
-        
+
+    if (weatherData < 53) {
+      if (level == '1') {
+        return Color.fromARGB(5, 76, 175, 79);
+      } else if (level == '2') {
+        return const Color.fromARGB(5, 255, 153, 0);
+      } else {
+        return const Color.fromARGB(101, 244, 67, 54);
+      }
+    } else if (weatherData >= 53 && weatherData <= 63) {
+      if (level == '1') {
+        return const Color.fromARGB(5, 76, 175, 79);
+      } else if (level == '2') {
+        return const Color.fromARGB(101, 255, 153, 0);
+      } else {
+        return const Color.fromARGB(101, 244, 67, 54);
+      }
     } else {
       if (level == '1') {
         return const Color.fromARGB(101, 76, 175, 79);
@@ -608,24 +605,19 @@ class Srvc {
       String prevlevel) async {
     List<String> levelsToCheck = [];
     if (opsNotifier.state.weatherData != null) {
-      if (opsNotifier.state.weatherData! < 57) {
+      if (opsNotifier.state.weatherData! <= 57 && opsNotifier.state.weatherData! >= 48 ) {
         levelsToCheck.add('3');
-      } else if (opsNotifier.state.weatherData! >= 57 &&
+      } else if (opsNotifier.state.weatherData! > 57 &&
           opsNotifier.state.weatherData! <= 80) {
         levelsToCheck.addAll(['2', "3"]);
       } else {
         levelsToCheck.addAll(["1", "2", "3"]);
       }
     }
-
     for (var markerPoint in floodProneArea!) {
-     String level = markerPoint.floodLevel == "1"
-    ? 'Low'
-    : markerPoint.floodLevel == "2"
-        ? 'Moderate'
-        : 'High';
-       if (!levelsToCheck.contains(level)) {
-      // if (level == '3') {
+      String level = markerPoint.floodLevel == "1"? 'Low': 
+      markerPoint.floodLevel == "2" ? 'Moderate': 'High';
+      if (!levelsToCheck.contains(level)) {
         continue;
       }
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
@@ -633,18 +625,15 @@ class Srvc {
       for (var polyline in polylines) {
         bool isInside =
             await isWithinFloodProneArea(userLocation, maxDistance, polyline);
-
         if (isInside) {
           debugPrint("Flood Level: $level and $prevlevel");
           if (prevlevel != level && prevlevel == '0') {
-            
             showAlertDialog(context, level);
           } else if (prevlevel != level && prevlevel != '0') {
             debugPrint("Flood Level: $level and $prevlevel");
             AnimatedSnackBar.removeAll();
             showAlertDialog(context, level);
           }
-
           return level;
         } else {
           debugPrint("Flood Level: $level and $prevlevel");
@@ -699,15 +688,8 @@ class Srvc {
     String prevlevel = prlevel;
     if (routeCHOSEN.route.isNotEmpty) {
       final myposition = await mapController.myLocation();
-      // ignore: invalid_use_of_protected_member
-
-      // ignore: invalid_use_of_protected_member
       myRoutez(myposition, notifier, notifier.state.myRoute!);
-
       final dist = await distance2point(myposition, routeCHOSEN.route.last);
-
-      print('${dist}hey');
-
       if (dist < 5 || notifier.goNotifier == false) {
         animationController.stop();
         mapController.clearAllRoads();
@@ -719,7 +701,6 @@ class Srvc {
       }
       prevlevel = await checkFloodProneArea(
           myposition, 5, routeCHOSEN.points, context, notifier, prevlevel);
-
       Future.delayed(
           const Duration(seconds: 1),
           () => updateLocation(routeCHOSEN, mapController, animationController,
@@ -733,7 +714,6 @@ class Srvc {
           params: {'driver_id_param': driverId});
 
       if (response is List) {
-        // Handle list response
         List<Map<String, dynamic>> jsonResponseList = [];
         for (var item in response) {
           if (item is Map<String, dynamic>) {
@@ -742,7 +722,6 @@ class Srvc {
         }
         return {'data': jsonResponseList};
       } else if (response is Map<String, dynamic>) {
-        // Handle regular map response
         return response;
       } else {
         throw Exception('Unexpected response format');
@@ -828,20 +807,15 @@ class Srvc {
     String geoJsonString = jsonEncode(multiLineString.toJson());
 
     try {
-      // Call Supabase RPC to save routes
       await supabase.rpc('save_osrm_routes',
           params: {'driver_id': driverId, 'routes_geojson': geoJsonString});
     } catch (e) {
-      // Handle errors
       debugPrint(e.toString());
-      // Return an error response if there's an error
       return {
         'status': 'error',
         'error': e.toString(),
       };
     }
-
-    // Construct and return the success response map
     return {
       'status': 'success',
       'driver_id': driverId,
