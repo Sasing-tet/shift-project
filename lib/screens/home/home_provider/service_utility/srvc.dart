@@ -608,10 +608,10 @@ class Srvc {
       String prevlevel) async {
     List<String> levelsToCheck = [];
     if (opsNotifier.state.weatherData != null) {
-      if (opsNotifier.state.weatherData! < 53) {
+      if (opsNotifier.state.weatherData! < 57) {
         levelsToCheck.add('3');
-      } else if (opsNotifier.state.weatherData! >= 53 &&
-          opsNotifier.state.weatherData! <= 63) {
+      } else if (opsNotifier.state.weatherData! >= 57 &&
+          opsNotifier.state.weatherData! <= 80) {
         levelsToCheck.addAll(['2', "3"]);
       } else {
         levelsToCheck.addAll(["1", "2", "3"]);
@@ -624,8 +624,8 @@ class Srvc {
     : markerPoint.floodLevel == "2"
         ? 'Moderate'
         : 'High';
-      //  if (!levelsToCheck.contains(level)) {
-      if (level == '3') {
+       if (!levelsToCheck.contains(level)) {
+      // if (level == '3') {
         continue;
       }
       List<List<GeoPoint>> polylines = markerPoint.markerPoints;
