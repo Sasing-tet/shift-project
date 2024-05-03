@@ -53,7 +53,6 @@ class _HomePage extends ConsumerState<HomePage>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    
   }
 
   void _userLoc() async {
@@ -116,15 +115,6 @@ class _HomePage extends ConsumerState<HomePage>
                         duration: const Duration(seconds: 2),
                       ),
                     ),
-
-                    // directionArrowMarker:
-                    // const MarkerIcon(
-                    //   icon: Icon(
-                    //     Icons.navigation,
-                    //     color: Colors.blueAccent,
-                    //     size: 100,
-                    //   ),
-                    // ),
                   ),
                 ),
           Positioned(
@@ -199,51 +189,49 @@ class _HomePage extends ConsumerState<HomePage>
                                           ),
                                         ),
                                         const SizedBox(width: 10),
-                                        GoButton(
-                                          onTap: () async {
-                                            String? driverId =
-                                                _authenticator.userId;
-                                            debugPrint(" tara : ${routeCHOSEN?.route.toString()}");
-                                               if (routeCHOSEN?.route.isNotEmpty ?? false){
-                                          
-                                              operationsProvider
-                                                  .stopButtonNotifier();
-                                              operationsProvider.clearMyRoute();
-                                              operationsProvider
-                                                  .addNewPointToMyRoute(
-                                                      await mapController
-                                                          .myLocation());
-                                              Srvc.updateLocation(
-                                                  routeCHOSEN!,
-                                                  mapController,
-                                                  _animationController,
-                                                  operationsProvider,
-                                                  context,
-                                                  '0');
-                                       
+                                        GoButton(onTap: () async {
+                                          String? driverId =
+                                              _authenticator.userId;
+                                          if (routeCHOSEN?.route.isNotEmpty ??
+                                              false) {
+                                            operationsProvider
+                                                .stopButtonNotifier();
+                                            operationsProvider.clearMyRoute();
+                                            operationsProvider
+                                                .addNewPointToMyRoute(
+                                                    await mapController
+                                                        .myLocation());
+                                            Srvc.updateLocation(
+                                                routeCHOSEN!,
+                                                mapController,
+                                                _animationController,
+                                                operationsProvider,
+                                                context,
+                                                '0');
 
                                             Srvc.sendSavedRoute(
                                                 myRoute, driverId);
                                           } else {
-                                               showDialog(
-                                                context: context,
-                                                barrierDismissible:
-                                                    false, 
-                                                builder: (BuildContext context) {
-                                                  return const Center(
-                                                    child: LoadingScreen(lotlot: 'assets/images/pick.json',text:  'Choose a route first!'),
-                                                  );
-                                                },
-                                              );
+                                            showDialog(
+                                              context: context,
+                                              barrierDismissible: false,
+                                              builder: (BuildContext context) {
+                                                return const Center(
+                                                  child: LoadingScreen(
+                                                      lotlot:
+                                                          'assets/images/pick.json',
+                                                      text:
+                                                          'Choose a route first!'),
+                                                );
+                                              },
+                                            );
 
-                                       
-                                        Future.delayed(const Duration(seconds: 3), () {
-                                          Navigator.of(context).pop();
-                                        });
+                                            Future.delayed(
+                                                const Duration(seconds: 3), () {
+                                              Navigator.of(context).pop();
+                                            });
                                           }
-                                          
-                                          }
-                                        )
+                                        })
                                       ],
                                     ),
                                   ))
@@ -254,41 +242,37 @@ class _HomePage extends ConsumerState<HomePage>
                     : ChooseDestinationButton(
                         onPressed: () async {
                           String? driverId = _authenticator.userId;
-
-                           
-
                           var p = await Navigator.pushNamed(context, "/search");
-                         
-                              if(p != GeoPoint(latitude: 0.0, longitude: 0.0)){
-                                operationsProvider
-                              .addPointToRoad(await mapController.myLocation());
-                               
-                          operationsProvider.addPointToRoad(p as GeoPoint);
-
-                          showDialog(
-                            context: context,
-                            barrierDismissible:
-                                false, // Prevent dismissing dialog on tap outside
-                            builder: (BuildContext context) {
-                              return const Center(
-                                child:  LoadingScreen(lotlot: 'assets/images/loading.json',text:  'Calculating the route',),
-                              );
-                            },
-                          );
-
-                          try {
-                            await operationsProvider.fetchAndDrawRoute(
-                              driverId,
-                              mapController,
-                              weatherCose!,
-                              await mapController.myLocation(),
-                              p,
+                          if (p != GeoPoint(latitude: 0.0, longitude: 0.0)) {
+                            operationsProvider.addPointToRoad(
+                                await mapController.myLocation());
+                            operationsProvider.addPointToRoad(p as GeoPoint);
+                            showDialog(
+                              context: context,
+                              barrierDismissible:
+                                  false,
+                              builder: (BuildContext context) {
+                                return const Center(
+                                  child: LoadingScreen(
+                                    lotlot: 'assets/images/loading.json',
+                                    text: 'Calculating the route',
+                                  ),
+                                );
+                              },
                             );
-                          } finally {
-                            // Hide loading screen
-                            Navigator.of(context).pop();
+                            try {
+                              await operationsProvider.fetchAndDrawRoute(
+                                driverId,
+                                mapController,
+                                weatherCose!,
+                                await mapController.myLocation(),
+                                p,
+                              );
+                            } finally {
+                              Navigator.of(context).pop();
+                            }
                           }
-                        }},
+                        },
                       );
               })
             ]),

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, deprecated_member_use
+
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +67,7 @@ class OpsNotifier extends StateNotifier<OpsState> {
     );
   }
 
-   void clearPointToRoad() {
+  void clearPointToRoad() {
     state = state.copyWith(
       pointsRoad: [],
     );
@@ -90,17 +92,14 @@ class OpsNotifier extends StateNotifier<OpsState> {
         debugPrint(
             "Sending polylines ${polylines.length} to Supabase: $polylines");
         final oroutes = await Srvc.sendSavedRoutes(polylines, driverId);
-        debugPrint("Sending poly ${oroutes.length} to ${oroutes} ");
+        debugPrint("Sending poly ${oroutes.length} to $oroutes ");
         r = await Srvc.createRoutes(oroutes);
         debugPrint("r = ${r.length} $r");
         final response = await Srvc.fetchFloodPoints(driverId);
         debugPrint('Response from fetchFloodPoints: $response');
         final routes = await Srvc.parseFloodMarkerRoutes(response, r);
-
         final routesTobeAdded = await Srvc.mrClean(altroutes, routes);
-
         debugPrint('RoutesTobeAdded: ${routesTobeAdded.length}');
-
         state = state.copyWith(
           routes: [...(state.routes ?? []), ...routesTobeAdded],
           polylinezzNotifier: true,
@@ -139,10 +138,8 @@ class OpsNotifier extends StateNotifier<OpsState> {
 
   Future<List<FloodMarkerRoute>> insertRideEntry(GeoPoint currentLocation,
       GeoPoint setDestination, String? driverId) async {
-    // Generate UUID
-    var uuid = Uuid();
+    var uuid = const Uuid();
     String rideId = uuid.v4();
-
     debugPrint('front ride_id: $rideId');
 
     String currentLocationWKT =
@@ -167,23 +164,20 @@ class OpsNotifier extends StateNotifier<OpsState> {
   }
 
   Future<List<FloodMarkerRoute>> fetchAlternateRoutes(
-      String driverId, GeoPoint destination, String ride_id) async {
+      String driverId, GeoPoint destination, String rideId) async {
     List<FloodMarkerRoute> routes = [];
     List<String> rideIds = [];
 
     try {
-      // Define the query to fetch data
       final response = await supabase
           .from('alt_route_view')
           .select('coordinates, frequency, ride_id, alt_route_id')
-          .eq('ride_id', ride_id)
+          .eq('ride_id', rideId)
           .execute();
 
       if (response.status == 200 && response.data != null) {
         List<dynamic> routesData = response.data as List<dynamic>;
         debugPrint('Routes data: $routesData');
-
-        // Process the retrieved data
         for (var routeData in routesData) {
           String rideId = routeData['ride_id'].toString();
           String altRouteId = routeData['alt_route_id'].toString();
@@ -191,46 +185,27 @@ class OpsNotifier extends StateNotifier<OpsState> {
           bool isAltRoute = true;
 
           try {
-            // Convert coordinates string to list of GeoPoints
-
             List<dynamic> coordinateList =
                 routeData['coordinates']['coordinates'];
-
             final routePoint =
                 await Srvc.modifyRoute(coordinateList, destination);
-
             FloodMarkerRoute route = FloodMarkerRoute(
                 [], routePoint, altRouteId,
                 frequency: frequency, isAltRoute: isAltRoute);
 
             routes.add(route);
             rideIds.add(rideId);
-          } catch (e) {
-            // Handle parsing error
-            print('Error parsing coordinates: $e');
-          }
+          } catch (e) { print('Error parsing coordinates: $e');}
         }
-      } else {
-        // Handle error
-        print('Error fetching alternate routes: ${response}');
-      }
-    } catch (error) {
-      // Handle any exception that occurs during execution
-      print('An error occurred: $error');
-    }
+      } else {print('Error fetching alternate routes: $response');}
+    } catch (error) { print('An error occurred: $error');}
     try {
       final responseData = await Srvc.getAltRoutePointsByDriver(driverId);
-      final altroutes =
-          await Srvc.parseAltFloodMarkerRoutes(responseData, routes);
-
+      final altroutes = await Srvc.parseAltFloodMarkerRoutes(responseData, routes);
       if (routes.isNotEmpty) {
-        state = state.copyWith(
-          routes: [...(state.routes ?? []), ...altroutes],
-        );
+        state = state.copyWith( routes: [...(state.routes ?? []), ...altroutes],);
       }
-    } catch (e) {
-      debugPrint('Error fetching alt routes: $e');
-    }
+    } catch (e) {  debugPrint('Error fetching alt routes: $e'); }
     return routes;
   }
 
@@ -251,31 +226,31 @@ class OpsNotifier extends StateNotifier<OpsState> {
     return total;
   }
 
-   String getTotalFloodscoreBasedOnWeather(int i) {
-  List<FloodMarkerPoint> points = state.routes![i].points!;
-  int total = 0;
-  if (state.routes![i].isAltRoute == true) {
-    debugPrint(
-        'This is an alternative route ${state.routes![i].points!.length} points}');
-  }
-
-  for (var point in points) {
-    if (state.weatherData! <= 53 ) {
-        if(point.floodLevel == '3'){
-        total += point.floodScore;
-        }
-
-     
-    } else if (state.weatherData! > 53 && state.weatherData! <= 63) {
-      if(point.floodLevel == '2' || point.floodLevel == '3'){
-      total += point.floodScore;}
-    } else {
-      total += point.floodScore;
+  String getTotalFloodscoreBasedOnWeather(int i) {
+    List<FloodMarkerPoint> points = state.routes![i].points!;
+    int total = 0;
+    if (state.routes![i].isAltRoute == true) {
+      debugPrint(
+          'This is an alternative route ${state.routes![i].points!.length} points}');
     }
-  }
 
-  return total.toString(); // Assuming you want to return the total as a string
-}
+    for (var point in points) {
+      if (state.weatherData! <= 53) {
+        if (point.floodLevel == '3') {
+          total += point.floodScore;
+        }
+      } else if (state.weatherData! > 53 && state.weatherData! <= 63) {
+        if (point.floodLevel == '2' || point.floodLevel == '3') {
+          total += point.floodScore;
+        }
+      } else {
+        total += point.floodScore;
+      }
+    }
+
+    return total
+        .toString(); // Assuming you want to return the total as a string
+  }
 
   void clearData() {
     state = state.copyWith(
