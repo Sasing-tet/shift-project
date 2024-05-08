@@ -73,6 +73,61 @@ class OpsNotifier extends StateNotifier<OpsState> {
     );
   }
 
+   Future<double> calculateTotalDistance(List<GeoPoint> route) async {
+    double totalDistance = 0.0;
+
+    totalDistance += await distance2point(route.first, route.last);
+
+    return totalDistance;
+  }
+  
+  Future<void> storeScore()async {
+   final routes = state.routes;
+    if (routes != null) {
+      for (var route in routes) {
+        if(route.points!.isNotEmpty) {
+          final score = getTotalFloodscoreBasedOnWeather(routes.indexOf(route)).toString();
+          route.weatherScore = double.parse(score as String)/ await calculateTotalDistance(route.route);
+
+          debugPrint('Score: $score  weather score:  ${route.weatherScore}');
+        }
+      }
+      if (routes.length > 1) {
+      routes.sort((a, b) => a.weatherScore.compareTo(b.weatherScore));
+    }
+
+    
+
+    List<double> scores = routes.map((route) => route.weatherScore).toList();
+    const double lowRiskThreshold = 0.13;
+    const double mediumRiskThreshold = 0.17;
+
+    List<String> riskLevels = [];
+    for (double score in scores) {
+      debugPrint('weather score: $score');
+      if (score > mediumRiskThreshold) {
+        riskLevels.add('High');
+      } else if (score > lowRiskThreshold) {
+        riskLevels.add('Medium');
+      } else {
+        riskLevels.add('Low');
+      }
+    }
+
+    for (int i = 0; i < routes.length; i++) {
+        routes[i].riskLevel = riskLevels[i];
+      }
+    }
+
+    state = state.copyWith(
+          routes: routes,
+          polylinezzNotifier: true,
+        );
+      
+    
+  }
+
+
   Future<void> fetchAndDrawRoute(
       String? driverId,
       MapController mapController,
@@ -102,9 +157,8 @@ class OpsNotifier extends StateNotifier<OpsState> {
         debugPrint('RoutesTobeAdded: ${routesTobeAdded.length}');
         state = state.copyWith(
           routes: [...(state.routes ?? []), ...routesTobeAdded],
-          polylinezzNotifier: true,
         );
-
+        await storeScore();
         final routez = state.routes!;
         await Srvc.drawRoadManually(routez, mapController, state.weatherData!);
       }
@@ -235,16 +289,17 @@ class OpsNotifier extends StateNotifier<OpsState> {
     }
 
     for (var point in points) {
-      if (state.weatherData! <= 53) {
-        if (point.floodLevel == '3') {
+      if (state.weatherData! > 80 ) {
           total += point.floodScore;
-        }
-      } else if (state.weatherData! > 53 && state.weatherData! <= 63) {
+        
+      } else if (state.weatherData! >= 57 && state.weatherData! <= 80) {
         if (point.floodLevel == '2' || point.floodLevel == '3') {
           total += point.floodScore;
         }
       } else {
-        total += point.floodScore;
+        if (point.floodLevel == '3') {
+          total += point.floodScore;
+        }
       }
     }
 

@@ -6,13 +6,12 @@ class RouteOptionWidget extends StatelessWidget {
   final int i;
   final bool isAlternative;
   final String score;
-  final  String weatherBasedScore;
+
   const RouteOptionWidget({
     super.key,
     required this.i,
     required this.isAlternative,
     required this.score, 
-    required this.weatherBasedScore,
   });
 
   @override
@@ -41,26 +40,39 @@ class RouteOptionWidget extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-           Text(
-            "Weather based Score: $weatherBasedScore",
-            style: const TextStyle(
+           const Text(
+            "Risk Level:",
+            style: TextStyle(
               overflow: TextOverflow.ellipsis,
               color: shiftGrayBorder,
               fontFamily: interFontFamily,
-              fontSize: defaultFontSize,
+              fontSize: defaultFontSize-3,
             ),
           ),
           Text(
-            "Total Score: $score",
-            style: const TextStyle(
+            score,
+            style:  TextStyle(
               overflow: TextOverflow.ellipsis,
-              color: shiftGrayBorder,
+              color: _getColorBasedOnRiskLevel(score),
               fontFamily: interFontFamily,
-              fontSize: defaultFontSize,
+              fontSize: 15,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+Color _getColorBasedOnRiskLevel(String riskLevel) {
+  switch (riskLevel) {
+    case 'Low':
+      return Colors.green; // Bright green for low risk
+    case 'Medium':
+      return Colors.yellow; // Yellow for medium risk
+    case 'High':
+      return Colors.red; // Red for high risk
+    default:
+      return const Color.fromARGB(255, 3, 228, 160); // Default color for other cases
   }
 }
