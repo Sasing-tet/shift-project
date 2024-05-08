@@ -253,35 +253,35 @@ class Srvc {
   static double getOpacity(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
 
-    if (weatherData < 53) {
-      if (level == '3') {
+    if (weatherData > 80) {
         return .5;
-      } else {
-        return .2;
-      }
-    } else if (weatherData >= 53 && weatherData <= 63) {
+    } else if (weatherData >= 57 && weatherData <= 80) {
       if (level == '1') {
-        return .2;
+        return .15;
       } else {
         return .5;
       }
     } else {
-      return .5;
+      if (level == '3') {
+        return .5;
+      } else {
+        return .15;
+      }
     }
   }
 
   static Color getMarkerColor(String level, int weatherData) {
     // Add logic to determine marker color based on the susceptibility level
 
-    if (weatherData < 53) {
+    if (weatherData < 57 && weatherData >= 48) {
       if (level == '1') {
-        return Color.fromARGB(5, 76, 175, 79);
+        return const Color.fromARGB(5, 76, 175, 79);
       } else if (level == '2') {
         return const Color.fromARGB(5, 255, 153, 0);
       } else {
         return const Color.fromARGB(101, 244, 67, 54);
       }
-    } else if (weatherData >= 53 && weatherData <= 63) {
+    } else if (weatherData >= 57 && weatherData <= 80) {
       if (level == '1') {
         return const Color.fromARGB(5, 76, 175, 79);
       } else if (level == '2') {
@@ -309,7 +309,20 @@ class Srvc {
     for (var markerPoint in pointsOnPolyline) {
       String level = markerPoint.floodLevel;
       List<List<GeoPoint>> groupsOfPoints = markerPoint.points;
-      for (var groupPoints in groupsOfPoints) {
+
+       List<String> levelsToCheck = [];
+    if (weatherData > 80 ) {
+      levelsToCheck.addAll(["1", "2", "3"]);
+    } else if (weatherData >= 57 &&
+       weatherData <= 80) {
+      levelsToCheck.addAll(['2', "3"]);
+    } else {
+       levelsToCheck.add('3');
+    }
+        for (var groupPoints in groupsOfPoints) {
+        if (!levelsToCheck.contains(level)) {
+          continue;
+        }
         // Get the marker color based on the level
         Color markerColor = getMarkerColor(level, weatherData);
         double opacity = getOpacity(level, weatherData);
@@ -605,13 +618,13 @@ class Srvc {
       String prevlevel) async {
     List<String> levelsToCheck = [];
     if (opsNotifier.state.weatherData != null) {
-      if (opsNotifier.state.weatherData! <= 57 && opsNotifier.state.weatherData! >= 48 ) {
-        levelsToCheck.add('3');
-      } else if (opsNotifier.state.weatherData! > 57 &&
+      if (opsNotifier.state.weatherData! > 80 ) {
+        levelsToCheck.addAll(["1", "2", "3"]);
+      } else if (opsNotifier.state.weatherData! >= 57 &&
           opsNotifier.state.weatherData! <= 80) {
         levelsToCheck.addAll(['2', "3"]);
       } else {
-        levelsToCheck.addAll(["1", "2", "3"]);
+         levelsToCheck.add('3');
       }
     }
     for (var markerPoint in floodProneArea!) {
@@ -823,36 +836,6 @@ class Srvc {
     };
   }
 
-// static Future<List<List<GeoPoint>>> removePointsInsideRadius(List<List<GeoPoint>> pointsList) async {
-//   List<List<GeoPoint>> filteredList = [];
-
-//   for (int i = 0; i < pointsList.length; i++) {
-//     List<GeoPoint> group = pointsList[i];
-//     GeoPoint centerPoint = group[group.length ~/ 2]; // Middle point as center
-//     double radius = await distance2point(centerPoint, group.last) ;
-
-//     bool shouldAddGroup = true;
-
-//     // Check if this group overlaps with any other group
-//     for (int j = 0; j < pointsList.length; j++) {
-//       if (i != j) {
-//         GeoPoint otherCenterPoint = pointsList[j][pointsList[j].length ~/ 2];
-
-//         double distanceBetweenCenters = await distance2point(centerPoint, otherCenterPoint);
-//         if (distanceBetweenCenters < radius ) {
-//           shouldAddGroup = false;
-
-//         }
-//          if (shouldAddGroup) {
-//       filteredList.add(group);
-//     }
-//       }
-//     }
-
-//   }
-
-//   return filteredList;
-// }
   static bool isPointBetween(GeoPoint point, GeoPoint start, GeoPoint end) {
     double crossProduct = (point.latitude - start.latitude) *
             (end.longitude - start.longitude) -
